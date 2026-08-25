@@ -250,9 +250,7 @@ here and why adding one would break submissions inside Canvas.
 
 ## Licence and attribution
 
-Per Scholas / UCI 2227 course material. Add your licence terms before making the repository public —
-an unlicensed public repo grants no reuse rights, which may or may not be what you intend.
-
+Per Scholas / UCI 2227 course material. 
 Sources: [GitHub Pages limits](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits) ·
 [Creating a GitHub Pages site](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site) ·
 [Setting repository visibility](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility)
