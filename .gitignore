@@ -1,0 +1,31 @@
+# GitHub Pages on the Free plan only serves from a PUBLIC repository, so
+# everything committed here is world-readable. These must never land in it.
+
+# Facilitator builds - they carry the answer keys in an instructor drawer
+*_FT.html
+*_FT.htm
+
+# The scenario key - maps every set letter to the fault it hides
+SET_KEY.md
+SET_KEY.*
+
+# Instructor documents
+*Facilitator_Guide*
+*_INSTRUCTOR*
+*ANSWER*KEY*
+
+# Source documents - handouts and quizzes belong in Canvas, not on a public web host
+*.docx
+*.doc
+*.pptx
+*.xlsx
+
+# Learner submissions, if one is ever saved into the folder by accident
+*_524.*.pdf
+Lastname_Firstname*
+
+# Local noise
+.DS_Store
+Thumbs.db
+desktop.ini
+node_modules/
