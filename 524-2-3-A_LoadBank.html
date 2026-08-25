@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>524.2.3 — UCI 2227 — Lab 2.3 Generator Load-Bank Test (Training Simulator)</title>
+<style>
+  :root{
+    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
+    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:7px 13px}
+  button:hover{background:#1b3044;border-color:#2d4d68}
+  button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  button.primary:hover{background:#0a8bd8}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input[type=text],input[type=number],textarea{
+    font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:7px 9px}
+  textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
+  h1,h2,h3{margin:0;font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex:0 0 auto}
+  .brand{font-weight:700;letter-spacing:.4px;font-size:14px}
+  .brand span{color:var(--blue)}
+  .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
+  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+
+  main{flex:1;overflow:auto;padding:18px}
+  .wrap{max-width:1500px;margin:0 auto}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;margin-bottom:4px}
+  .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
+  .card ul{color:var(--dim);margin:0;padding-left:20px;line-height:1.7;font-size:13px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+
+  /* ---------- console ---------- */
+  .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
+    border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+  .tile .name{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tile .val{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1.15;margin-top:5px}
+  .tile .unit{font-size:14px;color:var(--dim);font-weight:400;margin-left:3px}
+  .tile .band{font-size:11px;color:var(--faint);margin-top:5px;font-family:var(--mono)}
+  .tile.alarm{border-color:var(--stop);background:#2a1512}
+  .tile.alarm .val{color:var(--stop)}
+  .tile.caution{border-color:#5c4c2e}
+  .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
+  .chartbox h3{font-size:13px;margin-bottom:2px}
+  .chartbox .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
+  canvas{display:block;width:100%;height:auto}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .stepchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+  .stepchip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
+
+  /* ---------- log sheet ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+    font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:6px 8px;border-bottom:1px solid #182b3b;vertical-align:middle}
+  td input[type=text]{width:100%;padding:5px 7px;font-family:var(--mono)}
+  .steplbl{font-family:var(--mono);font-size:12px;color:var(--dim);white-space:nowrap}
+  .note{font-size:12px;color:var(--dim);line-height:1.55}
+  .hidden{display:none !important}
+
+  /* ---------- submission ---------- */
+  .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
+  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
+  .fgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+  .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
+  .result.show{display:block;background:var(--panel2);border:1px solid var(--line)}
+  .sheet h2{font-size:16px;margin-bottom:2px}
+  .learnerline{font-size:14px;margin:6px 0 4px}
+  .sheet .sheetsub{font-size:12px;color:var(--faint);margin-bottom:12px}
+  .sheet h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin:16px 0 6px}
+  .srow{display:flex;justify-content:space-between;gap:14px;padding:5px 0;border-bottom:1px solid #182b3b;font-size:12.5px}
+  .srow span:first-child{color:var(--faint);flex:0 0 42%}
+  .srow span:last-child{font-family:var(--mono);text-align:right;flex:1;white-space:pre-wrap}
+  .missing{background:#2b2310;border:1px solid #5c4c2e;border-radius:7px;padding:11px;margin:12px 0;font-size:12.5px;line-height:1.55}
+  .closing{margin-top:14px;font-size:12.5px;color:var(--dim);line-height:1.55}
+
+  @media print{
+    body{background:#fff;color:#000;overflow:visible}
+    header,.toolbar,.noprint{display:none !important}
+    main{overflow:visible}
+    .result{border:1px solid #999 !important;background:#fff !important}
+    .srow span:first-child{color:#444}
+    .sheet h4{color:#000}
+  }
+
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);margin-bottom:8px}
+  .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">GENERATOR LOAD-BANK CONSOLE</div>
+    <div class="sysname">524.2.3 &middot; UCI 2227 · Lab 2.3 · objective M2.3 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="spacer"></div>
+    <div id="statusBadge" class="badge">Ready</div>
+    <div>
+      <div class="clocklbl">Site time</div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <button id="btnStart" class="primary">Start run</button>
+    <button id="btnPause">Pause</button>
+    <button id="btnStep">Step +1 min</button>
+    <span style="width:10px"></span>
+    <div class="fld"><label>Speed</label>
+      <select id="speed">
+        <option value="1">Real time (1x)</option>
+        <option value="4">4x</option>
+        <option value="12" selected>12x</option>
+        <option value="30">30x</option>
+        <option value="60">60x</option>
+      </select>
+    </div>
+    <span class="spacer"></span>
+    <span class="counter" id="elapsed">T+00:00</span>
+    <button id="btnRestart">Restart</button>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <section id="genView"></section>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SET = 0;   /* fixed for this file */
+/* ============================================================
+   UCI 2227 — Lab 2.3 · Generator Load-Bank Test
+   Standalone training console. Offline, no libraries, no network.
+   ============================================================ */
+
+/* ---------- fixed scenario ---------- */
+const SETLETTER="ABCDEFGH".charAt(SET);
+const RUNKEY=(0x9E3779B1 ^ Math.imul(SET+1,2654435761))>>>0;
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=mulberry32(1);
+function noise(amp){return (rnd()*2-1)*amp;}
+function fmtClock(mins){
+  const base=3*60+14; // scenarios run from 03:14 site time
+  const total=base+mins;
+  const h=Math.floor(total/60)%24, m=Math.floor(total%60), s=Math.floor((mins%1)*60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function fmtElapsed(mins){
+  return "T+"+String(Math.floor(mins)).padStart(2,"0")+":"+String(Math.floor((mins%1)*60)).padStart(2,"0");
+}
+function drawChart(cv,cfg){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth, H=cfg.height||150;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+"px";
+  const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0);
+  x.clearRect(0,0,W,H);
+  const pad={l:46,r:10,t:10,b:20};
+  const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+  const {min,max}=cfg;
+  const sy=v=>pad.t+ph-((v-min)/(max-min))*ph;
+  const sx=i=>pad.l+(i/Math.max(1,cfg.xmax))*pw;
+
+  // alarm band shading
+  if(cfg.band){
+    x.fillStyle="rgba(232,96,76,.10)";
+    if(cfg.band.hi<max) x.fillRect(pad.l,pad.t,pw,sy(cfg.band.hi)-pad.t);
+    if(cfg.band.lo>min) x.fillRect(pad.l,sy(cfg.band.lo),pw,pad.t+ph-sy(cfg.band.lo));
+  }
+  // grid + y labels
+  x.strokeStyle="#1d3346"; x.lineWidth=1; x.font="10px "+getComputedStyle(document.body).fontFamily;
+  x.fillStyle="#5c7a92"; x.textAlign="right"; x.textBaseline="middle";
+  for(let i=0;i<=4;i++){
+    const v=min+(max-min)*i/4, yy=sy(v);
+    x.beginPath(); x.moveTo(pad.l,yy); x.lineTo(W-pad.r,yy); x.stroke();
+    x.fillText(cfg.fmt?cfg.fmt(v):v.toFixed(1),pad.l-6,yy);
+  }
+  // step markers
+  if(cfg.steps) cfg.steps.forEach(s=>{
+    if(s>cfg.xmax) return;
+    x.strokeStyle="#25415a"; x.setLineDash([3,3]);
+    x.beginPath(); x.moveTo(sx(s),pad.t); x.lineTo(sx(s),pad.t+ph); x.stroke(); x.setLineDash([]);
+  });
+  // series
+  (cfg.series||[]).forEach(se=>{
+    if(!se.data.length) return;
+    x.strokeStyle=se.color; x.lineWidth=se.width||2; x.beginPath();
+    se.data.forEach((v,i)=>{ const px=sx(i*(cfg.xstep||1)), py=sy(clamp(v,min,max));
+      i?x.lineTo(px,py):x.moveTo(px,py); });
+    x.stroke();
+    // last point dot
+    const li=se.data.length-1;
+    x.fillStyle=se.color; x.beginPath();
+    x.arc(sx(li*(cfg.xstep||1)),sy(clamp(se.data[li],min,max)),2.6,0,7); x.fill();
+  });
+  // x label
+  x.fillStyle="#5c7a92"; x.textAlign="center"; x.textBaseline="top";
+  x.fillText(cfg.xlabel||"minutes",pad.l+pw/2,H-13);
+}
+function tile(name,val,unit,band,cls){
+  return `<div class="tile ${cls||''}"><div class="name">${name}</div>
+    <div class="val">${val}<span class="unit">${unit||''}</span></div>
+    <div class="band">${band||''}</div></div>`;
+}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ---------- this lab ---------- */
+const LAB={lab:"Lab 2.3",obj:"M2.3",title:"Generator Load-Bank Test",duration:24};
+const SCENARIOS=[{id:"A1"},{id:"A2"},{id:"A3"},{id:"A4"},{id:"A0"}];
+
+const S={learner:"",t:0,running:false,timer:null,speed:12,
+  series:{},last:null};
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let V=SCENARIOS[SET];
+
+/* ---------- model ---------- */
+function genSample(t,v){
+  const steps=[0,4,8,12,16,20];
+  let stepIdx=0; steps.forEach((s,i)=>{if(t>=s)stepIdx=i;});
+  const loadPct=[25,40,55,70,85,100][stepIdx];
+  const load=15*loadPct; // kW of 1500
+  const sinceStep=t-steps[stepIdx];
+
+  const dipDepth=0.30+stepIdx*0.02;
+  const dip=Math.exp(-sinceStep*1.7)*dipDepth;
+  let recoverTo=60.0;
+  if(v==="A1") recoverTo=60.0-stepIdx*0.13;
+  let hz=recoverTo-dip+noise(0.035);
+
+  let volts=480-dip*7+noise(1.1);
+
+  let coolant;
+  if(v==="A3"){ coolant=42+54*(1-Math.exp(-t/13))+t*0.30; }
+  else        { coolant=42+46*(1-Math.exp(-t/3.0)); }
+  coolant+=noise(0.35);
+
+  let oil=55+noise(0.45)-stepIdx*0.25;
+  if(v==="A4"&&t>=20){ oil=55-0.25*5-(14*(1-Math.exp(-(t-20)/1.6)))+noise(0.4); }
+
+  const baseRate=68.1+loadPct*3.256;              // litres/hr
+  const rate=(v==="A2"? baseRate*1.18 : baseRate)+noise(5.3);
+  return {load,loadPct,stepIdx,hz,volts,coolant,oil,rate,
+          baselineRate:baseRate};
+}
+
+const PARAMS=["None","Frequency","Voltage","Real power","Coolant temperature","Oil pressure","Fuel rate"];
+const BASEFIELDS=[["bHz","Frequency","Hz"],["bV","Voltage L-L","V"],["bKw","Real power","kW"],
+                  ["bCo","Coolant temp","°C"],["bOil","Oil pressure","psi"],["bFu","Fuel rate","L/h"]];
+const LOGCOLS=[["hz","Frequency (Hz)"],["v","Voltage (V)"],["kw","Real power (kW)"],
+               ["co","Coolant (°C)"],["oil","Oil press (psi)"],["fu","Fuel rate (L/h)"]];
+const STEPPCT=[25,40,55,70,85,100];
+
+function val(id){const e=$(id);return e?e.value.trim():"";}
+
+function buildSheet(){
+  const missing=[];
+  S.learner=val("learnerName");
+  if(!S.learner) missing.push("Your name");
+  const baseMissing=BASEFIELDS.filter(f=>!val(f[0])).map(f=>f[1]);
+  if(baseMissing.length) missing.push("Baseline record: "+baseMissing.join(", "));
+  let blanks=0;
+  for(let i=0;i<6;i++) LOGCOLS.forEach(c=>{ if(!val("lg_"+i+"_"+c[0])) blanks++; });
+  if(blanks) missing.push("Load-step log: "+blanks+" of 36 cells left blank");
+  if(!val("ansParam")) missing.push("The parameter you are flagging (or \"None\")");
+  if(val("ansParam")&&val("ansParam")!=="None"&&!val("ansTime")) missing.push("The time at which you flagged it");
+  if(!val("ansText")) missing.push("Your one-sentence log entry");
+
+  const now=new Date();
+  const rows=[];
+  const row=(k,v)=>`<div class="srow"><span>${esc(k)}</span><span>${esc(v||"—")}</span></div>`;
+  rows.push(`<h2>${LAB.lab} — ${LAB.title}</h2>
+             <div class="sheetsub">UCI 2227 · objective ${LAB.obj} · Set ${SETLETTER} · submission sheet</div>
+             <div class="learnerline"><b>Name:</b> ${esc(S.learner)||"\u2014"}</div>`);
+  rows.push(`<h4>Session</h4>`);
+  rows.push(row("Learner",S.learner));
+  rows.push(row("Set",SETLETTER));
+  rows.push(row("Completed",now.toLocaleDateString()+" "+now.toLocaleTimeString()));
+  rows.push(row("Run time reached",fmtElapsed(S.t)+" of "+LAB.duration+":00 simulated"));
+
+  rows.push(`<h4>Baseline recorded before the run</h4>`);
+  BASEFIELDS.forEach(f=>rows.push(row(f[1]+" ("+f[2]+")",val(f[0]))));
+
+  rows.push(`<h4>Logged readings at each load step</h4>`);
+  for(let i=0;i<6;i++){
+    const cells=LOGCOLS.map(c=>c[1].replace(/\s*\(.*\)$/,"")+" "+(val("lg_"+i+"_"+c[0])||"—")).join("   ");
+    rows.push(row("Step "+(i+1)+" · "+STEPPCT[i]+"%",cells));
+  }
+
+  rows.push(`<h4>Your finding</h4>`);
+  rows.push(row("Parameter flagged",val("ansParam")==="None"?"None — run logged as normal":val("ansParam")));
+  rows.push(row("Time flagged",val("ansTime")));
+  rows.push(row("Log entry",val("ansText")));
+
+  let html=`<div class="sheet">`+rows.join("");
+  if(missing.length){
+    html+=`<div class="missing"><b>Not yet filled in:</b><br>`+
+          missing.map(m=>"· "+esc(m)).join("<br>")+
+          `<br><br>This is a completeness check only. Fill these in and build the sheet again, or hand it in as it stands and explain the gaps.</div>`;
+  }
+  html+=`<div class="closing">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
+         <div class="noprint" style="margin-top:12px"><button id="btnPrint">Print submission sheet</button></div></div>`;
+  const r=$("genResult");
+  r.className="result show";
+  r.innerHTML=html;
+  $("btnPrint").onclick=()=>window.print();
+  if(r.scrollIntoView) r.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ---------- view ---------- */
+function renderGen(){
+  const v=V.id, d=S.last||genSample(S.t,v);
+  const steps=[0,4,8,12,16,20];
+  const alarmHz = d.hz<58.8||d.hz>61.2;
+  const alarmOil= d.oil<30;
+  const alarmCo = d.coolant>105;
+  const el=$("genView");
+  if(!el.dataset.built){
+    el.innerHTML=`
+      <div class="grid g3 noprint" id="genTiles" style="margin-bottom:14px"></div>
+      <div style="margin-bottom:14px" class="noprint">
+        <div class="tile">
+          <div class="name">Load bank staging — 1,500 kW machine</div>
+          <div class="steps" id="genSteps"></div>
+        </div>
+      </div>
+      <div class="grid g2 noprint" id="genCharts"></div>
+
+      <div class="submit noprint">
+        <h3>Baseline record</h3>
+        <div class="sub">Read these off the console before the first load step and write them down. Everything you log later is compared against this row.</div>
+        <div class="fgrid3" id="baseFields"></div>
+      </div>
+
+      <div class="submit noprint">
+        <h3>Load-step log</h3>
+        <div class="sub">Log all six parameters once the machine has settled at each load step.</div>
+        <div style="overflow-x:auto"><table id="logTable"></table></div>
+      </div>
+
+      <div class="submit">
+        <div class="noprint">
+          <h3>Your finding</h3>
+          <div class="sub">Name one parameter you would flag from this run, or record that every parameter behaved normally. Then write the single sentence you would put in the log.</div>
+          <div class="fld" style="margin-bottom:12px"><label>Your name</label><input type="text" id="learnerName" placeholder="First and last" style="max-width:340px" value="${esc(S.learner)}"></div>
+          <div class="fgrid">
+            <div class="fld"><label>Parameter you are flagging</label>
+              <select id="ansParam"></select></div>
+            <div class="fld"><label>Time you flagged it (T+mm:ss)</label>
+              <input type="text" id="ansTime" placeholder="T+12:00" style="font-family:var(--mono)"></div>
+          </div>
+          <div class="fld" style="margin-bottom:12px">
+            <label>Your one log entry sentence — what you observed, over what range, and what you recommend</label>
+            <textarea id="ansText" rows="3" placeholder="Type your answer here."></textarea>
+          </div>
+          <button class="primary" id="btnSubmit">Build submission sheet</button>
+        </div>
+        <div class="result" id="genResult"></div>
+      </div>`;
+    $("genCharts").innerHTML=`
+      <div class="chartbox"><h3>Frequency</h3><div class="sub">Nominal 60.0 Hz · alarm band 58.8 – 61.2 Hz · dashed lines are load steps</div><canvas id="cHz"></canvas></div>
+      <div class="chartbox"><h3>Coolant temperature</h3><div class="sub">Alarm at 105 °C · dashed lines are load steps</div><canvas id="cCo"></canvas></div>
+      <div class="chartbox"><h3>Oil pressure</h3><div class="sub">Alarm at 30 psi · dashed lines are load steps</div><canvas id="cOil"></canvas></div>
+      <div class="chartbox"><h3>Fuel consumption rate</h3><div class="sub">Grey line is the rate recorded at the same load in the previous test</div><canvas id="cFu"></canvas></div>`;
+    $("baseFields").innerHTML=BASEFIELDS.map(f=>
+      `<div class="fld"><label>${f[1]} (${f[2]})</label><input type="text" id="${f[0]}" placeholder="—" style="font-family:var(--mono)"></div>`).join("");
+    $("logTable").innerHTML=
+      `<tr><th>Load step</th>${LOGCOLS.map(c=>`<th>${c[1]}</th>`).join("")}</tr>`+
+      STEPPCT.map((p,i)=>`<tr><td class="steplbl">Step ${i+1} · ${p}% · T+${String([0,4,8,12,16,20][i]).padStart(2,"0")}:00</td>`+
+        LOGCOLS.map(c=>`<td><input type="text" id="lg_${i}_${c[0]}"></td>`).join("")+`</tr>`).join("");
+    $("ansParam").innerHTML=`<option value="">— choose —</option>`+
+      PARAMS.map(p=>`<option value="${p}">${p==="None"?"None — every parameter behaved normally":p}</option>`).join("");
+    $("btnSubmit").onclick=buildSheet;
+  {const _n=$("learnerName"); if(_n) _n.oninput=()=>{S.learner=_n.value.trim();};}
+    el.dataset.built="1";
+  }
+  $("genTiles").innerHTML=
+    tile("Frequency",d.hz.toFixed(2),"Hz","alarm 58.80 – 61.20",alarmHz?"alarm":"")+
+    tile("Voltage L-L",d.volts.toFixed(0),"V","nominal 480 ±10%")+
+    tile("Real power",d.load.toFixed(0),"kW",`step ${d.stepIdx+1} of 6 · ${d.loadPct}% of nameplate`)+
+    tile("Coolant temp",d.coolant.toFixed(1),"°C","alarm 105.0",alarmCo?"alarm":"")+
+    tile("Oil pressure",d.oil.toFixed(1),"psi","alarm 30.0",alarmOil?"alarm":"")+
+    tile("Fuel rate",d.rate.toFixed(1),"L/h",`baseline at this load ${d.baselineRate.toFixed(1)}`);
+  $("genSteps").innerHTML=steps.map((s,i)=>
+    `<div class="stepchip ${S.t>=s?'on':''}">Step ${i+1} · ${[25,40,55,70,85,100][i]}% · T+${String(s).padStart(2,"0")}:00</div>`).join("");
+
+  const xmax=LAB.duration;
+  drawChart($("cHz"),{min:58.6,max:60.6,xmax,steps,xstep:0.25,band:{lo:58.8,hi:61.2},fmt:v=>v.toFixed(1),
+    series:[{data:S.series.hz||[],color:"#33a6e8"}]});
+  drawChart($("cCo"),{min:40,max:110,xmax,steps,xstep:0.25,band:{lo:-99,hi:105},fmt:v=>v.toFixed(0),
+    series:[{data:S.series.coolant||[],color:"#e8a33d"}]});
+  drawChart($("cOil"),{min:25,max:65,xmax,steps,xstep:0.25,band:{lo:30,hi:999},fmt:v=>v.toFixed(0),
+    series:[{data:S.series.oil||[],color:"#37c07a"}]});
+  drawChart($("cFu"),{min:0,max:500,xmax,steps,xstep:0.25,fmt:v=>v.toFixed(0),
+    series:[{data:S.series.base||[],color:"#4d6a80",width:1.5},
+            {data:S.series.rate||[],color:"#33a6e8"}]});
+}
+
+/* ---------- run loop ---------- */
+function pushSeries(){
+  const dd=genSample(S.t,V.id);
+    S.last=dd;
+    (S.series.hz=S.series.hz||[]).push(dd.hz);
+    (S.series.coolant=S.series.coolant||[]).push(dd.coolant);
+    (S.series.oil=S.series.oil||[]).push(dd.oil);
+    (S.series.rate=S.series.rate||[]).push(dd.rate);
+    (S.series.base=S.series.base||[]).push(dd.baselineRate);
+}
+function render(){
+  $("clock").textContent=fmtClock(S.t);
+  $("elapsed").textContent=fmtElapsed(S.t);
+  renderGen();
+}
+function tick(){
+  if(S.t>=LAB.duration){stopRun(true);return;}
+  S.t=Math.min(LAB.duration,S.t+0.25);
+  pushSeries(); render();
+}
+function startRun(){
+  if(S.running)return;
+  S.running=true;
+  $("statusBadge").textContent="Running"; $("statusBadge").className="badge run";
+  clearInterval(S.timer);
+  S.timer=setInterval(tick,Math.max(60,1000*15/S.speed));
+}
+function stopRun(done){
+  S.running=false; clearInterval(S.timer); S.timer=null;
+  $("statusBadge").textContent=done?"Run complete":"Held";
+  $("statusBadge").className="badge "+(done?"":"hold");
+}
+function resetRun(){
+  stopRun(false);
+  rnd=mulberry32(RUNKEY);
+  S.t=0; S.series={}; S.last=null;
+  pushSeries(); render();
+  $("statusBadge").textContent="Ready"; $("statusBadge").className="badge";
+}
+
+/* ---------- wiring ---------- */
+$("btnStart").onclick=startRun;
+$("btnPause").onclick=()=>stopRun(false);
+$("btnStep").onclick=()=>{if(S.running)stopRun(false);for(let i=0;i<4;i++)tick();};
+$("btnRestart").onclick=resetRun;
+$("speed").onchange=()=>{S.speed=+$("speed").value;if(S.running){stopRun(false);startRun();}};
+window.addEventListener("resize",render);
+document.addEventListener("keydown",e=>{
+  if(e.key===" "&&e.target.tagName!=="TEXTAREA"&&e.target.tagName!=="INPUT"&&e.target.tagName!=="SELECT"){
+    e.preventDefault(); S.running?stopRun(false):startRun();
+  }
+});
+
+/* ---------- boot ---------- */
+$("setTag").textContent="Set "+SETLETTER;
+resetRun();
+</script>
+<!-- LQ_SUBMISSION_MODULE -->
+<script id="lqData">var LQ={"lab": "524.2.3", "title": "Generator Load-Bank Telemetry Audit", "handout": "GLAB 524.2.3 - Generator Load-Bank Telemetry Audit", "file": "524-2-3-A_LoadBank.html", "set": "A", "items": [{"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 1. Log in to the simulated BMS and SCADA terminal and open the generator control interface — the 524.2.3 file your instructor gives you opens straight into the lab. Record below the machine rating and the load step schedule shown on the console. Do not start the run yet."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 3. Write down, before you start, what each parameter should do. Frequency should dip at each load step and recover. Coolant should rise and then plateau once the engine is at temperature. Oil pressure should hold. Fuel rate should track load and sit close to the previous test at the same load. Committing to the expected shape in writing is what makes a departure from it visible."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 5. Watch the interval between the steps, not only the moment of the step. Every parameter moves when load is applied — that is normal and it is not the finding. The question is what happens in the twenty or thirty seconds afterwards. Record, for each step, whether each parameter returned to where it started."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 6. Note anything that does not return to where it started, anything that keeps climbing when it should have flattened, and anything that sits consistently above or below the previous test at the same load. Those three shapes are the only ones you are looking for. Write down every candidate at this stage; you will narrow them down at step 8."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 8. Narrow your candidates to one. For each candidate you are discarding, write one sentence saying why it is normal behaviour. This step is where false positives are caught, and a false positive counts against you in the assessment."}, {"s": "Part 1: Auditing the load-bank run", "k": "image", "p": "Step 10. Capture the console trace for the parameter you have identified, showing the whole run window and the load steps. This is the evidence you will present."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 11. State in one line whether you believe the run should have been halted, and why or why not. Take a position and support it from your own logged readings."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain the difference between an alarm and a trend, and say why a technician is required to sit through a load-bank test that the console is already monitoring."}, {"s": "Part 2: Reflection", "k": "text", "p": "You discarded at least one parameter as normal. Name one, describe what it did during the run, and explain how you satisfied yourself it was normal rather than simply unremarkable."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose you had not recorded a baseline before the run. Which of the six parameters would still have been judgeable, and which would have become impossible to assess? Explain why."}, {"s": "Part 2: Reflection", "k": "text", "p": "The pass criteria for this lab count a false positive against you. Explain, in terms of what happens in a real control room, why flagging an extra parameter is treated as a failure rather than as caution."}]};</script>
+<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+     Collects every handout question and its response inside this lab tool and
+     exports ONE print-to-PDF submission sheet for Canvas grading.
+     Self-contained. No external libraries. Safe to re-inject (idempotent).
+
+     v2.0 — WCAG 2.1 AA pass (label association, headings, alt text, contrast,
+     status announcement, authored focus); image downscale before storage with a
+     visible error if the quota still throws; Save-as-PDF filename set from the
+     learner name; print pagination and running header; duplicate learner-name
+     rows stripped from the harvested simulator record.
+     ========================================================================= -->
+<style id="lqStyle">
+  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
+  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+  #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#9db6c9;font-weight:700}
+  #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
+    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+  #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
+  #lqCard .lqq{margin-bottom:16px}
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+    cursor:pointer}
+  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+    margin-right:6px;font-weight:700}
+  #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
+    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
+  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+  #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
+  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard .lqimgwrap{margin-top:7px}
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+    border-radius:5px;display:block;margin-top:8px}
+  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+
+  /* authored focus — the simulators author none, so this is the only visible ring.
+     Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
+     in the simulator above as much as in the submission panel. */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+  @media print{ :focus-visible{outline:none!important} }
+
+  /* error banner for a storage failure the learner must know about */
+  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr b{color:#fff}
+
+  /* screen-reader-only live region */
+  .lqvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* ---- the assembled submission sheet ---- */
+  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
+  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
+  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+    padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
+  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
+    font-size:12px;color:#a8c0d3;line-height:1.9}
+
+  #lqPrint{display:none}
+  #lqPrint .lqpage{width:100%;border-collapse:collapse}
+
+  /* ---- print: only the sheet ---- */
+  @media print{
+    body.lq-print{background:#fff!important;color:#000!important;
+      overflow:visible!important;height:auto!important}
+    body.lq-print>*{display:none!important}
+    body.lq-print>#lqPrint{display:block!important}
+
+    /* Everything harvested from the simulator arrives in the dark console palette:
+       near-white text that would print invisibly, on backgrounds the browser drops
+       by default. Flatten the whole print container to ink on paper first, then
+       re-assert the few greys that carry meaning. */
+    body.lq-print #lqPrint,body.lq-print #lqPrint *{
+      color:#000!important;background-color:transparent!important;background-image:none!important;
+      box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
+
+    /* running header — a thead repeats on every page in every engine that paginates */
+    body.lq-print #lqPrint thead.lqrhead{display:table-header-group}
+    body.lq-print #lqPrint td.lqrh{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      font-size:8pt;color:#444!important;border-bottom:.5pt solid #999!important;
+      padding:0 0 3pt;text-align:left}
+    body.lq-print #lqPrint td.lqrh .r{float:right}
+    body.lq-print #lqPrint td.lqbody{padding:6pt 0 0}
+
+    body.lq-print #lqPrint .lqsheet{background:#fff;border:0;padding:0;margin:0;color:#000}
+    body.lq-print #lqPrint h1{color:#000}
+    body.lq-print #lqPrint h1,body.lq-print #lqPrint h2{border-bottom-color:#999!important}
+    body.lq-print #lqPrint h2{color:#000;border-bottom:1px solid #999;
+      page-break-after:avoid;break-after:avoid}
+    body.lq-print #lqPrint .lqmeta,body.lq-print #lqPrint .lqrow .k,
+    body.lq-print #lqPrint .lqa .q{color:#444!important}
+    body.lq-print #lqPrint .lqa .q .qn{color:#000!important}
+    body.lq-print #lqPrint .lqrow,body.lq-print #lqPrint .lqa{border-bottom:1px solid #ddd!important}
+    body.lq-print #lqPrint .lqa,body.lq-print #lqPrint .lqrow,
+    body.lq-print #lqPrint .lqsign,body.lq-print #lqPrint .lqgap{
+      page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint .lqa .a.blank{color:#000;font-style:italic}
+    body.lq-print #lqPrint .lqgap,body.lq-print #lqPrint .lqgap.ok{
+      background:#fff!important;border:1pt solid #666!important;color:#000!important}
+    body.lq-print #lqPrint .lqsign{color:#000;border-top:1px solid #999}
+    body.lq-print #lqPrint .noprint{display:none!important}
+    body.lq-print #lqPrint button{display:none!important}
+    /* harvested simulator tables keep their column headers across pages */
+    body.lq-print #lqPrint thead{display:table-header-group}
+    body.lq-print #lqPrint tr{page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint p,body.lq-print #lqPrint .a{orphans:3;widows:3}
+    @page{margin:16mm 14mm 14mm}
+  }
+</style>
+<script id="lqScript">
+(function(){
+  if(window.__lqLoaded) return; window.__lqLoaded=true;
+
+  var esc=function(s){return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
+
+  var KEY="uci2227:"+LQ.file;
+  var store={}, storageBroken=false;
+  try{ store=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ store={}; }
+
+  /* ---------- cross-lab storage budget ----------
+     Every lab in the module is served from one origin, so all 43 share a single
+     ~5 MB localStorage budget. Seventeen image questions at ~325 KB apiece is 5.4 MB
+     — a learner working through the whole module on one browser profile would run out
+     near the end. Images belonging to OTHER labs are evicted when room is needed,
+     oldest and already-exported first. Text answers are never evicted: they are tiny,
+     and they are the part a learner cannot reproduce. An evicted image is already
+     inside the submission PDF that lab produced. */
+  function otherLabKeys(){
+    var out=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0&&k!==KEY) out.push(k);
+      }
+    }catch(e){}
+    return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
+  }
+  function evictOtherImages(target){
+    /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
+    var recs=[];
+    otherLabKeys().forEach(function(k){
+      var raw,obj;
+      try{ raw=localStorage.getItem(k)||"{}"; obj=JSON.parse(raw); }catch(e){ return; }
+      var imgBytes=0;
+      for(var f in obj) if(/_img$/.test(f)) imgBytes+=String(obj[f]).length;
+      if(imgBytes>0) recs.push({k:k,obj:obj,bytes:imgBytes,ts:obj._ts||0,done:obj._done?1:0});
+    });
+    recs.sort(function(a,b){ return (b.done-a.done)||(a.ts-b.ts); });
+    var freed=0;
+    for(var i=0;i<recs.length&&freed<target;i++){
+      var r=recs[i];
+      for(var f in r.obj) if(/_img$/.test(f)) delete r.obj[f];
+      r.obj._evicted=true;
+      try{ localStorage.setItem(r.k,JSON.stringify(r.obj)); freed+=r.bytes; }catch(e){}
+    }
+    return freed;
+  }
+
+  function save(){
+    store._ts=Date.now();
+    var payload;
+    try{ payload=JSON.stringify(store); }catch(e){ return false; }
+    try{
+      localStorage.setItem(KEY,payload);
+      if(storageBroken){ storageBroken=false; showStoreErr(null); }
+      return true;
+    }catch(e){
+      /* make room from other labs, then try once more */
+      if(evictOtherImages(payload.length+200000)>0){
+        try{
+          localStorage.setItem(KEY,payload);
+          if(storageBroken){ storageBroken=false; showStoreErr(null); }
+          return true;
+        }catch(e2){}
+      }
+      storageBroken=true;
+      showStoreErr(e);
+      return false;
+    }
+  }
+  function showStoreErr(e){
+    var b=document.getElementById("lqStoreErr");
+    if(!b) return;
+    if(!e){ b.style.display="none"; return; }
+    b.style.display="block";
+    b.innerHTML='<b>Your work is no longer being saved in this browser.</b><br>'
+      +'Storage is full or switched off — usually private browsing, or a great many images '
+      +'attached across the labs on this machine. Everything on screen is intact and the '
+      +'submission PDF will still build correctly — but <b>do not refresh or close this tab</b>. '
+      +'Press <b>Build submission PDF</b> now and save the file. '
+      +'Then press <b>Clear my responses</b> to free the space up for the next lab.';
+    if(b.scrollIntoView) b.scrollIntoView({block:"nearest"});
+  }
+
+  function announce(msg){
+    var s=document.getElementById("lqStatus");
+    if(s){ s.textContent=""; setTimeout(function(){ s.textContent=msg; },30); }
+  }
+
+  /* ---------- detect the set letter the tool is running ---------- */
+  function setLetter(){
+    try{ if(typeof SETLETTER!=="undefined"&&SETLETTER) return SETLETTER; }catch(e){}
+    var tag=document.getElementById("setTag");
+    if(tag&&tag.textContent){
+      var m=tag.textContent.match(/set\s+([A-H])/i); if(m) return m[1].toUpperCase();
+    }
+    var m2=(LQ.file||"").match(/524-\d-\d-([A-H])_/); if(m2) return m2[1];
+    return LQ.set||"—";
+  }
+
+  /* ---------- downscale an image before it goes anywhere near storage ----------
+     A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
+     about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
+     capture under 400 KB, which is still far more detail than the PDF can show. */
+  var MAXPX=1600, JPEGQ=0.82;
+  function downscale(file,cb){
+    var rd=new FileReader();
+    rd.onerror=function(){ cb(null,"The browser could not read that file."); };
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ cb(null,"That file does not look like an image the browser can open."); };
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(rd.result,null); return; }
+          var sc=Math.min(1,MAXPX/Math.max(w,h));
+          if(sc>=1&&rd.result.length<600000){ cb(rd.result,null); return; }
+          var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+          var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+          var x=c.getContext("2d");
+          x.fillStyle="#fff"; x.fillRect(0,0,cw,ch);
+          x.drawImage(img,0,0,cw,ch);
+          cb(c.toDataURL("image/jpeg",JPEGQ),null);
+        }catch(err){ cb(rd.result,null); }
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+
+  /* ---------- build the card ---------- */
+  var host=document.querySelector("main .wrap")||document.querySelector("main")||document.body;
+  var card=document.createElement("section");
+  card.id="lqCard";
+  card.setAttribute("aria-labelledby","lqCardTitle");
+
+  var qs=LQ.items, secs=[], cur=null;
+  qs.forEach(function(it,i){
+    if(!cur||cur.name!==it.s){ cur={name:it.s,list:[]}; secs.push(cur); }
+    cur.list.push({i:i,it:it});
+  });
+
+  var html=""
+   +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
+   +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
+   +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
+   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<div id="lqStoreErr" role="alert"></div>'
+   +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
+   +'<div class="lqid">'
+   +'<div class="lqfld" style="flex:1 1 260px"><label for="lqName">Your name</label>'
+     +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
+     +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
+     +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
+   +'</div>';
+
+  secs.forEach(function(sec,si){
+    html+='<h3 class="lqsec" id="lqSec'+si+'">'+esc(sec.name||"Questions")+'</h3>';
+    sec.list.forEach(function(o){
+      var id="lqQ"+o.i, n=o.i+1;
+      html+='<div class="lqq">';
+      if(o.it.k==="image"){
+        html+='<p class="lqp"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</p>'
+             +'<div class="lqimgwrap">'
+             +'<label class="lqfilelbl" for="'+id+'_f">Attach your image for question '+n+'</label>'
+             +'<input type="file" accept="image/*" id="'+id+'_f">'
+             +'<p class="lqnote" style="margin:5px 0 0">A photo or screenshot. It is resized and '
+             +'embedded in the PDF you hand in.</p>'
+             +'<img id="'+id+'_img" alt="Your attached image for question '+n+'" style="display:none">'
+             +'<label class="lqfilelbl" for="'+id+'" style="margin-top:8px">Caption or note for question '+n+'</label>'
+             +'<textarea id="'+id+'" rows="2" placeholder="Add any caption or note that goes with the image.">'
+             +esc(store[id]||"")+'</textarea></div>';
+      }else{
+        html+='<label class="lqp" for="'+id+'"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</label>'
+             +'<textarea id="'+id+'" rows="3" placeholder="Type your answer here.">'+esc(store[id]||"")+'</textarea>';
+      }
+      html+='</div>';
+    });
+  });
+
+  html+='<div class="lqbtns">'
+    +'<button type="button" class="lqprimary" id="lqBuild">Build submission PDF</button>'
+    +'<button type="button" id="lqPreview">Preview without printing</button>'
+    +'<button type="button" id="lqClear">Clear my responses</button>'
+    +'<span class="lqnote">The PDF carries every question, your responses and the simulator record. One file, one upload.</span>'
+    +'</div><div id="lqOut" role="region" aria-label="Submission sheet preview"></div>';
+
+  card.innerHTML=html;
+  host.appendChild(card);
+
+  /* ---------- wiring ---------- */
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
+    var el=document.getElementById(id);
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+  });
+  qs.forEach(function(it,i){
+    var id="lqQ"+i, ta=document.getElementById(id);
+    if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
+    var f=document.getElementById(id+"_f");
+    if(f) f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      announce("Processing your image for question "+(i+1)+".");
+      downscale(file,function(dataUrl,err){
+        if(err){ announce(err); alert(err); return; }
+        var img=document.getElementById(id+"_img");
+        img.src=dataUrl; img.style.display="block";
+        store[id+"_img"]=dataUrl;
+        var okSave=save();
+        announce("Image attached to question "+(i+1)+
+          (okSave?"." : ", but it could not be saved in this browser. Build your PDF now."));
+      });
+    };
+    if(store[id+"_img"]){
+      var im0=document.getElementById(id+"_img");
+      if(im0){ im0.src=store[id+"_img"]; im0.style.display="block"; }
+    }
+  });
+
+  /* an image of this lab was evicted to make room for another lab on the shared
+     origin, and this lab had not yet been exported — say so plainly */
+  if(store._evicted&&!store._done){
+    var eb=document.getElementById("lqStoreErr");
+    eb.style.display="block";
+    eb.innerHTML='<b>An image you attached is no longer stored.</b><br>'
+      +'This browser ran out of room across all the labs on this machine and dropped it. '
+      +'Your typed answers are all still here — only the image went. '
+      +'Attach it again before you build your submission PDF.';
+    delete store._evicted; save();
+  }
+
+  document.getElementById("lqClear").onclick=function(){
+    if(!confirm("Clear every response you have typed in this lab? This cannot be undone.")) return;
+    store={}; save();
+    qs.forEach(function(it,i){
+      var ta=document.getElementById("lqQ"+i); if(ta) ta.value="";
+      var im=document.getElementById("lqQ"+i+"_img"); if(im){ im.removeAttribute("src"); im.style.display="none"; }
+      var fi=document.getElementById("lqQ"+i+"_f"); if(fi) fi.value="";
+    });
+    document.getElementById("lqOut").innerHTML="";
+    announce("All responses cleared.");
+  };
+
+  /* ---------- guard the simulator's Restart button ----------
+     Restart wipes the simulator record but not the responses typed here, which
+     would leave a submission whose prose describes a record that no longer exists.
+     A capture-phase listener runs ahead of the tool's own onclick, so one confirm
+     covers every variant of the handler. */
+  (function(){
+    var rb=document.getElementById("btnRestart")||document.getElementById("btnReset");
+    if(!rb||card.contains(rb)) return;
+    rb.addEventListener("click",function(ev){
+      if(rb.dataset.lqOk==="1"){ rb.dataset.lqOk=""; return; }
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      var ok=confirm(
+        "Restart the scenario?\n\n"+
+        "Everything you recorded in the simulator — readings, marks, logs, the "+
+        "submission sheet it built — is wiped and the run starts again.\n\n"+
+        "The answers you typed in the submission panel lower down are KEPT. If they "+
+        "describe readings you are about to erase, build your submission PDF first.");
+      if(ok){ rb.dataset.lqOk="1"; rb.click(); }
+    },true);
+  })();
+
+  /* ---------- harvest the simulator's own record ---------- */
+  var REC_SEL=".sheet, .result.show";
+  function collect(){
+    var raw=[];
+    Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
+      if(card.contains(s)) return;
+      if(!s.textContent.replace(/\s/g,"")) return;
+      raw.push(s);
+    });
+    return raw.filter(function(s){
+      return !raw.some(function(o){ return o!==s && o.contains(s); });
+    });
+  }
+
+  /* the module already prints the learner name in its own Learner block, and every
+     simulator sheet prints it again — four of them twice. Strip it from the clone. */
+  var NAMEKEY=/^(your\s+)?(name|learner(\s+name)?)\s*:?\s*$/i;
+  function stripDuplicateName(root){
+    Array.prototype.forEach.call(root.querySelectorAll(".learnerline"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    var rows=root.querySelectorAll("div,tr,p");
+    Array.prototype.forEach.call(rows,function(r){
+      var first=r.firstElementChild;
+      if(!first||r.children.length>3) return;
+      if(NAMEKEY.test((first.textContent||"").trim())){
+        if(r.parentNode) r.parentNode.removeChild(r);
+      }
+    });
+  }
+
+  function toolRecord(){
+    var found=collect();
+    if(!found.length){
+      var btns=document.querySelectorAll("button");
+      var hit=null;
+      Array.prototype.forEach.call(btns,function(b){
+        if(card.contains(b)||hit) return;
+        var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+        if(/print/.test(t)) return;
+        if(/^build submission sheet$/.test(t)) hit=b;
+      });
+      if(!hit){
+        Array.prototype.forEach.call(btns,function(b){
+          if(card.contains(b)||hit) return;
+          var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+          if(/print/.test(t)) return;
+          if(/build .*sheet|submission sheet|submit .*(map|answer|sheet|round|log)|^submit$/.test(t)) hit=b;
+        });
+      }
+      if(hit){ try{ hit.click(); }catch(e){} }
+      found=collect();
+    }
+    if(!found.length) return null;
+    var wrap=document.createElement("div");
+    found.forEach(function(s){
+      var c=s.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      });
+      stripDuplicateName(c);
+      wrap.appendChild(c);
+    });
+    return wrap.innerHTML;
+  }
+
+  /* ---------- assemble the one sheet ---------- */
+  function build(){
+    var name=document.getElementById("lqName").value.trim();
+    var coh=document.getElementById("lqCohort").value.trim();
+    var dt=document.getElementById("lqDate").value.trim();
+    var gaps=[];
+    if(!name) gaps.push("Your name");
+    if(!coh)  gaps.push("Cohort / section");
+
+    var h=''
+     +'<div class="lqsheet">'
+     +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
+     +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
+       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+     +'<h2>Learner</h2>'
+     +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Built</span><span class="v">'
+       +esc(new Date().toLocaleString())+'</span></div>';
+
+    var rec=LQ.nosim?null:toolRecord();
+    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
+    else if(!LQ.nosim){
+      gaps.push("The simulator record — work through the lab tool above and press its own "
+               +"“Build submission sheet” button before you build this PDF");
+    }else{
+      h+='<h2>Assessed on the floor</h2>'
+        +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
+        +'Observed and signed off by the instructor against the handout. '
+        +'The instructor signature below records that sign-off.</span></div>';
+    }
+
+    var curSec=null;
+    qs.forEach(function(it,i){
+      if(it.s!==curSec){ curSec=it.s; h+='<h2>'+esc(curSec||"Questions")+'</h2>'; }
+      var ta=document.getElementById("lqQ"+i);
+      var a=ta?ta.value.trim():"";
+      var im=store["lqQ"+i+"_img"];
+      if(!a&&!im) gaps.push("Q"+(i+1));
+      h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
+      if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
+      h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
+    });
+
+    if(gaps.length){
+      h+='<div class="lqgap"><b>Not yet filled in ('+gaps.length+'):</b> '+esc(gaps.join(", "))
+        +'.<br>This is a completeness check, not a grade. Fill them in and build again, '
+        +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
+    }else{
+      h+='<div class="lqgap ok">'
+        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+    }
+
+    h+='<div class="lqsign">Learner signature: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'Instructor verification: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
+
+    document.getElementById("lqOut").innerHTML=h;
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
+    return h;
+  }
+
+  document.getElementById("lqPreview").onclick=function(){
+    build();
+    var o=document.getElementById("lqOut");
+    if(o&&o.scrollIntoView) o.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* ---------- the one PDF ---------- */
+  function safeName(s){
+    return String(s||"").normalize?String(s||"").normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+      :String(s||"").replace(/[^\w\s-]/g,"").trim();
+  }
+  function fileTitle(){
+    var n=safeName(document.getElementById("lqName").value).split(/\s+/).filter(Boolean);
+    var last=n.length>1?n[n.length-1]:(n[0]||"Learner");
+    var first=n.length>1?n.slice(0,-1).join("_"):"";
+    var who=first?(last+"_"+first):last;
+    return who+"_"+String(LQ.lab||"").replace(/[^\d.]/g,"");
+  }
+
+  document.getElementById("lqBuild").onclick=function(){
+    var h=build();
+    /* this lab's images are now inside a PDF the learner holds, so they become the
+       first thing evicted when another lab needs room on the shared origin */
+    store._done=true; save();
+
+    var old=document.getElementById("lqPrint"); if(old) old.parentNode.removeChild(old);
+
+    /* The sheet goes inside a one-cell table whose thead repeats on every printed
+       page, so pages 2+ still carry the learner name, the lab and the set. */
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+      +esc(document.getElementById("lqName").value.trim()||"Name not entered")
+      +' · '+esc(LQ.title);
+    var pr=document.createElement("div"); pr.id="lqPrint";
+    pr.innerHTML='<table class="lqpage"><thead class="lqrhead"><tr><td class="lqrh">'
+      +runHead+'</td></tr></thead><tbody><tr><td class="lqbody">'+h+'</td></tr></tbody></table>';
+    document.body.appendChild(pr);
+
+    /* the browser suggests document.title as the Save-as-PDF filename */
+    var prevTitle=document.title;
+    document.title=fileTitle();
+    document.body.classList.add("lq-print");
+
+    var restored=false;
+    var done=function(){
+      if(restored) return; restored=true;
+      document.body.classList.remove("lq-print");
+      document.title=prevTitle;
+      var a=document.getElementById("lqPrint"); if(a&&a.parentNode) a.parentNode.removeChild(a);
+      window.removeEventListener("afterprint",done);
+      if(mq&&mq.removeListener) mq.removeListener(mqHandler);
+    };
+    var mq=window.matchMedia?window.matchMedia("print"):null;
+    var mqHandler=function(m){ if(!m.matches) done(); };
+    if(mq&&mq.addListener) mq.addListener(mqHandler);
+    window.addEventListener("afterprint",done);
+
+    setTimeout(function(){
+      window.print();
+      /* generous fallback: mobile print sheets are asynchronous, and tearing the
+         container out too early yields a blank PDF */
+      setTimeout(done,60000);
+    },80);
+  };
+})();
+</script>
+<!-- ===== end submission module ============================================= -->
+
+</body>
+</html>

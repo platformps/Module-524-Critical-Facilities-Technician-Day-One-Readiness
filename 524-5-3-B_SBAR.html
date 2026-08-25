@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>524.5.3 — UCI 2227 — Lab 5.3 SBAR Turnover Verification Gate (Training Simulator)</title>
+<style>
+  :root{
+    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
+    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:7px 13px}
+  button:hover{background:#1b3044;border-color:#2d4d68}
+  button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  button.primary:hover{background:#0a8bd8}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input[type=text],input[type=number],textarea{
+    font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:7px 9px}
+  textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
+  h1,h2,h3{margin:0;font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex:0 0 auto}
+  .brand{font-weight:700;letter-spacing:.4px;font-size:14px}
+  .brand span{color:var(--blue)}
+  .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
+  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+
+  main{flex:1;overflow:auto;padding:18px}
+  .wrap{max-width:1500px;margin:0 auto}
+
+  /* ---------- launch ---------- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;margin-bottom:4px}
+  .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
+  .bul{margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:var(--dim)}
+  .bul li{margin-bottom:3px}
+
+  /* ---------- console ---------- */
+  .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
+    border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+
+  /* ---------- log table ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+    font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+  th:hover{color:var(--blue)}
+  td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
+  .tick{display:inline-block;width:15px;height:15px;border:1px solid var(--line);border-radius:3px;
+    background:var(--panel2);cursor:pointer;vertical-align:-3px}
+  .tick.on{background:var(--blue);border-color:var(--blue)}
+  .flt{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .flt .chip{font-size:11px;padding:5px 11px;border-radius:20px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--dim);cursor:pointer}
+  .flt .chip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .note{font-size:12px;color:var(--dim);line-height:1.55}
+  .hidden{display:none !important}
+
+  /* ---------- submission ---------- */
+  .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
+  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
+  .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none;
+    background:var(--panel2);border:1px solid var(--line)}
+  .result.show{display:block}
+  .sheet h3{font-size:15px;margin-bottom:2px}
+  .sheet .shsub{font-size:12px;color:var(--faint);margin-bottom:12px}
+  .sheet h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin:16px 0 7px}
+  .srow{display:flex;justify-content:space-between;gap:16px;padding:5px 0;border-bottom:1px solid #182b3b;font-size:12.5px}
+  .srow span:first-child{color:var(--faint);flex:0 0 230px}
+  .srow span:last-child{flex:1;text-align:right;white-space:pre-wrap}
+  .missing{margin-top:14px;padding:11px 13px;border-radius:7px;background:#2b2310;border:1px solid #5c4c2e;
+    font-size:12.5px;line-height:1.55}
+  .closing{margin-top:14px;padding-top:11px;border-top:1px solid var(--line);font-size:12.5px;color:var(--dim)}
+  @media print{
+    body{background:#fff;color:#000;overflow:visible}
+    header,.toolbar,.noprint{display:none !important}
+    main{overflow:visible}
+    .result{background:#fff;border:1px solid #999}
+    .sheet h4{color:#000}
+    .srow span:first-child{color:#444}
+    .missing{background:#fff;border:1px solid #999}
+  }
+
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);margin-bottom:8px}
+  .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+
+  /* ---------- lab 5.3 ---------- */
+  .prog{height:8px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;
+    overflow:hidden;margin:2px 0 12px}
+  .prog i{display:block;height:100%;background:var(--blue);transition:width .18s}
+  tr.seen{opacity:.55}
+  tr.lg{cursor:pointer}
+  tr.lg:hover{background:#16293a}
+  tr.det td{background:#0e1c27;border-bottom:1px solid var(--line)}
+  .enum{font-family:var(--mono);font-weight:700;color:var(--blue)}
+  .stat{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;
+    white-space:nowrap;background:#22303a;color:#8ba6bd}
+  .stat.open{background:#4a3418;color:#ffc069}
+  .lnk{display:inline-block;font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:12px;
+    border:1px solid #2d4d68;background:#16324a;color:var(--ice);margin:2px 4px 2px 0;cursor:pointer}
+  .lockbox{background:#2b2310;border:1px solid #5c4c2e;border-radius:9px;padding:16px 18px;
+    font-size:13px;line-height:1.55;color:var(--ink)}
+  .sbarblk{background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:14px 16px;margin-bottom:12px}
+  .sbarblk.done{border-color:#1d5b41}
+  .sbarblk .sbh{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .sbarblk .letter{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--blue);
+    width:26px;text-align:center}
+  .sbarblk .stitle{font-size:14px;font-weight:700}
+  .sbarblk .sdesc{font-size:12px;color:var(--faint);margin:0 0 10px 36px;line-height:1.5}
+  .vchk{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:12px;font-family:var(--mono)}
+  .vchk span{color:var(--faint)}
+  .vchk span.yes{color:var(--ok)}
+  .vchk span.no{color:var(--stop)}
+  .risk{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);
+    border-radius:8px;background:var(--panel2);margin-bottom:8px}
+  .risk .rtype{font-size:10px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);white-space:nowrap}
+  .teams{background:#1b1f38;border:1px solid #343a68;border-radius:10px;overflow:hidden;max-width:760px}
+  .teams .th2{display:flex;gap:10px;align-items:center;padding:10px 14px;background:#232847;
+    border-bottom:1px solid #343a68;font-size:12px;color:#c9cdf0}
+  .teams .av{width:28px;height:28px;border-radius:50%;background:#5b5fc7;color:#fff;display:flex;
+    align-items:center;justify-content:center;font-weight:700;font-size:11px;flex:0 0 auto}
+  .teams .tb2{padding:14px 16px;color:#dfe1f5;font-size:13px;line-height:1.55}
+  .teams .tmsg{background:#20254a;border:1px solid #343a68;border-radius:8px;padding:12px 14px;margin-top:10px}
+  .teams .tlbl{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:#9aa0d6;font-weight:700}
+  .teams .chk{display:flex;gap:9px;align-items:flex-start;padding:6px 0;font-size:12.5px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">SHIFT TURNOVER — <span>SBAR GATE</span></div>
+    <div class="sysname">524.5.3 &middot; UCI 2227 · Lab 5.3 · objective M5.3 · Set B · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="spacer"></div>
+    <div id="statusBadge" class="badge">Ready</div>
+    <div>
+      <div class="clocklbl">Site time</div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <button id="btnLog" class="primary">Shift log</button>
+    <button id="btnRisk">Risk register</button>
+    <button id="btnSbar">SBAR builder</button>
+    <button id="btnBrief">Briefing mode</button>
+    <button id="btnTeams">Teams confirmation</button>
+    <span class="spacer"></span>
+    <span class="counter" id="progress">read 0/26</span>
+    <button id="btnRestart">Restart</button>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <section id="gateView"></section>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SET = 1;   /* fixed for this file */
+/* ============================================================
+   UCI 2227 — Lab 5.3 · SBAR Turnover Verification Gate
+   Standalone training console. Offline, no libraries, no network.
+   ============================================================ */
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=mulberry32(1);
+
+/* ---------- this lab ---------- */
+const $=id=>document.getElementById(id);
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+const LAB={lab:"Lab 5.3",obj:"M5.3",title:"SBAR Turnover Verification Gate",duration:90};
+
+const SBAR_NOTE="SBAR is Situation, Background, Assessment, Recommendation. It came out of the United States Navy nuclear submarine service and was adapted for handover in hospitals by Kaiser Permanente.";
+
+function E(t,sys,txt,by,st){return {t:t,sys:sys,txt:txt,by:by,st:st};}
+
+const LOGS={
+H1:[
+ E("19:04","Admin","Shift start. Two technicians on, one contractor escort. Site on utility supply. Walk-round completed, all plant normal.","J. Okafor","Info"),
+ E("19:35","Mechanical","CRAH-07 shut down and isolated for fan bearing replacement. Contractor returns Thursday morning. Hall B temperatures normal at time of isolation.","J. Okafor","Open"),
+ E("20:12","Water","Chilled water make-up meter reads 41 litres added since the 14:00 handover. System topped, no action taken.","R. Mensah","Closed"),
+ E("20:31","Security","Door 12 held open 40 seconds during a consumables delivery. Closed and checked.","Control room","Closed"),
+ E("20:58","Fire","Weekly fire alarm bell test completed on zone 3. Panel reset, no faults showing.","R. Mensah","Closed"),
+ E("21:44","Electrical","Utility feed A off for planned switchboard works. GEN-2 online carrying the site. Bulk fuel tank 9,800 litres at changeover.","J. Okafor","Ongoing"),
+ E("22:03","BMS","Building management system workstation restarted after a graphics page froze. Trend history intact.","R. Mensah","Closed"),
+ E("22:36","Environment","Hall A cold aisle 22.4 °C, hot aisle 33.1 °C. Band 18–27 °C.","Control room","Info"),
+ E("23:22","Mechanical","Hall B units CRAH-08 to CRAH-12 running at 78% fan speed. Earlier in the week the same units sat at 62%. Temperatures in band.","R. Mensah","Info"),
+ E("23:50","Electrical","GEN-2 bulk tank 8,600 litres. Manufacturer figure for this load is 420 litres per hour.","J. Okafor","Info"),
+ E("00:07","Mechanical","Damp patch on the floor tile beneath the branch 3 isolation valve pit. Mopped up. No drip seen while standing there.","R. Mensah","Closed"),
+ E("00:41","Security","Perimeter camera 6 offline. Ticket raised with the network team for Tuesday.","Control room","Open"),
+ E("01:02","Water","Water treatment dosing pot topped up. Chemistry sample taken and labelled for the Tuesday collection.","R. Mensah","Closed"),
+ E("01:12","Admin","Fuel delivery confirmed with the supplier for 14:00 Tuesday.","J. Okafor","Booked"),
+ E("01:48","Electrical","PDU-2 branch loads read and logged. Highest branch at 62% of rating.","R. Mensah","Info"),
+ E("02:10","Electrical","GEN-2 bulk tank 7,300 litres.","J. Okafor","Info"),
+ E("02:40","Mechanical","Spare fan bearing kit not held in stores. Contractor bringing their own on Thursday. CRAH-07 remains isolated.","J. Okafor","Open"),
+ E("03:04","Fire","Sprinkler riser 1 gauge reads 6.2 bar. Normal.","R. Mensah","Info"),
+ E("03:38","BMS","Chilled water loop static pressure 2.1 bar. It read 2.3 bar at the start of the shift. Band is 1.8–2.6 bar, so no alarm.","Control room","Info"),
+ E("04:02","Admin","Cleaning contractor escorted through Hall A. Signed in and signed out.","Control room","Closed"),
+ E("04:19","Environment","Hall A relative humidity 44%. Band 40–60%.","Control room","Info"),
+ E("04:30","Electrical","GEN-2 bulk tank 6,000 litres.","J. Okafor","Info"),
+ E("04:55","Mechanical","AHU-3 filter differential 180 Pa. Change point is 250 Pa. Replacement filters on order.","R. Mensah","Open"),
+ E("05:22","Water","Chilled water make-up meter now 63 litres for the shift. Typical shift figure is 5 to 15 litres.","R. Mensah","Info"),
+ E("06:05","Environment","Hall B cold aisle 24.1 °C, band 18–27 °C. CRAH-08 discharge damper sitting at 100%.","Control room","Info"),
+ E("06:41","Admin","Handover pack printed. Permits outstanding: one hot work permit closed, one mechanical isolation still open.","J. Okafor","Info")
+],
+H2:[
+ E("19:02","Admin","Shift start. Two technicians on. Site on utility supply, both feeds healthy. Walk-round completed.","D. Haldane","Info"),
+ E("19:20","Electrical","UPS-B placed on maintenance bypass for battery string replacement. Load running on raw mains through the bypass. Contractor returns Wednesday.","D. Haldane","Open"),
+ E("19:51","Security","Two contractors signed in and escorted to the plantroom. Badge numbers logged.","Control room","Closed"),
+ E("20:20","Water","Cooling tower CT-1 basin make-up 310 litres this evening. Water treatment dosing pump refilled while there.","S. Whitmore","Closed"),
+ E("20:47","Environment","Hall A cold aisle 21.9 °C. Band 18–27 °C.","Control room","Info"),
+ E("21:15","Fire","Monthly emergency lighting test completed on the east stair. All luminaires passed.","S. Whitmore","Closed"),
+ E("21:50","Electrical","GEN-1 online and house load transferred for the utility board changeover. Bulk tank 11,200 litres. Manual figure at this load is 430 litres per hour.","D. Haldane","Ongoing"),
+ E("22:24","BMS","Trend logging server disk at 71% full. Archive job scheduled for the weekend.","Control room","Open"),
+ E("22:55","Electrical","PDU-4 and PDU-6 both fed through the UPS-B bypass. Loads 38% and 41%, no faults.","S. Whitmore","Info"),
+ E("23:30","Mechanical","CRAH-02 humidifier canister replaced. Unit returned to service and proved.","S. Whitmore","Closed"),
+ E("23:58","Security","Door 4 forced-open alarm. Found propped by a delivery cage. Cage moved, alarm cleared.","Control room","Closed"),
+ E("00:40","Mechanical","Staining and a damp patch on the pipe support beneath the condenser water header in the plantroom. Wiped down.","S. Whitmore","Closed"),
+ E("00:55","Electrical","GEN-1 bulk tank 9,450 litres. Set load 61%.","D. Haldane","Info"),
+ E("01:20","Admin","Lift 2 annual inspection booked for Friday. Insurer notified.","D. Haldane","Booked"),
+ E("01:30","Admin","Fuel delivery booked with the supplier for 16:00 today.","D. Haldane","Booked"),
+ E("02:07","Environment","Hall B relative humidity 47%. Band 40–60%.","Control room","Info"),
+ E("02:35","Electrical","UPS-B battery monitor shows the strings disconnected. No stored energy available on the B side while the bypass is in.","S. Whitmore","Info"),
+ E("03:05","BMS","Condenser water system pressure 1.9 bar. It read 2.15 bar at the 19:00 handover. Band is 1.6–2.4 bar, so no alarm.","Control room","Info"),
+ E("03:44","Mechanical","Cooling tower CT-2 fan vibration reading 2.1 mm/s. Normal for the unit.","S. Whitmore","Info"),
+ E("04:05","Electrical","GEN-1 bulk tank 7,800 litres.","D. Haldane","Info"),
+ E("04:30","Security","Perimeter fence gate 2 latch stiff. Maintenance request raised.","Control room","Open"),
+ E("04:45","Electrical","UPS-B battery cabinets still open with cells on the floor. Area barriered off and signed. No restoration before Wednesday.","D. Haldane","Open"),
+ E("05:10","Water","Condenser water make-up totaliser 720 litres for the shift. Normal shift figure is 250 to 350 litres.","S. Whitmore","Info"),
+ E("05:40","Mechanical","AHU-1 drive belt tension checked, within limits. Guard refitted.","S. Whitmore","Closed"),
+ E("06:20","Electrical","GEN-1 bulk tank 6,320 litres.","D. Haldane","Info"),
+ E("06:44","Admin","Handover pack printed. Permits outstanding: one electrical isolation open on UPS-B.","D. Haldane","Info")
+],
+H3:[
+ E("19:06","Admin","Shift start. Two technicians on. Site on utility supply. Walk-round completed, no defects found.","A. Ferreira","Info"),
+ E("19:22","Security","Goods lift out of service notice posted at both landings. Engineer attending Thursday.","Control room","Open"),
+ E("19:40","Mechanical","CH-1 drained and isolated for condenser tube cleaning. Contractor on site Thursday 08:00. CH-2 carrying the full site load.","A. Ferreira","Open"),
+ E("20:14","Environment","Hall A cold aisle 22.8 °C. Band 18–27 °C.","Control room","Info"),
+ E("20:45","Mechanical","Pump P-6 mechanical seal weeping slightly. Drip tray placed underneath, checked each round.","T. Nakamura","Open"),
+ E("21:20","Fire","Sprinkler valve room inspected. All valves locked open, tamper switches healthy.","T. Nakamura","Closed"),
+ E("21:47","BMS","Controller BMS-P3 firmware patch deferred to the next planned window. Vendor informed.","Control room","Open"),
+ E("22:05","Electrical","Site islanded on GEN-3 after a network operator fault on the incoming 11 kV supply. Bulk tank 8,900 litres.","A. Ferreira","Ongoing"),
+ E("22:38","Security","Door 9 held open 25 seconds. Closed and checked.","Control room","Closed"),
+ E("23:10","Mechanical","CH-2 compressor load 84%. Running continuously since 19:40 with no step down.","T. Nakamura","Info"),
+ E("23:58","Mechanical","Low temperature hot water pressurisation unit called for make-up twice this evening. 18 litres added in total.","T. Nakamura","Closed"),
+ E("00:26","Admin","Contractor method statement and risk assessment received for the Thursday tube cleaning. Filed with the permit pack.","A. Ferreira","Closed"),
+ E("00:52","Environment","Hall B relative humidity 45%. Band 40–60%.","Control room","Info"),
+ E("01:15","Electrical","GEN-3 bulk tank 7,250 litres. Set load 54%. Manual figure at this load is 390 litres per hour.","A. Ferreira","Info"),
+ E("01:41","Water","Domestic water booster set discharge pressure 3.4 bar. Normal.","T. Nakamura","Info"),
+ E("01:50","Admin","Emergency fuel delivery agreed with the supplier for 15:00 today.","A. Ferreira","Booked"),
+ E("02:50","Mechanical","CH-2 condenser approach temperature 1.4 K. It read 0.9 K last week. Tubes want cleaning at the next opportunity.","T. Nakamura","Info"),
+ E("03:18","Electrical","PDU-7 branch loads read and logged. Highest branch at 57% of rating.","T. Nakamura","Info"),
+ E("03:46","BMS","Low temperature hot water circuit pressure 1.4 bar. It read 1.6 bar at handover. Low pressure cut-out is 1.1 bar, so no alarm.","Control room","Info"),
+ E("04:00","Electrical","GEN-3 bulk tank 5,820 litres.","A. Ferreira","Info"),
+ E("04:28","Security","Camera 11 picture noisy. Ticket raised with the network team.","Control room","Open"),
+ E("04:52","Fire","Fire alarm panel printer out of paper. New roll fitted, printer tested.","T. Nakamura","Closed"),
+ E("05:00","Mechanical","Free cooling not available, outside air 19 °C. CH-2 remains the sole source of cooling to Halls A and B.","T. Nakamura","Info"),
+ E("05:35","Mechanical","Drip tray under P-6 emptied. Approximately 2 litres collected since it was placed.","T. Nakamura","Closed"),
+ E("06:02","Environment","Hall A cold aisle 23.0 °C, hot aisle 33.8 °C. Band 18–27 °C.","Control room","Info"),
+ E("06:35","Electrical","GEN-3 bulk tank 4,470 litres. Handed over at this reading.","A. Ferreira","Info")
+]};
+const SETS=["H1","H2","H3"];
+
+const S={cfg:SET,learner:"",view:"log",
+  read:new Set(),links:[],risks:[],
+  sbar:{S:"",B:"",A:"",R:""},order:[],
+  lookups:0,cites:[],
+  teams:{posted:false,postedAt:"",chk:{a:false,b:false,c:false,d:false},ref:"",out:"",inn:""},
+  search:"",sysFilter:"",unreadOnly:false,sortKey:"n",sortDir:1,open:new Set()};
+let LOG=LOGS[SETS[SET]];
+let clockTimer=null, clockSec=0;
+
+/* ---------- model helpers ---------- */
+function systems(){ const s=[]; LOG.forEach(e=>{ if(s.indexOf(e.sys)<0) s.push(e.sys); }); return s.sort(); }
+function fmtSite(sec){
+  const base=6*60*60+50*60; // the handover window opens at 06:50 site time
+  const t=base+sec;
+  const h=Math.floor(t/3600)%24, m=Math.floor(t/60)%60, s=Math.floor(t%60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function fmtDur(sec){
+  const m=Math.floor(sec/60), s=Math.floor(sec%60);
+  return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+const NAMES=["G. Adeyemi","P. Lindqvist","M. Bourne","H. Ravel","K. Osei","L. Traoré"];
+function assignNames(){
+  rnd=mulberry32((1013904223 + SET*2654435761)>>>0);
+  S.teams.out=NAMES[Math.floor(rnd()*NAMES.length)];
+  S.teams.innAuto=NAMES[Math.floor(rnd()*NAMES.length)];
+  S.teams.inn=String(S.learner||"").trim()||S.teams.innAuto;
+  S.teams.ref="HO-"+String(1000+Math.floor(rnd()*8999))+"-"+String(100+Math.floor(rnd()*899));
+}
+
+/* ---------- recommendation validator (form only) ---------- */
+const ACT_RE=/\b(bring forward|advance|expedite|call|ring|phone|contact|raise|escalat\w*|request|order|book|arrange|schedul\w*|dispatch|isolat\w*|top up|refill|replace|fit|swap|restore|reinstate|reconnect|return|start|stop|shut|open|close|assign|instruct|notify|inform|survey|trace|pressure test|leak test|hire|deliver|barrier|attend|man the|record|log|hand)\b/i;
+const FREQ_RE=/\b(every|each)\s+(\d+|two|three|four|five|six|half|couple of|few)?\s*(minute|minutes|min|mins|hour|hours|hr|hrs|round|rounds|shift|patrol|walk)\b|\bhourly\b|\b(two|three|four|2|3|4)[\s-]?hourly\b|\b(twice|three times|four times)\s+(a|per|each)\s+(shift|hour|day)\b|\bq\s?\d+\s?h\b|\bat (each|every) (round|walk|patrol)\b/i;
+const FREQ_STRIP=/\b(every|each)\s+(\d+|two|three|four|five|six|half|couple of|few)?\s*(minutes?|mins?|hours?|hrs?)\b|\b(two|three|four|2|3|4)[\s-]?hourly\b|\bevery\s+(minute|hour|round|shift|patrol|walk)s?\b/gi;
+const UNIT_RE=/\b\d[\d.,]*\s*(l\b|litre|liter|%|bar\b|psi\b|kpa\b|pa\b|k\b|kw\b|kva\b|amp|mm\b|°c|deg\s?c)/i;
+const CMP_RE=/\b(below|under|above|over|less than|more than|greater than|reaches|drops to|falls to|rises to|exceeds|at or below|at or above|beyond)\s+\d/i;
+const VAGUE=[
+ {re:/monitor(?:ing)?\s+(?:it\s+|this\s+|them\s+)?closely/i,ph:"monitor closely"},
+ {re:/keep(?:ing)?\s+an\s+eye/i,ph:"keep an eye on it"},
+ {re:/watch\s+(it|this|them|closely)/i,ph:"watch it"},
+ {re:/continue\s+to\s+monitor/i,ph:"continue to monitor"},
+ {re:/keep\s+monitoring/i,ph:"keep monitoring"},
+ {re:/check\s+regularly/i,ph:"check regularly"},
+ {re:/as\s+(necessary|required|appropriate)/i,ph:"as required"},
+ {re:/\bbe\s+aware\b/i,ph:"be aware"},
+ {re:/\basap\b/i,ph:"as soon as possible"}
+];
+function validateRec(txt){
+  const t=(txt||"").trim();
+  const stripped=t.replace(FREQ_STRIP," ");
+  const vague=VAGUE.filter(v=>v.re.test(t)).map(v=>v.ph);
+  return {
+    action:ACT_RE.test(t),
+    freq:FREQ_RE.test(t),
+    thresh:UNIT_RE.test(stripped)||CMP_RE.test(stripped),
+    vague:vague,
+    len:t.length
+  };
+}
+
+/* ---------- shift log view ---------- */
+function logSkeleton(){
+  const sys=systems().map(s=>`<div class="chip ${S.sysFilter===s?"on":""}" data-sys="${s}">${s}</div>`).join("");
+  return `
+  <div class="tile noprint" style="margin-bottom:14px">
+    <h3 style="font-size:15px;margin-bottom:3px">Outgoing night shift log — 19:00 to 07:00</h3>
+    <div class="note" style="margin-bottom:12px">Twenty-six entries. Open every one to read it in full; the SBAR builder unlocks once you have opened them all. Use <b>Connect</b> inside an open entry to tie it to another entry.</div>
+    <div class="flt" id="logFilters">
+      <div class="chip ${S.sysFilter?"":"on"}" data-sys="">All systems</div>${sys}
+      <span style="width:12px"></span>
+      <div class="chip ${S.unreadOnly?"on":""}" data-unread="1">Unopened only</div>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <div class="fld"><label>Search the log</label>
+        <input type="text" id="logSearch" placeholder="text, system, author or time" value="${esc(S.search)}" style="width:300px"></div>
+      <button id="btnCollapse">Collapse all</button>
+      <span class="spacer" style="flex:1"></span>
+      <span class="counter" id="logCount"></span>
+    </div>
+    <div class="prog"><i id="progFill" style="width:0%"></i></div>
+    <div style="overflow:auto;max-height:56vh"><table id="logTable"></table></div>
+  </div>`;
+}
+function logRows(){
+  const q=S.search.trim().toLowerCase();
+  let rows=LOG.map((e,i)=>({e:e,i:i,n:i+1}));
+  if(S.sysFilter) rows=rows.filter(o=>o.e.sys===S.sysFilter);
+  if(S.unreadOnly) rows=rows.filter(o=>!S.read.has(o.i));
+  if(q) rows=rows.filter(o=>(o.e.txt+" "+o.e.sys+" "+o.e.by+" "+o.e.t+" "+o.n).toLowerCase().indexOf(q)>=0);
+  const k=S.sortKey, d=S.sortDir;
+  rows.sort((p,r)=>{
+    let c=0;
+    if(k==="n"||k==="time") c=p.n-r.n;
+    else if(k==="sys"){ c=p.e.sys.localeCompare(r.e.sys); if(c===0) c=p.n-r.n; }
+    else c=String(p.e[k]).localeCompare(String(r.e[k]));
+    return c*d;
+  });
+  return rows;
+}
+function linksFor(n){
+  const out=[];
+  S.links.forEach(p=>{ if(p[0]===n) out.push(p[1]); else if(p[1]===n) out.push(p[0]); });
+  return out.sort((a,b)=>a-b);
+}
+function renderLogTable(){
+  const rows=logRows();
+  const arrow=key=>S.sortKey===key?(S.sortDir>0?" ▲":" ▼"):"";
+  let html=`<thead><tr>
+    <th data-k="n">#${arrow("n")}</th>
+    <th data-k="time">Time${arrow("time")}</th>
+    <th data-k="sys">System${arrow("sys")}</th>
+    <th style="cursor:default">Entry</th>
+    <th data-k="by">Author${arrow("by")}</th>
+    <th data-k="st">Status${arrow("st")}</th>
+    <th style="cursor:default">Links</th>
+    <th style="cursor:default">Opened</th>
+  </tr></thead><tbody>`;
+  rows.forEach(o=>{
+    const seen=S.read.has(o.i), isOpen=S.open.has(o.i);
+    const preview=o.e.txt.length>72?o.e.txt.slice(0,72)+"…":o.e.txt;
+    const lk=linksFor(o.n);
+    html+=`<tr class="lg ${seen?'seen':''}" data-row="${o.i}">
+      <td class="enum">${String(o.n).padStart(2,"0")}</td>
+      <td class="mono">${o.e.t}</td>
+      <td>${o.e.sys}</td>
+      <td>${isOpen?"<b>opened</b>":preview}</td>
+      <td>${o.e.by}</td>
+      <td><span class="stat ${o.e.st==="Open"||o.e.st==="Ongoing"?"open":""}">${o.e.st.toUpperCase()}</span></td>
+      <td class="mono">${lk.length?lk.join(", "):"—"}</td>
+      <td><span class="tick ${seen?'on':''}"></span></td>
+    </tr>`;
+    if(isOpen){
+      const opts=LOG.map((x,j)=>j===o.i?"":`<option value="${j+1}">${String(j+1).padStart(2,"0")} · ${x.t} · ${x.sys}</option>`).join("");
+      html+=`<tr class="det"><td colspan="8">
+        <div style="font-size:13.5px;line-height:1.6;margin-bottom:10px">${o.e.txt}</div>
+        <div class="row" style="align-items:flex-end">
+          <div class="fld"><label>Connect this entry to</label>
+            <select data-sel="${o.n}"><option value="">— choose an entry —</option>${opts}</select></div>
+          <button data-connect="${o.n}">Connect</button>
+          <span class="spacer" style="flex:1"></span>
+          <span class="counter">entry ${String(o.n).padStart(2,"0")} of 26 · logged by ${o.e.by} · ${o.e.st}</span>
+        </div>
+        <div style="margin-top:9px">${lk.length?("Connected to: "+lk.map(x=>`<span class="lnk" data-cut="${o.n}|${x}">${String(x).padStart(2,"0")} ×</span>`).join("")):"<span class='note'>No connections drawn from this entry yet.</span>"}</div>
+      </td></tr>`;
+    }
+  });
+  html+="</tbody>";
+  $("logTable").innerHTML=html;
+  $("logCount").textContent=rows.length+" of 26 entries shown · "+S.read.size+" opened · "+S.links.length+" connections drawn";
+  $("progFill").style.width=Math.round(S.read.size/LOG.length*100)+"%";
+  $("logTable").querySelectorAll("th[data-k]").forEach(th=>{
+    th.onclick=()=>{ const k=th.dataset.k;
+      if(S.sortKey===k) S.sortDir*=-1; else { S.sortKey=k; S.sortDir=1; }
+      renderLogTable(); };
+  });
+  updateProgress();
+}
+function wireLog(){
+  $("logFilters").onclick=e=>{
+    const c=e.target.closest(".chip"); if(!c) return;
+    if(c.dataset.unread!==undefined){ S.unreadOnly=!S.unreadOnly; }
+    else { S.sysFilter=c.dataset.sys; }
+    [...$("logFilters").children].forEach(ch=>{
+      if(!ch.dataset) return;
+      if(ch.dataset.unread!==undefined) ch.classList.toggle("on",S.unreadOnly);
+      else if(ch.dataset.sys!==undefined) ch.classList.toggle("on",ch.dataset.sys===S.sysFilter);
+    });
+    renderLogTable();
+  };
+  $("logSearch").oninput=e=>{ S.search=e.target.value; renderLogTable(); };
+  $("btnCollapse").onclick=()=>{ S.open.clear(); renderLogTable(); };
+  $("logTable").onclick=e=>{
+    const cut=e.target.closest("[data-cut]");
+    if(cut){ const p=cut.dataset.cut.split("|").map(Number);
+      S.links=S.links.filter(x=>!((x[0]===p[0]&&x[1]===p[1])||(x[0]===p[1]&&x[1]===p[0])));
+      renderLogTable(); return; }
+    const go2=e.target.closest("[data-connect]");
+    if(go2){ const n=+go2.dataset.connect;
+      const sel=$("logTable").querySelector('[data-sel="'+n+'"]');
+      const other=+sel.value;
+      if(other && other!==n){
+        const a=Math.min(n,other), b=Math.max(n,other);
+        if(!S.links.some(p=>p[0]===a&&p[1]===b)) S.links.push([a,b]);
+      }
+      renderLogTable(); return; }
+    if(e.target.closest("select")) return;
+    const row=e.target.closest("tr.lg"); if(!row) return;
+    const i=+row.dataset.row;
+    if(S.open.has(i)) S.open.delete(i); else { S.open.add(i); S.read.add(i); }
+    renderLogTable();
+  };
+}
+
+/* ---------- risk register view ---------- */
+function riskSkeleton(){
+  const opts=systems().map(s=>`<option value="${s}">${s}</option>`).join("")+
+             `<option value="Other">Other</option>`;
+  return `
+  <div class="tile noprint" style="margin-bottom:14px">
+    <h3 style="font-size:15px;margin-bottom:3px">Risk register</h3>
+    <div class="note" style="margin-bottom:14px">One line per risk, with the entry numbers that evidence it. A risk with no entry numbers behind it is an opinion, and the incoming lead will treat it as one. Add as many or as few lines as you judge the next shift needs.</div>
+    <div class="row" style="align-items:flex-end;margin-bottom:12px">
+      <div class="fld" style="flex:1;min-width:320px"><label>Risk — what is happening and why it matters</label>
+        <input type="text" id="rDesc" placeholder="what is happening, and what it means for the next shift" style="width:100%"></div>
+      <div class="fld"><label>System</label><select id="rType">${opts}</select></div>
+      <div class="fld"><label>Evidencing entries</label>
+        <input type="text" id="rEv" placeholder="entry numbers" style="width:150px"></div>
+      <button class="primary" id="btnAddRisk">Add to register</button>
+    </div>
+    <div id="riskList"></div>
+  </div>`;
+}
+function renderRiskList(){
+  const el=$("riskList");
+  if(!S.risks.length){ el.innerHTML='<div class="note">Nothing on the register yet.</div>'; updateProgress(); return; }
+  el.innerHTML=S.risks.map((r,i)=>`
+    <div class="risk">
+      <div class="rtype">${esc(r.k)}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;line-height:1.5">${esc(r.d)}</div>
+        <div class="counter" style="margin-top:4px">entries ${r.ev.length?r.ev.map(n=>String(n).padStart(2,"0")).join(", "):"none cited"}</div>
+      </div>
+      <button data-del="${i}">Remove</button>
+    </div>`).join("");
+  el.onclick=e=>{ const b=e.target.closest("[data-del]"); if(!b) return;
+    S.risks.splice(+b.dataset.del,1); renderRiskList(); };
+  updateProgress();
+}
+function wireRisk(){
+  $("btnAddRisk").onclick=()=>{
+    const d=$("rDesc").value.trim();
+    if(d.length<10){ $("rDesc").focus(); return; }
+    const ev=($("rEv").value.match(/\d+/g)||[]).map(Number).filter(n=>n>=1&&n<=LOG.length);
+    S.risks.push({d:d,k:$("rType").value,ev:ev.filter((n,i2,a)=>a.indexOf(n)===i2).sort((a,b)=>a-b)});
+    $("rDesc").value=""; $("rEv").value="";
+    renderRiskList();
+  };
+}
+
+/* ---------- SBAR builder ---------- */
+const SBAR_FIELDS=[
+ {k:"S",name:"Situation",desc:"One or two sentences on what is happening right now."},
+ {k:"B",name:"Background",desc:"How it got here. The isolations, the works in progress, the readings taken across the shift."},
+ {k:"A",name:"Assessment",desc:"Your judgement. What this means, what is exposed, and what happens next if nothing changes."},
+ {k:"R",name:"Recommendation",desc:"What you want the incoming lead to do. It must name an action, a frequency, and a threshold — the number at which they act."}
+];
+function sbarSkeleton(){
+  if(S.read.size<LOG.length){
+    return `<div class="lockbox noprint">
+      <b>SBAR builder is locked.</b><br><br>
+      It unlocks once every entry in the shift log has been opened. You have opened ${S.read.size} of ${LOG.length}.<br><br>
+      Go back to <b>Shift log</b> and finish reading.
+    </div>`;
+  }
+  return `
+  <div class="tile noprint" style="margin-bottom:14px">
+    <h3 style="font-size:15px;margin-bottom:3px">SBAR builder</h3>
+    <div class="note" style="margin-bottom:14px">${SBAR_NOTE} Fill the four in the order they are shown. The order you enter them in is recorded on your submission sheet.</div>
+    ${SBAR_FIELDS.map(f=>`
+      <div class="sbarblk" id="blk${f.k}">
+        <div class="sbh"><div class="letter">${f.k}</div><div class="stitle">${f.name}</div></div>
+        <div class="sdesc">${f.desc}</div>
+        <textarea id="ta${f.k}" rows="${f.k==="R"?4:3}" placeholder="${f.name}…">${esc(S.sbar[f.k])}</textarea>
+        ${f.k==="R"?'<div class="vchk" id="recChk"></div>':""}
+      </div>`).join("")}
+    <div class="row">
+      <button class="primary" id="btnCheckSbar">Check the structure</button>
+      <span class="spacer" style="flex:1"></span>
+      <span class="counter" id="sbarOrder"></span>
+    </div>
+    <div class="result" id="sbarResult"></div>
+  </div>`;
+}
+function recChkHTML(v){
+  const y=(b,t)=>`<span class="${b?'yes':'no'}">${t}: ${b?"present":"not found"}</span>`;
+  return y(v.action,"named action")+y(v.freq,"frequency")+y(v.thresh,"threshold")+
+    (v.vague.length?`<span class="no">vague wording: ${esc(v.vague.join(", "))}</span>`:"");
+}
+function checkStructure(){
+  const lines=[], v=validateRec(S.sbar.R);
+  const present={};
+  SBAR_FIELDS.forEach(f=>{ present[f.k]=S.sbar[f.k].trim().length>=25; });
+  const order=S.order.filter(k=>present[k]);
+  SBAR_FIELDS.forEach(f=>{
+    if(!present[f.k]) lines.push(f.name+" is empty, or too short to brief from.");
+  });
+  if(order.length===4 && order.join("")!=="SBAR"){
+    lines.push("The four elements were entered in the order "+order.join(", ")+
+      ". SBAR is entered Situation, then Background, then Assessment, then Recommendation.");
+  }
+  if(present.R){
+    if(!v.action) lines.push("Recommendation: no named action found. Say who does what.");
+    if(!v.freq) lines.push("Recommendation: no frequency found. Say how often it is done, for example every hour or every two hours.");
+    if(!v.thresh) lines.push("Recommendation: no threshold found. Give the number at which the incoming lead acts, for example below 2.0 bar or above 27 °C.");
+    if(v.vague.length) lines.push("Recommendation: wording such as “"+v.vague[0]+"” carries no action, no interval and no number.");
+  }
+  if(!lines.length) lines.push("All four elements are present, they were entered in order, and the recommendation contains a named action, a frequency and a threshold.");
+  return {lines:lines,rec:v,order:order,present:present};
+}
+function wireSbar(){
+  if(S.read.size<LOG.length) return;
+  SBAR_FIELDS.forEach(f=>{
+    const ta=$("ta"+f.k);
+    ta.oninput=()=>{
+      S.sbar[f.k]=ta.value;
+      if(ta.value.trim().length>=20 && S.order.indexOf(f.k)<0) S.order.push(f.k);
+      $("blk"+f.k).classList.toggle("done",ta.value.trim().length>=25);
+      if(f.k==="R") $("recChk").innerHTML=recChkHTML(validateRec(ta.value));
+      $("sbarOrder").textContent="order entered: "+(S.order.join(", ")||"none yet");
+    };
+    if(S.sbar[f.k].trim().length>=25) $("blk"+f.k).classList.add("done");
+  });
+  $("recChk").innerHTML=recChkHTML(validateRec(S.sbar.R));
+  $("sbarOrder").textContent="order entered: "+(S.order.join(", ")||"none yet");
+  $("btnCheckSbar").onclick=()=>{
+    const g=checkStructure();
+    const r=$("sbarResult");
+    r.className="result show";
+    r.innerHTML="<b>Structure check</b><br>"+g.lines.join("<br>");
+  };
+}
+
+/* ---------- briefing mode ---------- */
+function briefSkeleton(){
+  return `
+  <div class="grid g2 noprint">
+    <div class="tile">
+      <h3 style="font-size:15px;margin-bottom:3px">Speak from this</h3>
+      <div class="note" style="margin-bottom:12px">Deliver it verbally to the instructor, who is taking it as the incoming shift lead. They will interrupt with questions. Answer from the log on the right rather than from memory — the same point-and-read discipline as Module 4.</div>
+      ${SBAR_FIELDS.map(f=>`<div class="sbarblk">
+        <div class="sbh"><div class="letter">${f.k}</div><div class="stitle">${f.name}</div></div>
+        <div style="font-size:13px;line-height:1.55;margin-left:36px;white-space:pre-wrap">${esc(S.sbar[f.k].trim())||"<span class='note'>empty</span>"}</div>
+      </div>`).join("")}
+    </div>
+    <div class="tile">
+      <h3 style="font-size:15px;margin-bottom:3px">Log lookup</h3>
+      <div class="note" style="margin-bottom:12px">Search the shift log while you are speaking. When you read an entry out to answer a question, cite it — every citation is recorded on your submission sheet.</div>
+      <div class="row" style="margin-bottom:10px">
+        <div class="fld" style="flex:1"><label>Look something up</label>
+          <input type="text" id="bSearch" placeholder="text, system, author or time" style="width:100%"></div>
+        <button class="primary" id="btnFind">Find</button>
+      </div>
+      <div id="bResults" style="max-height:34vh;overflow:auto"></div>
+      <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:12px">
+        <div class="counter" id="bCount"></div>
+        <div id="citeList" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>`;
+}
+function renderBriefResults(q){
+  const t=(q||"").trim().toLowerCase();
+  const hits=LOG.map((e,i)=>({e:e,n:i+1}))
+    .filter(o=>!t||(o.e.txt+" "+o.e.sys+" "+o.e.by+" "+o.e.t+" "+o.n).toLowerCase().indexOf(t)>=0);
+  $("bResults").innerHTML=hits.length?hits.map(o=>`
+    <div class="risk">
+      <div class="enum">${String(o.n).padStart(2,"0")}</div>
+      <div style="flex:1">
+        <div class="counter">${o.e.t} · ${o.e.sys} · ${o.e.by}</div>
+        <div style="font-size:12.5px;line-height:1.5;margin-top:3px">${o.e.txt}</div>
+      </div>
+      <button data-cite="${o.n}">Cite</button>
+    </div>`).join(""):'<div class="note">No entries match that.</div>';
+  $("bResults").onclick=e=>{
+    const b=e.target.closest("[data-cite]"); if(!b) return;
+    const n=+b.dataset.cite;
+    if(S.cites.indexOf(n)<0) S.cites.push(n);
+    renderCites();
+  };
+}
+function renderCites(){
+  $("bCount").textContent="lookups run: "+S.lookups+" · entries cited aloud: "+S.cites.length;
+  $("citeList").innerHTML=S.cites.length?S.cites.map(n=>`<span class="lnk" data-uncite="${n}">${String(n).padStart(2,"0")} ×</span>`).join(""):'<span class="note">Nothing cited yet.</span>';
+  $("citeList").onclick=e=>{ const s=e.target.closest("[data-uncite]"); if(!s) return;
+    S.cites=S.cites.filter(x=>x!==+s.dataset.uncite); renderCites(); };
+  updateProgress();
+}
+function wireBrief(){
+  $("btnFind").onclick=()=>{ S.lookups++; renderBriefResults($("bSearch").value); renderCites(); };
+  $("bSearch").onkeydown=e=>{ if(e.key==="Enter"){ S.lookups++; renderBriefResults($("bSearch").value); renderCites(); } };
+  renderBriefResults(""); renderCites();
+}
+
+/* ---------- handover confirmation + submission sheet ---------- */
+const CHKS=[
+ ["a","Verbal handover given and taken face to face"],
+ ["b","Risk register attached, every risk carries its log entry numbers"],
+ ["c","Recommendation states an action, a frequency and a threshold"],
+ ["d","Outgoing lead confirms nothing outstanding is missing from the log"]
+];
+function teamsSkeleton(){
+  const ini=esc((S.teams.inn||"IN").split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase());
+  const summary=["S","B","A","R"].map(k=>{
+    const t=S.sbar[k].trim();
+    return `<div style="margin-bottom:7px"><span class="tlbl">${SBAR_FIELDS.find(f=>f.k===k).name}</span><br>${esc(t)||"<i>not completed</i>"}</div>`;
+  }).join("");
+  const chk=CHKS.map(c=>`<div class="chk"><span class="tick ${S.teams.chk[c[0]]?'on':''}" data-chk="${c[0]}"></span><span>${c[1]}</span></div>`).join("");
+  return `
+  <div class="tile noprint" style="margin-bottom:14px">
+    <h3 style="font-size:15px;margin-bottom:3px">Digital handover confirmation</h3>
+    <div class="note" style="margin-bottom:14px">The verbal briefing is the handover. This card is the record of it. Complete and post it to close the turnover — a mock of the site messaging channel, nothing leaves this page.</div>
+    <div class="teams">
+      <div class="th2">
+        <div class="av">${ini}</div>
+        <div><b>Critical Facilities — Shift Handover</b><br>
+        <span style="color:#9aa0d6">General · handover reference ${esc(S.teams.ref)}</span></div>
+      </div>
+      <div class="tb2">
+        <div><span class="tlbl">From</span> ${esc(S.teams.inn||"incoming lead")} (incoming lead) &nbsp;·&nbsp;
+             <span class="tlbl">Taken from</span> ${esc(S.teams.out)} (outgoing lead)</div>
+        <div class="tmsg">${summary}</div>
+        <div class="tmsg">${chk}</div>
+        <div class="row" style="margin-top:12px">
+          <button class="primary" id="btnPost" ${S.teams.posted?"disabled":""}>${S.teams.posted?"Posted":"Post handover confirmation"}</button>
+          <span class="counter" id="postState">${S.teams.posted?"posted at "+esc(S.teams.postedAt)+" by "+esc(S.teams.inn||"incoming lead"):"not posted"}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="submit noprint">
+    <h3>Submission — ${LAB.lab}</h3>
+    <div class="sub">Build this once the verbal briefing is finished and the confirmation is posted.</div>
+    <div class="fld" style="margin-bottom:13px"><label>Your name</label>
+      <input type="text" id="learnerName" placeholder="first and last name" style="width:260px" value="${esc(S.learner||"")}"></div>
+    <button class="primary" id="btnSubmit">Build submission sheet</button>
+  </div>
+  <div class="result sheet" id="gateResult"></div>`;
+}
+function wireTeams(){
+  $("btnPost").onclick=()=>{
+    S.teams.posted=true; S.teams.postedAt=fmtSite(clockSec); paint();
+  };
+  document.querySelectorAll("[data-chk]").forEach(t=>{
+    t.onclick=()=>{ const k=t.dataset.chk; S.teams.chk[k]=!S.teams.chk[k];
+      t.classList.toggle("on",S.teams.chk[k]); };
+  });
+  $("learnerName").oninput=e=>{ S.learner=e.target.value;
+    S.teams.inn=String(S.learner||"").trim()||S.teams.innAuto; };
+  $("btnSubmit").onclick=buildSheet;
+}
+function srow(label,value){
+  return `<div class="srow"><span>${esc(label)}</span><span>${esc(value)}</span></div>`;
+}
+function buildSheet(){
+  const g=checkStructure();
+  const v=g.rec;
+  const now=new Date();
+  const missing=[];
+  if(!S.learner) missing.push("Your name");
+  if(!S.risks.length) missing.push("Risk register (no lines filed)");
+  SBAR_FIELDS.forEach(f=>{ if(!S.sbar[f.k].trim()) missing.push("SBAR "+f.name); });
+  if(!S.teams.posted) missing.push("Handover confirmation not posted");
+  CHKS.forEach(c=>{ if(!S.teams.chk[c[0]]) missing.push("Confirmation item not ticked: "+c[1]); });
+
+  let h=`<h3>${LAB.lab} — ${LAB.title}</h3>
+    <div class="shsub">Submission sheet · UCI 2227 · objective ${LAB.obj}</div>
+    <div class="srow"><span>Your name</span><span>${esc(S.learner||"not recorded")}</span></div>
+    <h4>Session</h4>`;
+  h+=srow("Completed",now.toLocaleDateString()+" "+now.toLocaleTimeString());
+  h+=srow("Time at the console",fmtDur(clockSec)+" (mm:ss)");
+  h+=srow("Site time",fmtSite(clockSec));
+  h+=srow("Log entries opened",S.read.size+" of "+LOG.length);
+  h+=srow("Connections drawn",S.links.length?S.links.map(p=>String(p[0]).padStart(2,"0")+"–"+String(p[1]).padStart(2,"0")).join(", "):"none");
+
+  h+=`<h4>Risk register as filed (${S.risks.length})</h4>`;
+  h+= S.risks.length
+    ? S.risks.map((r,i)=>`<div class="srow"><span>${i+1}. ${esc(r.k)}</span><span>${esc(r.d)}\nEvidencing entries: ${r.ev.length?r.ev.map(n=>String(n).padStart(2,"0")).join(", "):"none cited"}</span></div>`).join("")
+    : `<div class="note">No risks filed.</div>`;
+
+  h+=`<h4>SBAR, in order</h4>`;
+  SBAR_FIELDS.forEach(f=>{ h+=srow(f.k+" — "+f.name, S.sbar[f.k].trim()||"not completed"); });
+  h+=srow("Order the elements were entered", S.order.length?S.order.join(", "):"not recorded");
+
+  h+=`<h4>Recommendation, by component</h4>`;
+  h+=srow("Named action", v.action?"present":"not found");
+  h+=srow("Frequency", v.freq?"present":"not found");
+  h+=srow("Threshold", v.thresh?"present":"not found");
+  h+=srow("Wording flagged as vague", v.vague.length?v.vague.join(", "):"none");
+
+  h+=`<h4>Log worked from during the briefing</h4>`;
+  h+=srow("Lookups run",String(S.lookups));
+  h+=srow("Entries cited aloud", S.cites.length?S.cites.map(n=>String(n).padStart(2,"0")).join(", "):"none");
+
+  h+=`<h4>Handover confirmation</h4>`;
+  h+=srow("Reference",S.teams.ref||"—");
+  h+=srow("From (incoming lead)",S.teams.inn||"—");
+  h+=srow("Taken from (outgoing lead)",S.teams.out||"—");
+  h+=srow("Posted",S.teams.posted?("yes, at "+S.teams.postedAt):"no");
+  CHKS.forEach(c=>{ h+=srow(c[1], S.teams.chk[c[0]]?"ticked":"not ticked"); });
+
+  if(missing.length){
+    h+=`<div class="missing"><b>Not yet filled in:</b> ${esc(missing.join("; "))}. Complete these before you print, or note on the sheet why you left them blank.</div>`;
+  }
+  h+=`<div class="closing">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
+      <div style="margin-top:12px" class="noprint"><button class="primary" id="btnPrintSheet">Print submission sheet</button></div>`;
+
+  const r=$("gateResult");
+  r.className="result sheet show";
+  r.innerHTML=h;
+  $("btnPrintSheet").onclick=()=>window.print();
+  $("statusBadge").textContent="Sheet built"; $("statusBadge").className="badge run";
+}
+
+/* ---------- view plumbing ---------- */
+function paint(){
+  const el=$("gateView");
+  if(S.view==="log"){ el.innerHTML=logSkeleton(); renderLogTable(); wireLog(); }
+  else if(S.view==="risk"){ el.innerHTML=riskSkeleton(); renderRiskList(); wireRisk(); }
+  else if(S.view==="sbar"){ el.innerHTML=sbarSkeleton(); wireSbar(); }
+  else if(S.view==="brief"){ el.innerHTML=briefSkeleton(); wireBrief(); }
+  else { el.innerHTML=teamsSkeleton(); wireTeams(); }
+  updateProgress();
+}
+function updateProgress(){
+  $("progress").textContent="read "+S.read.size+"/"+LOG.length+" · risks "+S.risks.length+
+    " · links "+S.links.length+" · cited "+S.cites.length;
+}
+function setActive(){
+  const map={log:"btnLog",risk:"btnRisk",sbar:"btnSbar",brief:"btnBrief",teams:"btnTeams"};
+  Object.keys(map).forEach(k=>{
+    $(map[k]).className=(k===S.view)?"primary":"";
+  });
+}
+function go(v){ S.view=v; setActive(); paint(); }
+
+function resetRun(){
+  S.read=new Set(); S.open=new Set(); S.links=[]; S.risks=[];
+  S.sbar={S:"",B:"",A:"",R:""}; S.order=[]; S.lookups=0; S.cites=[];
+  S.teams={posted:false,postedAt:"",chk:{a:false,b:false,c:false,d:false},ref:"",out:"",inn:""};
+  S.search=""; S.sysFilter=""; S.unreadOnly=false; S.sortKey="n"; S.sortDir=1;
+  LOG=LOGS[SETS[SET]]; assignNames();
+  clockSec=0; $("clock").textContent=fmtSite(0);
+  S.view="log"; setActive(); paint();
+  $("statusBadge").textContent="Handover"; $("statusBadge").className="badge";
+}
+
+/* ---------- boot ---------- */
+$("btnLog").onclick=()=>go("log");
+$("btnRisk").onclick=()=>go("risk");
+$("btnSbar").onclick=()=>go("sbar");
+$("btnBrief").onclick=()=>go("brief");
+$("btnTeams").onclick=()=>go("teams");
+$("btnRestart").onclick=resetRun;
+clockTimer=setInterval(()=>{ clockSec++; $("clock").textContent=fmtSite(clockSec); },1000);
+$("clock").textContent=fmtSite(0);
+resetRun();
+</script>
+<!-- LQ_SUBMISSION_MODULE -->
+<script id="lqData">var LQ={"lab": "524.5.3", "title": "SBAR Turnover Verification Gate", "handout": "GLAB 524.5.3 - SBAR Turnover Verification Gate", "file": "524-5-3-B_SBAR.html", "set": "B", "items": [{"s": "Part 1: Preparing and delivering the handover", "k": "text", "p": "Step 5. Do the arithmetic where the log gives you numbers. If four fuel readings are logged across a shift, work out the actual consumption rate and compare it with the manufacturer or manual figure quoted in the log. Then work out when the tank reaches low level and compare that with the delivery time booked in the log. A risk with a clock on it is a different kind of risk, and the incoming lead needs the clock, not the adjective. Record the rate you calculated, the time the tank reaches low level, and the delivery time you are comparing it against, here."}, {"s": "Part 1: Preparing and delivering the handover", "k": "text", "p": "Step 13. Answer follow-up questions from the log, not from memory. Have the log open in front of you and use it. You will be asked things like “how long has that been going on”, “who has already been told”, “what happens if the remaining unit goes”, “is that inside or outside the normal band” and “what did the previous shift say about it”. Reaching for the log is the correct behaviour and is scored as such; it is the same discipline as point-and-read in Module 4. Record the questions you were asked and how you answered them."}, {"s": "Part 1: Preparing and delivering the handover", "k": "image", "p": "Step 14. Complete the digital handover confirmation in Microsoft Teams. Post the confirmation card with the handover reference, the outgoing and incoming names, and every confirmation item ticked. An unticked item is an unhanded-over risk. Paste your completed handover confirmation here, then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Which risk did you nearly miss, and what would have made it visible sooner? Be specific about the entry you first read past, what you were reading for at the time, and what change to your method would have caught it on the first pass."}, {"s": "Part 2: Reflection", "k": "text", "p": "A lost-redundancy risk can be created by an entry describing planned work carried out correctly. Explain why a correct entry can create an exposure, and what one extra clause in that entry would have made the loss of the spare obvious to the next reader."}, {"s": "Part 2: Reflection", "k": "text", "p": "Assessment is the section new technicians leave out. Write the sentence from your own Assessment that carries the most judgement, then say what the incoming lead would have had to work out for themselves if you had omitted it."}, {"s": "Part 2: Reflection", "k": "text", "p": "You were questioned as the incoming lead. Identify the question that was hardest to answer from the log, say why, and describe what the outgoing shift could have written during the night that would have made your answer immediate."}]};</script>
+<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+     Collects every handout question and its response inside this lab tool and
+     exports ONE print-to-PDF submission sheet for Canvas grading.
+     Self-contained. No external libraries. Safe to re-inject (idempotent).
+
+     v2.0 — WCAG 2.1 AA pass (label association, headings, alt text, contrast,
+     status announcement, authored focus); image downscale before storage with a
+     visible error if the quota still throws; Save-as-PDF filename set from the
+     learner name; print pagination and running header; duplicate learner-name
+     rows stripped from the harvested simulator record.
+     ========================================================================= -->
+<style id="lqStyle">
+  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
+  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+  #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#9db6c9;font-weight:700}
+  #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
+    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+  #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
+  #lqCard .lqq{margin-bottom:16px}
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+    cursor:pointer}
+  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+    margin-right:6px;font-weight:700}
+  #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
+    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
+  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+  #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
+  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard .lqimgwrap{margin-top:7px}
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+    border-radius:5px;display:block;margin-top:8px}
+  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+
+  /* authored focus — the simulators author none, so this is the only visible ring.
+     Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
+     in the simulator above as much as in the submission panel. */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+  @media print{ :focus-visible{outline:none!important} }
+
+  /* error banner for a storage failure the learner must know about */
+  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr b{color:#fff}
+
+  /* screen-reader-only live region */
+  .lqvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* ---- the assembled submission sheet ---- */
+  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
+  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
+  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+    padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
+  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
+    font-size:12px;color:#a8c0d3;line-height:1.9}
+
+  #lqPrint{display:none}
+  #lqPrint .lqpage{width:100%;border-collapse:collapse}
+
+  /* ---- print: only the sheet ---- */
+  @media print{
+    body.lq-print{background:#fff!important;color:#000!important;
+      overflow:visible!important;height:auto!important}
+    body.lq-print>*{display:none!important}
+    body.lq-print>#lqPrint{display:block!important}
+
+    /* Everything harvested from the simulator arrives in the dark console palette:
+       near-white text that would print invisibly, on backgrounds the browser drops
+       by default. Flatten the whole print container to ink on paper first, then
+       re-assert the few greys that carry meaning. */
+    body.lq-print #lqPrint,body.lq-print #lqPrint *{
+      color:#000!important;background-color:transparent!important;background-image:none!important;
+      box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
+
+    /* running header — a thead repeats on every page in every engine that paginates */
+    body.lq-print #lqPrint thead.lqrhead{display:table-header-group}
+    body.lq-print #lqPrint td.lqrh{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      font-size:8pt;color:#444!important;border-bottom:.5pt solid #999!important;
+      padding:0 0 3pt;text-align:left}
+    body.lq-print #lqPrint td.lqrh .r{float:right}
+    body.lq-print #lqPrint td.lqbody{padding:6pt 0 0}
+
+    body.lq-print #lqPrint .lqsheet{background:#fff;border:0;padding:0;margin:0;color:#000}
+    body.lq-print #lqPrint h1{color:#000}
+    body.lq-print #lqPrint h1,body.lq-print #lqPrint h2{border-bottom-color:#999!important}
+    body.lq-print #lqPrint h2{color:#000;border-bottom:1px solid #999;
+      page-break-after:avoid;break-after:avoid}
+    body.lq-print #lqPrint .lqmeta,body.lq-print #lqPrint .lqrow .k,
+    body.lq-print #lqPrint .lqa .q{color:#444!important}
+    body.lq-print #lqPrint .lqa .q .qn{color:#000!important}
+    body.lq-print #lqPrint .lqrow,body.lq-print #lqPrint .lqa{border-bottom:1px solid #ddd!important}
+    body.lq-print #lqPrint .lqa,body.lq-print #lqPrint .lqrow,
+    body.lq-print #lqPrint .lqsign,body.lq-print #lqPrint .lqgap{
+      page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint .lqa .a.blank{color:#000;font-style:italic}
+    body.lq-print #lqPrint .lqgap,body.lq-print #lqPrint .lqgap.ok{
+      background:#fff!important;border:1pt solid #666!important;color:#000!important}
+    body.lq-print #lqPrint .lqsign{color:#000;border-top:1px solid #999}
+    body.lq-print #lqPrint .noprint{display:none!important}
+    body.lq-print #lqPrint button{display:none!important}
+    /* harvested simulator tables keep their column headers across pages */
+    body.lq-print #lqPrint thead{display:table-header-group}
+    body.lq-print #lqPrint tr{page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint p,body.lq-print #lqPrint .a{orphans:3;widows:3}
+    @page{margin:16mm 14mm 14mm}
+  }
+</style>
+<script id="lqScript">
+(function(){
+  if(window.__lqLoaded) return; window.__lqLoaded=true;
+
+  var esc=function(s){return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
+
+  var KEY="uci2227:"+LQ.file;
+  var store={}, storageBroken=false;
+  try{ store=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ store={}; }
+
+  /* ---------- cross-lab storage budget ----------
+     Every lab in the module is served from one origin, so all 43 share a single
+     ~5 MB localStorage budget. Seventeen image questions at ~325 KB apiece is 5.4 MB
+     — a learner working through the whole module on one browser profile would run out
+     near the end. Images belonging to OTHER labs are evicted when room is needed,
+     oldest and already-exported first. Text answers are never evicted: they are tiny,
+     and they are the part a learner cannot reproduce. An evicted image is already
+     inside the submission PDF that lab produced. */
+  function otherLabKeys(){
+    var out=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0&&k!==KEY) out.push(k);
+      }
+    }catch(e){}
+    return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
+  }
+  function evictOtherImages(target){
+    /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
+    var recs=[];
+    otherLabKeys().forEach(function(k){
+      var raw,obj;
+      try{ raw=localStorage.getItem(k)||"{}"; obj=JSON.parse(raw); }catch(e){ return; }
+      var imgBytes=0;
+      for(var f in obj) if(/_img$/.test(f)) imgBytes+=String(obj[f]).length;
+      if(imgBytes>0) recs.push({k:k,obj:obj,bytes:imgBytes,ts:obj._ts||0,done:obj._done?1:0});
+    });
+    recs.sort(function(a,b){ return (b.done-a.done)||(a.ts-b.ts); });
+    var freed=0;
+    for(var i=0;i<recs.length&&freed<target;i++){
+      var r=recs[i];
+      for(var f in r.obj) if(/_img$/.test(f)) delete r.obj[f];
+      r.obj._evicted=true;
+      try{ localStorage.setItem(r.k,JSON.stringify(r.obj)); freed+=r.bytes; }catch(e){}
+    }
+    return freed;
+  }
+
+  function save(){
+    store._ts=Date.now();
+    var payload;
+    try{ payload=JSON.stringify(store); }catch(e){ return false; }
+    try{
+      localStorage.setItem(KEY,payload);
+      if(storageBroken){ storageBroken=false; showStoreErr(null); }
+      return true;
+    }catch(e){
+      /* make room from other labs, then try once more */
+      if(evictOtherImages(payload.length+200000)>0){
+        try{
+          localStorage.setItem(KEY,payload);
+          if(storageBroken){ storageBroken=false; showStoreErr(null); }
+          return true;
+        }catch(e2){}
+      }
+      storageBroken=true;
+      showStoreErr(e);
+      return false;
+    }
+  }
+  function showStoreErr(e){
+    var b=document.getElementById("lqStoreErr");
+    if(!b) return;
+    if(!e){ b.style.display="none"; return; }
+    b.style.display="block";
+    b.innerHTML='<b>Your work is no longer being saved in this browser.</b><br>'
+      +'Storage is full or switched off — usually private browsing, or a great many images '
+      +'attached across the labs on this machine. Everything on screen is intact and the '
+      +'submission PDF will still build correctly — but <b>do not refresh or close this tab</b>. '
+      +'Press <b>Build submission PDF</b> now and save the file. '
+      +'Then press <b>Clear my responses</b> to free the space up for the next lab.';
+    if(b.scrollIntoView) b.scrollIntoView({block:"nearest"});
+  }
+
+  function announce(msg){
+    var s=document.getElementById("lqStatus");
+    if(s){ s.textContent=""; setTimeout(function(){ s.textContent=msg; },30); }
+  }
+
+  /* ---------- detect the set letter the tool is running ---------- */
+  function setLetter(){
+    try{ if(typeof SETLETTER!=="undefined"&&SETLETTER) return SETLETTER; }catch(e){}
+    var tag=document.getElementById("setTag");
+    if(tag&&tag.textContent){
+      var m=tag.textContent.match(/set\s+([A-H])/i); if(m) return m[1].toUpperCase();
+    }
+    var m2=(LQ.file||"").match(/524-\d-\d-([A-H])_/); if(m2) return m2[1];
+    return LQ.set||"—";
+  }
+
+  /* ---------- downscale an image before it goes anywhere near storage ----------
+     A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
+     about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
+     capture under 400 KB, which is still far more detail than the PDF can show. */
+  var MAXPX=1600, JPEGQ=0.82;
+  function downscale(file,cb){
+    var rd=new FileReader();
+    rd.onerror=function(){ cb(null,"The browser could not read that file."); };
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ cb(null,"That file does not look like an image the browser can open."); };
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(rd.result,null); return; }
+          var sc=Math.min(1,MAXPX/Math.max(w,h));
+          if(sc>=1&&rd.result.length<600000){ cb(rd.result,null); return; }
+          var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+          var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+          var x=c.getContext("2d");
+          x.fillStyle="#fff"; x.fillRect(0,0,cw,ch);
+          x.drawImage(img,0,0,cw,ch);
+          cb(c.toDataURL("image/jpeg",JPEGQ),null);
+        }catch(err){ cb(rd.result,null); }
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+
+  /* ---------- build the card ---------- */
+  var host=document.querySelector("main .wrap")||document.querySelector("main")||document.body;
+  var card=document.createElement("section");
+  card.id="lqCard";
+  card.setAttribute("aria-labelledby","lqCardTitle");
+
+  var qs=LQ.items, secs=[], cur=null;
+  qs.forEach(function(it,i){
+    if(!cur||cur.name!==it.s){ cur={name:it.s,list:[]}; secs.push(cur); }
+    cur.list.push({i:i,it:it});
+  });
+
+  var html=""
+   +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
+   +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
+   +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
+   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<div id="lqStoreErr" role="alert"></div>'
+   +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
+   +'<div class="lqid">'
+   +'<div class="lqfld" style="flex:1 1 260px"><label for="lqName">Your name</label>'
+     +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
+     +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
+     +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
+   +'</div>';
+
+  secs.forEach(function(sec,si){
+    html+='<h3 class="lqsec" id="lqSec'+si+'">'+esc(sec.name||"Questions")+'</h3>';
+    sec.list.forEach(function(o){
+      var id="lqQ"+o.i, n=o.i+1;
+      html+='<div class="lqq">';
+      if(o.it.k==="image"){
+        html+='<p class="lqp"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</p>'
+             +'<div class="lqimgwrap">'
+             +'<label class="lqfilelbl" for="'+id+'_f">Attach your image for question '+n+'</label>'
+             +'<input type="file" accept="image/*" id="'+id+'_f">'
+             +'<p class="lqnote" style="margin:5px 0 0">A photo or screenshot. It is resized and '
+             +'embedded in the PDF you hand in.</p>'
+             +'<img id="'+id+'_img" alt="Your attached image for question '+n+'" style="display:none">'
+             +'<label class="lqfilelbl" for="'+id+'" style="margin-top:8px">Caption or note for question '+n+'</label>'
+             +'<textarea id="'+id+'" rows="2" placeholder="Add any caption or note that goes with the image.">'
+             +esc(store[id]||"")+'</textarea></div>';
+      }else{
+        html+='<label class="lqp" for="'+id+'"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</label>'
+             +'<textarea id="'+id+'" rows="3" placeholder="Type your answer here.">'+esc(store[id]||"")+'</textarea>';
+      }
+      html+='</div>';
+    });
+  });
+
+  html+='<div class="lqbtns">'
+    +'<button type="button" class="lqprimary" id="lqBuild">Build submission PDF</button>'
+    +'<button type="button" id="lqPreview">Preview without printing</button>'
+    +'<button type="button" id="lqClear">Clear my responses</button>'
+    +'<span class="lqnote">The PDF carries every question, your responses and the simulator record. One file, one upload.</span>'
+    +'</div><div id="lqOut" role="region" aria-label="Submission sheet preview"></div>';
+
+  card.innerHTML=html;
+  host.appendChild(card);
+
+  /* ---------- wiring ---------- */
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
+    var el=document.getElementById(id);
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+  });
+  qs.forEach(function(it,i){
+    var id="lqQ"+i, ta=document.getElementById(id);
+    if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
+    var f=document.getElementById(id+"_f");
+    if(f) f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      announce("Processing your image for question "+(i+1)+".");
+      downscale(file,function(dataUrl,err){
+        if(err){ announce(err); alert(err); return; }
+        var img=document.getElementById(id+"_img");
+        img.src=dataUrl; img.style.display="block";
+        store[id+"_img"]=dataUrl;
+        var okSave=save();
+        announce("Image attached to question "+(i+1)+
+          (okSave?"." : ", but it could not be saved in this browser. Build your PDF now."));
+      });
+    };
+    if(store[id+"_img"]){
+      var im0=document.getElementById(id+"_img");
+      if(im0){ im0.src=store[id+"_img"]; im0.style.display="block"; }
+    }
+  });
+
+  /* an image of this lab was evicted to make room for another lab on the shared
+     origin, and this lab had not yet been exported — say so plainly */
+  if(store._evicted&&!store._done){
+    var eb=document.getElementById("lqStoreErr");
+    eb.style.display="block";
+    eb.innerHTML='<b>An image you attached is no longer stored.</b><br>'
+      +'This browser ran out of room across all the labs on this machine and dropped it. '
+      +'Your typed answers are all still here — only the image went. '
+      +'Attach it again before you build your submission PDF.';
+    delete store._evicted; save();
+  }
+
+  document.getElementById("lqClear").onclick=function(){
+    if(!confirm("Clear every response you have typed in this lab? This cannot be undone.")) return;
+    store={}; save();
+    qs.forEach(function(it,i){
+      var ta=document.getElementById("lqQ"+i); if(ta) ta.value="";
+      var im=document.getElementById("lqQ"+i+"_img"); if(im){ im.removeAttribute("src"); im.style.display="none"; }
+      var fi=document.getElementById("lqQ"+i+"_f"); if(fi) fi.value="";
+    });
+    document.getElementById("lqOut").innerHTML="";
+    announce("All responses cleared.");
+  };
+
+  /* ---------- guard the simulator's Restart button ----------
+     Restart wipes the simulator record but not the responses typed here, which
+     would leave a submission whose prose describes a record that no longer exists.
+     A capture-phase listener runs ahead of the tool's own onclick, so one confirm
+     covers every variant of the handler. */
+  (function(){
+    var rb=document.getElementById("btnRestart")||document.getElementById("btnReset");
+    if(!rb||card.contains(rb)) return;
+    rb.addEventListener("click",function(ev){
+      if(rb.dataset.lqOk==="1"){ rb.dataset.lqOk=""; return; }
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      var ok=confirm(
+        "Restart the scenario?\n\n"+
+        "Everything you recorded in the simulator — readings, marks, logs, the "+
+        "submission sheet it built — is wiped and the run starts again.\n\n"+
+        "The answers you typed in the submission panel lower down are KEPT. If they "+
+        "describe readings you are about to erase, build your submission PDF first.");
+      if(ok){ rb.dataset.lqOk="1"; rb.click(); }
+    },true);
+  })();
+
+  /* ---------- harvest the simulator's own record ---------- */
+  var REC_SEL=".sheet, .result.show";
+  function collect(){
+    var raw=[];
+    Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
+      if(card.contains(s)) return;
+      if(!s.textContent.replace(/\s/g,"")) return;
+      raw.push(s);
+    });
+    return raw.filter(function(s){
+      return !raw.some(function(o){ return o!==s && o.contains(s); });
+    });
+  }
+
+  /* the module already prints the learner name in its own Learner block, and every
+     simulator sheet prints it again — four of them twice. Strip it from the clone. */
+  var NAMEKEY=/^(your\s+)?(name|learner(\s+name)?)\s*:?\s*$/i;
+  function stripDuplicateName(root){
+    Array.prototype.forEach.call(root.querySelectorAll(".learnerline"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    var rows=root.querySelectorAll("div,tr,p");
+    Array.prototype.forEach.call(rows,function(r){
+      var first=r.firstElementChild;
+      if(!first||r.children.length>3) return;
+      if(NAMEKEY.test((first.textContent||"").trim())){
+        if(r.parentNode) r.parentNode.removeChild(r);
+      }
+    });
+  }
+
+  function toolRecord(){
+    var found=collect();
+    if(!found.length){
+      var btns=document.querySelectorAll("button");
+      var hit=null;
+      Array.prototype.forEach.call(btns,function(b){
+        if(card.contains(b)||hit) return;
+        var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+        if(/print/.test(t)) return;
+        if(/^build submission sheet$/.test(t)) hit=b;
+      });
+      if(!hit){
+        Array.prototype.forEach.call(btns,function(b){
+          if(card.contains(b)||hit) return;
+          var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+          if(/print/.test(t)) return;
+          if(/build .*sheet|submission sheet|submit .*(map|answer|sheet|round|log)|^submit$/.test(t)) hit=b;
+        });
+      }
+      if(hit){ try{ hit.click(); }catch(e){} }
+      found=collect();
+    }
+    if(!found.length) return null;
+    var wrap=document.createElement("div");
+    found.forEach(function(s){
+      var c=s.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      });
+      stripDuplicateName(c);
+      wrap.appendChild(c);
+    });
+    return wrap.innerHTML;
+  }
+
+  /* ---------- assemble the one sheet ---------- */
+  function build(){
+    var name=document.getElementById("lqName").value.trim();
+    var coh=document.getElementById("lqCohort").value.trim();
+    var dt=document.getElementById("lqDate").value.trim();
+    var gaps=[];
+    if(!name) gaps.push("Your name");
+    if(!coh)  gaps.push("Cohort / section");
+
+    var h=''
+     +'<div class="lqsheet">'
+     +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
+     +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
+       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+     +'<h2>Learner</h2>'
+     +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Built</span><span class="v">'
+       +esc(new Date().toLocaleString())+'</span></div>';
+
+    var rec=LQ.nosim?null:toolRecord();
+    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
+    else if(!LQ.nosim){
+      gaps.push("The simulator record — work through the lab tool above and press its own "
+               +"“Build submission sheet” button before you build this PDF");
+    }else{
+      h+='<h2>Assessed on the floor</h2>'
+        +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
+        +'Observed and signed off by the instructor against the handout. '
+        +'The instructor signature below records that sign-off.</span></div>';
+    }
+
+    var curSec=null;
+    qs.forEach(function(it,i){
+      if(it.s!==curSec){ curSec=it.s; h+='<h2>'+esc(curSec||"Questions")+'</h2>'; }
+      var ta=document.getElementById("lqQ"+i);
+      var a=ta?ta.value.trim():"";
+      var im=store["lqQ"+i+"_img"];
+      if(!a&&!im) gaps.push("Q"+(i+1));
+      h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
+      if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
+      h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
+    });
+
+    if(gaps.length){
+      h+='<div class="lqgap"><b>Not yet filled in ('+gaps.length+'):</b> '+esc(gaps.join(", "))
+        +'.<br>This is a completeness check, not a grade. Fill them in and build again, '
+        +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
+    }else{
+      h+='<div class="lqgap ok">'
+        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+    }
+
+    h+='<div class="lqsign">Learner signature: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'Instructor verification: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
+
+    document.getElementById("lqOut").innerHTML=h;
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
+    return h;
+  }
+
+  document.getElementById("lqPreview").onclick=function(){
+    build();
+    var o=document.getElementById("lqOut");
+    if(o&&o.scrollIntoView) o.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* ---------- the one PDF ---------- */
+  function safeName(s){
+    return String(s||"").normalize?String(s||"").normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+      :String(s||"").replace(/[^\w\s-]/g,"").trim();
+  }
+  function fileTitle(){
+    var n=safeName(document.getElementById("lqName").value).split(/\s+/).filter(Boolean);
+    var last=n.length>1?n[n.length-1]:(n[0]||"Learner");
+    var first=n.length>1?n.slice(0,-1).join("_"):"";
+    var who=first?(last+"_"+first):last;
+    return who+"_"+String(LQ.lab||"").replace(/[^\d.]/g,"");
+  }
+
+  document.getElementById("lqBuild").onclick=function(){
+    var h=build();
+    /* this lab's images are now inside a PDF the learner holds, so they become the
+       first thing evicted when another lab needs room on the shared origin */
+    store._done=true; save();
+
+    var old=document.getElementById("lqPrint"); if(old) old.parentNode.removeChild(old);
+
+    /* The sheet goes inside a one-cell table whose thead repeats on every printed
+       page, so pages 2+ still carry the learner name, the lab and the set. */
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+      +esc(document.getElementById("lqName").value.trim()||"Name not entered")
+      +' · '+esc(LQ.title);
+    var pr=document.createElement("div"); pr.id="lqPrint";
+    pr.innerHTML='<table class="lqpage"><thead class="lqrhead"><tr><td class="lqrh">'
+      +runHead+'</td></tr></thead><tbody><tr><td class="lqbody">'+h+'</td></tr></tbody></table>';
+    document.body.appendChild(pr);
+
+    /* the browser suggests document.title as the Save-as-PDF filename */
+    var prevTitle=document.title;
+    document.title=fileTitle();
+    document.body.classList.add("lq-print");
+
+    var restored=false;
+    var done=function(){
+      if(restored) return; restored=true;
+      document.body.classList.remove("lq-print");
+      document.title=prevTitle;
+      var a=document.getElementById("lqPrint"); if(a&&a.parentNode) a.parentNode.removeChild(a);
+      window.removeEventListener("afterprint",done);
+      if(mq&&mq.removeListener) mq.removeListener(mqHandler);
+    };
+    var mq=window.matchMedia?window.matchMedia("print"):null;
+    var mqHandler=function(m){ if(!m.matches) done(); };
+    if(mq&&mq.addListener) mq.addListener(mqHandler);
+    window.addEventListener("afterprint",done);
+
+    setTimeout(function(){
+      window.print();
+      /* generous fallback: mobile print sheets are asynchronous, and tearing the
+         container out too early yields a blank PDF */
+      setTimeout(done,60000);
+    },80);
+  };
+})();
+</script>
+<!-- ===== end submission module ============================================= -->
+
+</body>
+</html>

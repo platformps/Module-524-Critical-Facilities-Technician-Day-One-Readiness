@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>524.4.1 — UCI 2227 — Lab 4.1 Classify the Document Library (Training Simulator)</title>
+<style>
+  :root{
+    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
+    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:7px 13px}
+  button:hover{background:#1b3044;border-color:#2d4d68}
+  button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  button.primary:hover{background:#0a8bd8}
+  button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input[type=text],input[type=number],textarea{
+    font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:7px 9px}
+  textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
+  h1,h2,h3{margin:0;font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex:0 0 auto}
+  .brand{font-weight:700;letter-spacing:.4px;font-size:14px}
+  .brand span{color:var(--blue)}
+  .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
+  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+
+  main{flex:1;overflow:auto;padding:18px}
+  .wrap{max-width:1500px;margin:0 auto}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;margin-bottom:4px}
+  .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
+
+  /* ---------- console ---------- */
+  .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
+    border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+  .tile .name{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tile .val{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1.15;margin-top:5px}
+  .tile .unit{font-size:14px;color:var(--dim);font-weight:400;margin-left:3px}
+  .tile .band{font-size:11px;color:var(--faint);margin-top:5px;font-family:var(--mono)}
+  .tile.alarm{border-color:var(--stop);background:#2a1512}
+  .tile.alarm .val{color:var(--stop)}
+  .tile.caution{border-color:#5c4c2e}
+  .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
+  .chartbox h3{font-size:13px;margin-bottom:2px}
+  .chartbox .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
+  canvas{display:block;width:100%;height:auto}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .stepchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+  .stepchip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+
+  /* ---------- alarms ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+    font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+  th:hover{color:var(--blue)}
+  td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
+  tr.ack{opacity:.42}
+  .sev{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .sev.critical{background:#4a1f1a;color:#ff8f7d}
+  .sev.high{background:#4a3418;color:#ffc069}
+  .sev.medium{background:#1c3a4f;color:#7fc4ea}
+  .sev.low{background:#22303a;color:#8ba6bd}
+  .tick{display:inline-block;width:15px;height:15px;border:1px solid var(--line);border-radius:3px;
+    background:var(--panel2);cursor:pointer;vertical-align:-3px}
+  .tick.on{background:var(--blue);border-color:var(--blue)}
+  .flt{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .flt .chip{font-size:11px;padding:5px 11px;border-radius:20px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--dim);cursor:pointer}
+  .flt .chip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
+
+  .note{font-size:12px;color:var(--dim);line-height:1.55}
+  .hidden{display:none !important}
+
+  /* ---------- submission ---------- */
+  .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
+  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
+  .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
+  .result.show{display:block;background:var(--panel2);border:1px solid var(--line)}
+  .srow{display:flex;gap:14px;padding:6px 0;border-bottom:1px solid #182b3b;font-size:12.5px;align-items:flex-start}
+  .srow .sk{color:var(--faint);min-width:240px;flex:0 0 auto}
+  .srow .sv{flex:1;white-space:pre-wrap}
+  .sheet h4{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin:18px 0 6px}
+  .sheet h4:first-child{margin-top:0}
+  @media print{
+    body{background:#fff;color:#000;overflow:visible}
+    header,.toolbar,.noprint{display:none !important}
+    main{overflow:visible}
+  }
+
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);margin-bottom:8px}
+  .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+
+  /* ---------- additive: document library ---------- */
+  .libgrid{display:grid;grid-template-columns:1fr;gap:14px}
+  .docrow{cursor:pointer}
+  .docrow:hover td{background:#16293a}
+  .docrow.sel td{background:#16324a}
+  .docno{font-family:var(--mono);font-size:12px;color:var(--blue);white-space:nowrap}
+  .doctitle{font-size:13px}
+  .docmeta{font-size:11px;color:var(--faint);margin-top:2px}
+  .reader{background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .rhead{padding:14px 18px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .rhead h3{font-size:15px;margin-bottom:4px}
+  .rmeta{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--faint);font-family:var(--mono);margin-top:6px}
+  .paper{padding:20px 26px;max-height:58vh;overflow:auto;line-height:1.62;font-size:13px}
+  .paper h2{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--blue);
+    margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #1b3145}
+  .paper h2:first-child{margin-top:0}
+  .paper p{margin:0 0 10px;color:var(--ink)}
+  .paper .st{display:flex;gap:10px;margin:0 0 7px;align-items:flex-start}
+  .paper .sn{font-family:var(--mono);color:var(--blue);min-width:34px;flex:0 0 auto;font-size:12px;padding-top:1px}
+  .paper .stale{color:var(--warn)}
+  .paper .rev{font-size:11.5px;color:var(--faint);font-family:var(--mono);line-height:1.7}
+  .paper .banner{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--blue);
+    border-radius:5px;padding:9px 12px;margin:0 0 12px;font-size:12.5px;color:var(--dim)}
+
+  /* ---------- additive: assistant panel ---------- */
+  .cop{border:1px solid #2b4a63;border-radius:9px;background:#101f2c;margin:0 18px 18px;overflow:hidden}
+  .cop .ch{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #21384c;background:#13293a}
+  .cop .glyph{width:17px;height:17px;border-radius:5px;flex:0 0 auto;
+    background:linear-gradient(135deg,#33a6e8 0%,#6f7ce8 55%,#9a6ce0 100%)}
+  .cop .cname{font-size:12px;font-weight:700;letter-spacing:.3px}
+  .cop .ctag{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .cop .cb{padding:14px 16px;font-size:13px;line-height:1.6}
+  .cop .cb h5{margin:0 0 6px;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
+  .cop .cb .blk{margin-bottom:14px}
+  .cop .cb ul{margin:0;padding-left:18px}
+  .cop .cb li{margin-bottom:4px}
+  .cop .cf{padding:10px 14px;border-top:1px solid #21384c;color:var(--faint);font-size:11.5px;line-height:1.55}
+  .cop .refuse{background:#2b2310;border:1px solid #5c4c2e;border-radius:7px;padding:12px 13px;line-height:1.6}
+  .copbar{display:flex;gap:9px;flex-wrap:wrap;padding:0 18px 16px}
+  .el{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .el.present{background:#12261c;color:#6ad79f}
+  .el.partial{background:#4a3418;color:#ffc069}
+  .el.absent{background:#4a1f1a;color:#ff8f7d}
+  .caveat{background:#2b2310;border:1px solid #5c4c2e;border-radius:7px;padding:11px 13px;
+    font-size:12.5px;line-height:1.55;color:var(--ink);margin-bottom:14px}
+
+  /* ---------- additive: classification sheet ---------- */
+  .csheet{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-bottom:14px}
+  .csheet .chd{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:12px}
+  .csheet .chd h3{font-size:14px}
+  .tiers{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .tchip{display:flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid var(--line);
+    border-radius:20px;background:var(--panel2);cursor:pointer;font-size:12.5px}
+  .tchip:hover{border-color:#2f5a78}
+  .tchip input{accent-color:var(--blue);margin:0}
+  .tchip.on{border-color:var(--blue);background:#16324a;color:var(--ice)}
+  .tchip .tdesc{color:var(--faint);font-size:11.5px}
+  .tchip.on .tdesc{color:#9fd0ee}
+  .subblk{border-top:1px solid #1b3145;margin-top:12px;padding-top:12px}
+  .eltab td{padding:6px 8px}
+  .eltab th{cursor:default}
+  .eltab .elname{font-size:12.5px}
+  .eltab label{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--dim);cursor:pointer}
+  .eltab input{accent-color:var(--blue);margin:0}
+
+  /* ---------- additive: partner compare ---------- */
+  .cmpstat{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .cmpstat.agree{background:#12261c;color:#6ad79f}
+  .cmpstat.dis{background:#4a3418;color:#ffc069}
+  .cmpstat.none{background:#22303a;color:#8ba6bd}
+  .split{background:#2a1512;border:1px solid #6d3129;border-radius:6px;padding:9px 11px;
+    font-size:12px;line-height:1.5;margin-top:7px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">PROCEDURE DOCUMENT LIBRARY</div>
+    <div class="sysname">524.4.1 &middot; UCI 2227 · Lab 4.1 · objective M4.1 · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="spacer"></div>
+    <div id="statusBadge" class="badge">Ready</div>
+    <div>
+      <div class="clocklbl">Site time</div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <button id="btnLib" class="primary">Library</button>
+    <button id="btnSheet">Classification sheet</button>
+    <button id="btnCmp">Partner compare</button>
+    <span class="spacer"></span>
+    <span class="counter" id="elapsed">T+00:00</span>
+    <button id="btnRestart">Restart</button>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <section id="libView" class="hidden"></section>
+      <section id="sheetView" class="hidden"></section>
+      <section id="cmpView" class="hidden"></section>
+    </div>
+  </main>
+</div>
+
+
+<script>
+"use strict";
+const SET = 0;   /* fixed for this file */
+/* ============================================================
+   UCI 2227 — Lab 4.1 · Classify the Document Library
+   Standalone training console. Offline, no libraries, no network.
+   Telemetry model and chart code are identical to the other lab tools.
+   ============================================================ */
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=mulberry32(1);
+function noise(amp){return (rnd()*2-1)*amp;}
+function fmtClock(mins){
+  const base=3*60+14; // scenarios run from 03:14 site time
+  const total=base+mins;
+  const h=Math.floor(total/60)%24, m=Math.floor(total%60), s=Math.floor((mins%1)*60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function fmtElapsed(mins){
+  return "T+"+String(Math.floor(mins)).padStart(2,"0")+":"+String(Math.floor((mins%1)*60)).padStart(2,"0");
+}
+function drawChart(cv,cfg){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth, H=cfg.height||150;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+"px";
+  const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0);
+  x.clearRect(0,0,W,H);
+  const pad={l:46,r:10,t:10,b:20};
+  const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+  const {min,max}=cfg;
+  const sy=v=>pad.t+ph-((v-min)/(max-min))*ph;
+  const sx=i=>pad.l+(i/Math.max(1,cfg.xmax))*pw;
+
+  // alarm band shading
+  if(cfg.band){
+    x.fillStyle="rgba(232,96,76,.10)";
+    if(cfg.band.hi<max) x.fillRect(pad.l,pad.t,pw,sy(cfg.band.hi)-pad.t);
+    if(cfg.band.lo>min) x.fillRect(pad.l,sy(cfg.band.lo),pw,pad.t+ph-sy(cfg.band.lo));
+  }
+  // grid + y labels
+  x.strokeStyle="#1d3346"; x.lineWidth=1; x.font="10px "+getComputedStyle(document.body).fontFamily;
+  x.fillStyle="#5c7a92"; x.textAlign="right"; x.textBaseline="middle";
+  for(let i=0;i<=4;i++){
+    const v=min+(max-min)*i/4, yy=sy(v);
+    x.beginPath(); x.moveTo(pad.l,yy); x.lineTo(W-pad.r,yy); x.stroke();
+    x.fillText(cfg.fmt?cfg.fmt(v):v.toFixed(1),pad.l-6,yy);
+  }
+  // step markers
+  if(cfg.steps) cfg.steps.forEach(s=>{
+    if(s>cfg.xmax) return;
+    x.strokeStyle="#25415a"; x.setLineDash([3,3]);
+    x.beginPath(); x.moveTo(sx(s),pad.t); x.lineTo(sx(s),pad.t+ph); x.stroke(); x.setLineDash([]);
+  });
+  // series
+  (cfg.series||[]).forEach(se=>{
+    if(!se.data.length) return;
+    x.strokeStyle=se.color; x.lineWidth=se.width||2; x.beginPath();
+    se.data.forEach((v,i)=>{ const px=sx(i*(cfg.xstep||1)), py=sy(clamp(v,min,max));
+      i?x.lineTo(px,py):x.moveTo(px,py); });
+    x.stroke();
+    // last point dot
+    const li=se.data.length-1;
+    x.fillStyle=se.color; x.beginPath();
+    x.arc(sx(li*(cfg.xstep||1)),sy(clamp(se.data[li],min,max)),2.6,0,7); x.fill();
+  });
+  // x label
+  x.fillStyle="#5c7a92"; x.textAlign="center"; x.textBaseline="top";
+  x.fillText(cfg.xlabel||"minutes",pad.l+pw/2,H-13);
+}
+function tile(name,val,unit,band,cls){
+  return `<div class="tile ${cls||''}"><div class="name">${name}</div>
+    <div class="val">${val}<span class="unit">${unit||''}</span></div>
+    <div class="band">${band||''}</div></div>`;
+}
+
+/* ---------- this lab ---------- */
+const LAB={lab:"Lab 4.1",obj:"M4.1",title:"Classify the Document Library",duration:55};
+
+const TIERS=[
+  {k:"EOP",n:"EOP",d:"Emergency Operating Procedure — emergency or incident response: mitigate the impact, protect critical load, stabilise site operating conditions. Classified by Incident Severity, per the CEN Matrix."},
+  {k:"SOP",n:"SOP",d:"Standard Operating Procedure — routine activity under normal operating conditions, or a step supporting execution of an EOP. Shutdown, isolation, start-up, switching and load transfer, by-pass, fuel tank filling. Classified by activity Level of Risk."},
+  {k:"MOP",n:"MOP",d:"Method of Procedure — preventive or corrective maintenance performed in house by CE Technicians. Classified by activity Level of Risk."},
+  {k:"DSP",n:"DSP",d:"Drill Scenario Procedure — training built on an EOP failure scenario, per the Global Standard – Incident Drills."},
+  {k:"AP",n:"AP",d:"Administrative Procedure — an administrative or support process related to CE operations."},
+  {k:"OUTSIDE",n:"Not a CE procedure",d:"Project, installation or contractor work — it is none of the five types, and saying so is a correct answer"},
+  {k:"DEPENDS",n:"Level of Risk depends",d:"The type is clear; the Level of Risk cannot be set without knowing the plant state — name the conditions."}
+];
+const ELEMENTS=[
+  {k:"scope",n:"Scope and system state"},
+  {k:"pre",n:"Numbered, single-action steps"},
+  {k:"steps",n:"A rollback plan"},
+  {k:"verify",n:"Go / no-go criteria"},
+  {k:"rollback",n:"Verification points"},
+  {k:"approve",n:"Sign-off spaces"}
+];
+
+/* ---------- the library ---------- */
+const DOCS=[
+{
+  id:"A", no:"SOP-ME-0114", pages:4, owner:"Mechanical Maintenance — Hall B",
+  title:"Quarterly filter replacement, computer room air handler CRAH-07",
+  rev:v=>v==="D1"?"Rev 7 · 2019-03-11":"Rev 8 · 2024-06-27",
+  sys:"Mechanical, air side. CRAH-07 serving Hall B row 4.",
+  body:v=>`
+<div class="banner">Document retrieved from the site library. Header, numbering and cross references are reproduced as held. Some references are known to be out of date.</div>
+<h2>1.0 PURPOSE</h2>
+<p>To describe the quarterly replacement of the return air filters fitted to computer room air handler (CRAH) unit CRAH-07, Hall B row 4, together with the checks to be made before and after the work. Filters on this unit are changed on a calendar basis and not on differential pressure alone, following the 2018 review of filter loading in Hall B.</p>
+<h2>Scope</h2>
+<p>CRAH-07 only. The fan wall units in Hall C are covered by FMP-ME-0140. This document does not cover coil cleaning, belt replacement, condensate pump work or any adjustment to the unit control setpoints. Nothing in this document authorises work on the chilled water valves.</p>
+<h2>3. PRE-CONDITIONS AND PREPARATION</h2>
+<div class="st"><span class="sn">3.1</span> Work is to be carried out on a weekday between 09:00 and 15:00. Work outside those hours requires the agreement of the duty engineer.</div>
+${v==="D1"?
+`<div class="st"><span class="sn">3.2</span> Confirm that CRAH-08, the redundant unit on the same row, is running, is in AUTO and is carrying load. Record its discharge air temperature before starting. If CRAH-08 is not available, do not start this work.</div>
+<div class="st"><span class="sn">3.3</span> Row 4 is a standard density row at approximately 4.5 kW per cabinet. With CRAH-08 running, row 4 is covered with CRAH-07 out of service.</div>`
+:
+`<div class="st"><span class="sn">3.2</span> CRAH-08, the redundant unit on the same row, is currently out of service pending coil replacement under works order WO 44118, raised fourteen weeks ago. Return to service date is not confirmed.</div>
+<div class="st"><span class="sn">3.3</span> Row 4 was re-designated as a high density row in 2023 and now runs at approximately 11 kW per cabinet. This document has not been reviewed against that change.</div>`}
+<div class="st"><span class="sn">3.4</span> Draw the correct filter set from stores: panel filter part 4B-2010, quantity six, grade G4 pre-filter and F7 bag. Check the manufacture date on the bag; stock older than three years is to be rejected.</div>
+<div class="st"><span class="sn">3.5</span> Notify the shift lead of the intended start time. <span class="stale">Ring the Facilities Duty Pager on extension 4400 to log the work.</span> (Pager system withdrawn from service; see note in revision history.)</div>
+<div class="st"><span class="sn">3.6</span> Tools required: 8 mm nut driver, torch, filter trolley, waste sacks, magnehelic gauge or calibrated hand-held manometer.</div>
+<h2>4. PROCEDURE</h2>
+<div class="st"><span class="sn">1.</span> Record the current filter differential pressure from the unit gauge and note it on the job card. Expected reading at change-out is 250 to 400 Pa.</div>
+<div class="st"><span class="sn">2.</span> Place the unit into local control at the front panel. Confirm the local indication changes from AUTO to HAND.</div>
+<div class="st"><span class="sn">3.</span> Stop the supply fan from the front panel. Confirm the fan has come to a complete stop before opening any panel. Coasting time is approximately forty seconds.</div>
+<div class="st"><span class="sn">4.</span> Isolate the unit at the local isolator, apply the maintenance padlock and fit the caution notice. Test the isolation with an approved voltage indicator, then prove the indicator.</div>
+<div class="st"><span class="sn">5.</span> Open the filter access panel. The panel fasteners are captive; do not force them.</div>
+<div class="st"><span class="sn">6.</span> Withdraw the used filters into waste sacks. Note the loading pattern; heavy loading on one side indicates a bypass path and is to be reported.</div>
+<div class="st"><span class="sn">7.</span> Vacuum the filter track and the floor of the plenum. Check the filter seals for damage and replace any seal that is compressed flat.</div>
+<div class="st"><span class="sn">8.</span> Fit the new filters with the airflow arrows pointing towards the coil. Confirm each filter is fully seated and that no gap is visible along the frame.</div>
+<div class="st"><span class="sn">9.</span> Close and fasten the access panel. Confirm all six fasteners are engaged.</div>
+<div class="st"><span class="sn">10.</span> Remove the padlock and caution notice and restore the local isolator.</div>
+<div class="st"><span class="sn">11.</span> Start the supply fan in local control. Listen for rubbing or imbalance for the first minute of running.</div>
+<div class="st"><span class="sn">12.</span> Return the unit to AUTO at the front panel and confirm the building management system (BMS) shows CRAH-07 running and in AUTO.</div>
+<h2>5. VERIFICATION</h2>
+<div class="st"><span class="sn">5.1</span> New filter differential pressure to read between 60 and 110 Pa at full fan speed. A reading below 40 Pa suggests a filter is not seated.</div>
+<div class="st"><span class="sn">5.2</span> Discharge air temperature to return to within 1.0 K of the pre-work value within fifteen minutes.</div>
+<div class="st"><span class="sn">5.3</span> Confirm no new alarms at the BMS for CRAH-07 after thirty minutes of running.</div>
+<div class="st"><span class="sn">5.4</span> Record the work and the new differential pressure on Form CF-114. <span class="stale">Form CF-114 was superseded by the electronic job card in 2020.</span></div>
+<h2>6. IF THE UNIT DOES NOT RESTART</h2>
+<p>Confirm the isolator is closed and the panel fasteners are engaged, as the door interlock will hold the fan off. If the unit still does not run, leave it isolated and call the duty engineer. Do not attempt fault finding on the drive.</p>
+<h2>REVISION HISTORY</h2>
+<p class="rev">Rev 5 · 2015-02-02 · Original issue as part of the planned maintenance set.<br>
+Rev 6 · 2017-09-14 · Filter grade changed from F6 to F7.<br>
+Rev 7 · 2019-03-11 · Calendar based change-out adopted. Pager reference retained pending review.<br>
+${v==="D1"?"Reviewed 2023-05 — no change required.":"Rev 8 · 2024-06-27 · Redundant unit availability note added at 3.2 following WO 44118. Row density change of 2023 not yet assessed. Review flagged to Mechanical Engineering."}</p>`,
+  extract:v=>({
+    system:"Mechanical, air side. One computer room air handler (CRAH-07) and its filters. No electrical distribution, no chilled water valves, no controls changes.",
+    changes:[
+      "CRAH-07 supply fan stopped and the unit taken out of automatic control for the duration of the work.",
+      "Local electrical isolation applied to the unit, then removed.",
+      "Filter media replaced; filter differential pressure changes from a loaded value to a clean value.",
+      "Unit returned to automatic control at the end."
+    ],
+    rollback:true,
+    rollbackNote:"Section 6 covers what to do if the unit does not restart. It is a call-out instruction rather than a staged reversal, but the document does address the failed end state.",
+    elements:{scope:"present",pre:"present",steps:"present",verify:"present",rollback:"partial",approve:"partial"},
+    blind:v==="D1"
+      ? "The document states at 3.2 that the redundant unit CRAH-08 must be confirmed running before work starts, and at 3.3 that row 4 is a standard density row. It does not tell me whether that pre-condition is actually satisfied today."
+      : "The document states at 3.2 that the redundant unit CRAH-08 is out of service under works order WO 44118, and at 3.3 that the row was re-designated to a higher density in 2023 without the document being reviewed. It does not tell me what the row is drawing right now or how long it would hold temperature with no air handler running."
+  })
+},
+{
+  id:"B", no:"SOP-EL-0402", pages:11, owner:"Electrical Engineering",
+  title:"Transfer UPS-A to maintenance bypass for battery string replacement",
+  rev:v=>v==="D1"?"Rev 3 · 2016-05-19":"Rev 4 · 2022-02-15",
+  sys:"Electrical. UPS-A, its static switch and maintenance bypass, and the distribution downstream.",
+  body:v=>`
+<div class="banner">Document retrieved from the site library. Header, numbering and cross references are reproduced as held. Some references are known to be out of date.</div>
+<h2>PURPOSE</h2>
+<p>To transfer the load of uninterruptible power supply (UPS) module UPS-A onto the external maintenance bypass so that battery string ${v==="D1"?"2":"1"} can be replaced, and to return the module to normal operation afterwards. The transfer places the critical load on raw mains for the duration of the work.</p>
+<h2>SCOPE</h2>
+<p>UPS-A only, rated 500 kVA, feeding power distribution units (PDU) 01, 02 and 03 and through them the cabinets in Halls A and B. UPS-B is a separate module on the B feed and is not touched by this document. Battery monitoring system work is covered separately by EN-EL-0455.</p>
+<h2>2. PRE-CONDITIONS</h2>
+<div class="st"><span class="sn">2.1</span> UPS-B must be healthy, on line, in normal mode and with no active alarms. Confirm at the UPS-B display and record the module status.</div>
+<div class="st"><span class="sn">2.2</span> UPS-A load must be at or below ${v==="D1"?"40":"45"} per cent of module rating. If load is above this, contact the duty engineer before proceeding.</div>
+<div class="st"><span class="sn">2.3</span> No other electrical works, no generator testing and no fire system testing to be in progress or scheduled during the window.</div>
+<div class="st"><span class="sn">2.4</span> Utility supply present and stable on both feeds. Do not carry out this work on generator supply.</div>
+<div class="st"><span class="sn">2.5</span> Confirm the static bypass line is healthy and that the module reports no bypass fault. While on maintenance bypass the load is unprotected; a supply disturbance of any depth will be seen by the cabinets.</div>
+<div class="st"><span class="sn">2.6</span> Two competent persons required. One to operate, one to read the steps and witness. The work is not to be carried out single handed.</div>
+<div class="st"><span class="sn">2.7</span> Weather forecast to be checked for electrical storms. <span class="stale">Refer to the site weather terminal in the control room.</span> (Terminal removed 2018.)</div>
+<h2>3. TRANSFER SEQUENCE</h2>
+<div class="st"><span class="sn">1.</span> Announce the start of the work to the operations desk and confirm the change ticket number is open.</div>
+<div class="st"><span class="sn">2.</span> At the UPS-A front panel, silence any nuisance alarms and record the module state, load percentage and battery voltage.</div>
+<div class="st"><span class="sn">3.</span> Command the module to internal static bypass. Confirm the mimic shows load transferred to bypass and that the inverter has stopped. Expected transfer time is under four milliseconds and no load disturbance should be seen.</div>
+<div class="st"><span class="sn">4.</span> Confirm at PDU 01, 02 and 03 that voltage and current are unchanged. Any change here means the transfer did not complete cleanly.</div>
+<div class="st"><span class="sn">5.</span> Close the maintenance bypass breaker MBB. The breaker is key interlocked; the key will not turn unless the module is already on static bypass.</div>
+<div class="st"><span class="sn">6.</span> Open the unit output breaker UOB. Confirm the module now shows zero output current.</div>
+<div class="st"><span class="sn">7.</span> Open the unit input breaker UIB and the battery circuit breaker BCB. Confirm the direct current bus voltage falls towards zero and allow five minutes for the capacitors to discharge.</div>
+<div class="st"><span class="sn">8.</span> Prove dead at the battery terminals with an approved voltage indicator and prove the indicator before and after. Apply locks and caution notices at UIB, UOB and BCB.</div>
+<div class="st"><span class="sn">9.</span> Replace battery string ${v==="D1"?"2":"1"} block by block. Torque all terminals to 11 Nm. Record each block serial number and its open circuit voltage on the battery record sheet.</div>
+<div class="st"><span class="sn">10.</span> On completion, remove tools and locks, close the battery compartment and confirm the compartment interlock is made.</div>
+<h2>4. RETURN TO NORMAL</h2>
+<div class="st"><span class="sn">11.</span> Close BCB, then UIB. Confirm the direct current bus charges and that no earth fault is reported.</div>
+<div class="st"><span class="sn">12.</span> Start the inverter and allow it to synchronise with the bypass source. Confirm the module reports synchronised before proceeding.</div>
+<div class="st"><span class="sn">13.</span> Close UOB, then open MBB. Confirm the load transfers back to the inverter and that the module reports normal mode.</div>
+<div class="st"><span class="sn">14.</span> Leave the module charging and confirm at the operations desk that the change ticket can be closed. Restore the interlock key to the key cabinet.</div>
+<h2>NOTES</h2>
+<p>To return to normal, carry out the transfer sequence in reverse order. If the inverter will not synchronise, leave the load on maintenance bypass and call the duty engineer; do not force a transfer.</p>
+<p>Approval: to be signed by the responsible electrical engineer before work commences. Signature block on page 11.</p>
+<h2>REVISION HISTORY</h2>
+<p class="rev">Rev 1 · 2011-06-30 · Original issue.<br>
+Rev 2 · 2014-08-11 · Key interlock added at step 5.<br>
+Rev 3 · 2016-05-19 · Load limit reduced to 40 per cent.<br>
+${v==="D1"?"Marked for review 2020 — review not recorded.":"Rev 4 · 2022-02-15 · Load limit raised to 45 per cent following module upgrade. Two person rule added at 2.6."}</p>`,
+  extract:v=>({
+    system:"Electrical. UPS-A module, its static switch, maintenance bypass breaker and the unit input, output and battery breakers. Downstream: PDU 01, 02 and 03 feeding Halls A and B.",
+    changes:[
+      "Critical load moves from inverter output to internal static bypass, then to external maintenance bypass — raw mains, no conditioning and no stored energy.",
+      "Unit input, unit output and battery circuit breakers are opened; the module is de-energised and locked off.",
+      "A battery string is removed and replaced; the direct current bus is discharged.",
+      "The whole sequence is reversed at the end to return the load to the inverter."
+    ],
+    rollback:false,
+    rollbackNote:"There is no rollback section. The notes on the last page say to carry out the sequence in reverse order and to call the duty engineer if the inverter will not synchronise. That is an instruction, not a rollback procedure with defined decision points.",
+    elements:{scope:"present",pre:"present",steps:"present",verify:"partial",rollback:"absent",approve:"partial"},
+    blind:"The document does not say how long the load will be on maintenance bypass, what the condition of the incoming supply is expected to be during that window, or what is to happen if a supply disturbance occurs while the module is out. It names the approver only as the responsible electrical engineer, with no named individual and no record of when the approval was given."
+  })
+},
+{
+  id:"C", no:"OPS-EL-0900", pages:6, owner:"Operations",
+  title:"Total loss of utility supply with generator failure to start — immediate actions",
+  rev:v=>v==="D1"?"Rev 12 · 2024-01-30":"Rev 13 · 2025-04-08",
+  sys:"Electrical. Utility intake, automatic transfer switches, generators, UPS autonomy and the load.",
+  body:v=>`
+<div class="banner">Document retrieved from the site library. Header, numbering and cross references are reproduced as held. Some references are known to be out of date.</div>
+<h2>WHEN TO USE THIS DOCUMENT</h2>
+<p>Both utility feeds have been lost and generator GEN-1 has not reached running speed within thirty seconds of the start signal. The site is running on stored energy. Read the numbered actions in order and do not stop to raise paperwork.</p>
+<h2>TIME AVAILABLE</h2>
+<p>Uninterruptible power supply (UPS) autonomy at full rated load is five minutes. At the current typical load of ${v==="D1"?"62":"71"} per cent, expect approximately ${v==="D1"?"seven":"six"} minutes before the first module reaches end of discharge. Chilled water storage will hold hall temperature for approximately ${v==="D1"?"four":"three"} minutes once the chillers stop. Assume the shorter of the two.</p>
+<h2>IMMEDIATE ACTIONS</h2>
+<div class="st"><span class="sn">1.</span> Confirm the event. Check the intake metering for both feeds and confirm zero volts on each. A single feed loss is not this document; use OPS-EL-0880.</div>
+<div class="st"><span class="sn">2.</span> Note the time of the loss. Everything after this is measured from that time and it will be the first question asked afterwards.</div>
+<div class="st"><span class="sn">3.</span> Check the automatic transfer switch ATS-1 position and the generator control panel for a start signal received. Record the fault lamp or code shown.</div>
+<div class="st"><span class="sn">4.</span> Confirm the generator engine control unit selector is in AUTO. If it has been left in OFF or MANUAL after testing, return it to AUTO and allow the automatic sequence to run.</div>
+<div class="st"><span class="sn">5.</span> If no start occurs, attempt a manual start at the local generator panel. Two attempts only. Do not crank continuously; allow thirty seconds between attempts.</div>
+<div class="st"><span class="sn">6.</span> Check the fuel day tank level and the fuel rack solenoid. A day tank below the low level switch will inhibit start. Check the emergency stop button at the panel and the remote emergency stop by the door — a latched stop is the most common cause of failure to start.</div>
+<div class="st"><span class="sn">7.</span> Escalate now, not later. Call the duty engineer and the operations manager. State the time of the loss and the time remaining on batteries. <span class="stale">Use the red telephone in the control room; the number list is posted beside it.</span> (List last updated 2021.)</div>
+<div class="st"><span class="sn">8.</span> Begin load shedding in the order given in Appendix B: test and development cabinets first, then the office block feeds, then the non-critical mechanical loads. Each shed step buys autonomy on every remaining module.</div>
+<div class="st"><span class="sn">9.</span> Notify information technology operations that a controlled shutdown may be required and give them the current time remaining. They need this before the last minute, not during it.</div>
+<div class="st"><span class="sn">10.</span> If two start attempts have failed and no cause has been found, stop trying and commit to the shutdown sequence. Time spent on a third attempt is time taken from the shutdown.</div>
+<div class="st"><span class="sn">11.</span> Prepare for graceful shutdown of the halls in the order given in Appendix C. Confirm with information technology operations before any cabinet is dropped.</div>
+<div class="st"><span class="sn">12.</span> Once supply is restored, do not restore load automatically. Restore in stages under the direction of the duty engineer, allowing the chilled water loop to re-establish before the halls are reloaded.</div>
+<h2>AFTERWARDS</h2>
+<p>Log every action with its time. The log is the record of the event and it will be reviewed. No approval is required to execute this document; the notification requirements are in Appendix A and are carried out after the immediate actions, not before them.</p>
+<h2>REVISION HISTORY</h2>
+<p class="rev">Rev 10 · 2020-11-02 · Load shed order revised.<br>
+Rev 11 · 2022-07-19 · Two attempt limit added at step 5 after the 2022 event.<br>
+Rev 12 · 2024-01-30 · Autonomy figures updated for the current load profile.<br>
+${v==="D1"?"Next review due 2026-01.":"Rev 13 · 2025-04-08 · Autonomy figures reduced following the load growth of 2024. Chilled water storage figure revised down."}</p>`,
+  extract:v=>({
+    system:"Electrical. Utility intake metering, automatic transfer switch ATS-1, generator GEN-1 and its control panel, UPS stored energy, and the whole hall load through the shed and shutdown sequences.",
+    changes:[
+      "No state change is initiated by the document; it is written for a state change that has already happened.",
+      "Load is progressively shed in a defined order.",
+      "Halls may be shut down under a defined sequence.",
+      "Restoration is staged and manual rather than automatic."
+    ],
+    rollback:false,
+    rollbackNote:"There is no rollback section. Step 12 covers staged restoration, which is recovery rather than rollback — there is no earlier state to return to.",
+    elements:{scope:"present",pre:"partial",steps:"present",verify:"partial",rollback:"absent",approve:"present"},
+    blind:"The document states that no approval is required to execute it and that notification comes after the immediate actions. It carries explicit time limits measured from an event rather than from a scheduled start."
+  })
+},
+{
+  id:"D", no:"WI-EL-1177", pages:9, owner:"Electrical Projects",
+  title:"Addition of a 250 A subfeed circuit breaker to the PDU-04 distribution board, board live",
+  rev:v=>v==="D1"?"Rev 2 · 2022-11-04":"Rev 3 · 2023-09-21",
+  sys:"Electrical. PDU-04 distribution board, its busbar and the existing circuits fed from it.",
+  body:v=>`
+<div class="banner">Document retrieved from the site library. Header, numbering and cross references are reproduced as held. Some references are known to be out of date.</div>
+<h2>1 PURPOSE AND BACKGROUND</h2>
+<p>To fit one additional 250 A moulded case circuit breaker into the spare way at position ${v==="D1"?"14":"11"} of the power distribution unit PDU-04 distribution board, to feed the new cabinet row in Hall ${v==="D1"?"A":"C"}. The board cannot be shut down: PDU-04 currently feeds ${v==="D1"?"forty-two":"thirty-six"} cabinets on the A side, and the works window agreed with the customer does not permit a board outage.</p>
+<h2>Scope</h2>
+<p>Installation of the breaker, its cable terminations at the board end and the labelling. Cable pulling in the containment and terminations at the far end are covered by the installation contractor's own work instruction. Commissioning of the new row is not covered here.</p>
+<h2>2 PRE-CONDITIONS</h2>
+<div class="st"><span class="sn">2.1</span> Live working justification to be recorded before the work starts. The board is live and adjacent live parts will be within reach throughout.</div>
+<div class="st"><span class="sn">2.2</span> Arc flash study for PDU-04 to be reviewed and the incident energy at the working position confirmed. Personal protective equipment to be selected on that basis and not by habit.</div>
+<div class="st"><span class="sn">2.3</span> Confirm the spare way is genuinely spare and is not fed from a different section of busbar. The board was extended in 2019 and the schedule is known to be inaccurate.</div>
+<div class="st"><span class="sn">2.4</span> Confirm the redundant B side distribution to the affected cabinets is healthy and carrying load, so that a loss of PDU-04 would not drop the cabinets. Record the B side loading before starting.</div>
+<div class="st"><span class="sn">2.5</span> Insulated tools, insulating mats and a second person trained in low voltage rescue to be present for the duration.</div>
+<div class="st"><span class="sn">2.6</span> No other work on the A side distribution to be in progress. Confirm with the operations desk and hold the desk log open.</div>
+<h2>3 SEQUENCE OF WORK</h2>
+<div class="st"><span class="sn">1.</span> Brief the working party at the board. Cover the arc flash boundary, the escape route and the emergency call arrangements.</div>
+<div class="st"><span class="sn">2.</span> Record the board loading, the phase currents and the busbar temperature from the thermographic window before any panel is opened.</div>
+<div class="st"><span class="sn">3.</span> Remove the front cover fixings and lift the cover clear with two people. Do not rest the cover against the board.</div>
+<div class="st"><span class="sn">4.</span> Fit the insulating barrier over the exposed busbar sections either side of the working position. HOLD POINT — the supervisor is to confirm the barrier is secure before any tool goes past the line of the board face.</div>
+<div class="st"><span class="sn">5.</span> Confirm the way is dead at the stab connection using an approved voltage indicator, and prove the indicator before and after. A live spare way means the pre-condition at 2.3 was wrong; stop and reassess.</div>
+<div class="st"><span class="sn">6.</span> Fit the breaker into the way and engage the stabs. Confirm the breaker is in the OFF position before it goes anywhere near the busbar.</div>
+<div class="st"><span class="sn">7.</span> Torque the stab fixings to the manufacturer's figure of 20 Nm and mark each fixing with torque paint.</div>
+<div class="st"><span class="sn">8.</span> Terminate the outgoing cable cores at the breaker. Torque to 25 Nm and mark. Check the cores are correctly identified against the cable schedule.</div>
+<div class="st"><span class="sn">9.</span> Fit the phase barriers and confirm no conductive material has been left inside the enclosure. Two people to inspect independently. HOLD POINT — the supervisor signs before the cover is refitted.</div>
+<div class="st"><span class="sn">10.</span> Refit the front cover and secure all fixings.</div>
+<div class="st"><span class="sn">11.</span> Label the new way at the board and update the board schedule. The schedule is the record other people will rely on.</div>
+<div class="st"><span class="sn">12.</span> Leave the new breaker in the OFF position and locked off. Energising the new circuit is a separate activity under the commissioning plan.</div>
+<div class="st"><span class="sn">13.</span> Clear the working area, return tools and close the operations desk log entry.</div>
+<h2>4 VERIFICATION</h2>
+<div class="st"><span class="sn">4.1</span> Insulation resistance test on the outgoing circuit before energising, minimum 1 megohm phase to earth.</div>
+<div class="st"><span class="sn">4.2</span> Thermographic survey of the board at the next available opportunity, and in any case within seven days, to confirm the new terminations are not running warm.</div>
+<div class="st"><span class="sn">4.3</span> Board loading and phase currents to be compared against the pre-work reading taken at step 2 and to be unchanged.</div>
+<h2>5 SIGN OFF</h2>
+<p>Signature: ......................................  Date: ......................</p>
+<p>Countersignature where required: ......................................</p>
+<h2>REVISION HISTORY</h2>
+<p class="rev">Rev 1 · 2021-04-06 · Original issue for the Hall A extension.<br>
+Rev 2 · 2022-11-04 · Hold points added at steps 4 and 9 after an internal audit finding.<br>
+${v==="D1"?"Audit action to add a defined abort route remains open.":"Rev 3 · 2023-09-21 · Way position and hall reference updated for the Hall C extension. Audit action on the abort route still open."}</p>`,
+  extract:v=>({
+    system:"Electrical. PDU-04 distribution board, the live busbar, the spare way and the existing outgoing circuits. Downstream, the cabinets fed from the A side.",
+    changes:[
+      "A live distribution board is opened and worked on with the busbar energised.",
+      "An insulating barrier is fitted over live sections and removed at the end.",
+      "A new breaker is fitted to the busbar stabs and terminated.",
+      "The new breaker is left open and locked off; the board schedule and labelling change."
+    ],
+    rollback:false,
+    rollbackNote:"There is no rollback section. Step 5 says to stop and reassess if the way is live, and the revision history records an open audit action to add a defined abort route. What happens if the work has to be abandoned with the cover off is not written down.",
+    elements:{scope:"present",pre:"present",steps:"present",verify:"present",rollback:"absent",approve:"partial"},
+    blind:"The approval block is a signature line with no named role. The document does not say who is competent to authorise live working here, nor what the loss of PDU-04 would do to the cabinets if the board were tripped during the work — it only asks that the B side be confirmed healthy first."
+  })
+},
+{
+  id:"E", no:"MOP-ME-0331", pages:7, owner:"Mechanical Operations",
+  title:"Changeover of duty chiller from CH-1 to CH-2",
+  rev:v=>v==="D1"?"Rev 5 · 2018-10-22":"Rev 6 · 2024-11-12",
+  sys:"Mechanical, water side. Chillers CH-1 and CH-2, the primary pumps and the isolation valves.",
+  body:v=>`
+<div class="banner">Document retrieved from the site library. Header, numbering and cross references are reproduced as held. Some references are known to be out of date.</div>
+<h2>PURPOSE</h2>
+<p>To transfer the duty from chiller CH-1 to chiller CH-2, either as part of the routine duty rotation or to release CH-1 for maintenance. The rotation is normally carried out on the first Tuesday of the month.</p>
+<h2>Scope</h2>
+<p>CH-1 and CH-2, the associated primary chilled water pumps P-1 and P-2, and the machine isolation valves. Condenser water pumps and the cooling towers follow the chiller automatically and are not operated by hand under this document. Building management system (BMS) sequence changes are not covered here.</p>
+<h2>PRE-CONDITIONS</h2>
+<div class="st"><span class="sn">a.</span> CH-2 to have been run within the last thirty days and to have no outstanding alarms. Check the run hours and the alarm history at the machine panel.</div>
+<div class="st"><span class="sn">b.</span> Confirm the standby machine is available and that the oil temperature is within the starting band. A cold machine may refuse to start and will not report why until the start is attempted.</div>
+<div class="st"><span class="sn">c.</span> Chilled water supply temperature to be stable at setpoint before starting the changeover. Do not start a changeover on a rising loop.</div>
+${v==="D1"?
+`<div class="st"><span class="sn">d.</span> Carry out the changeover during the day shift where possible. <span class="stale">The third machine, CH-3, is not to be used for duty rotation.</span> (CH-3 was decommissioned and removed in 2022; reference retained.)</div>`
+:
+`<div class="st"><span class="sn">d.</span> CH-3, installed 2023, to be confirmed on line and carrying load before the changeover starts, so that N+1 is maintained throughout. If CH-3 is not available, this document does not apply — stop and raise a method statement for a reduced redundancy changeover.</div>`}
+<div class="st"><span class="sn">e.</span> Inform the operations desk before starting. The changeover produces a short loop temperature excursion which will be seen at the hall sensors.</div>
+<h2>SEQUENCE</h2>
+<div class="st"><span class="sn">1.</span> At the BMS, note the current chilled water supply and return temperatures, the loop flow and the load on CH-1.</div>
+<div class="st"><span class="sn">2.</span> Confirm CH-2 isolation valves are open on both the evaporator and the condenser side. Valves are line size and slow to travel; allow ninety seconds for a full stroke.</div>
+<div class="st"><span class="sn">3.</span> Start primary pump P-2 and confirm flow is established through CH-2. Flow switch to make within twenty seconds.</div>
+<div class="st"><span class="sn">4.</span> Start CH-2 in local control and allow it to load. Expect approximately five minutes to reach stable operation and confirm the compressor current settles.</div>
+<div class="st"><span class="sn">5.</span> Confirm CH-2 is producing chilled water at or near setpoint before any load is taken off CH-1. Do not proceed if CH-2 has not achieved setpoint.</div>
+<div class="st"><span class="sn">6.</span> Unload CH-1 gradually at the machine panel. Do not stop the machine while it is loaded.</div>
+<div class="st"><span class="sn">7.</span> Stop CH-1 once unloaded and confirm the compressor has stopped and the machine has entered its pump-down cycle.</div>
+<div class="st"><span class="sn">8.</span> Allow primary pump P-1 to run for a further three minutes, then stop it.</div>
+<div class="st"><span class="sn">9.</span> Close the CH-1 isolation valves if the machine is being released for maintenance. Leave them open if this is a routine rotation.</div>
+<div class="st"><span class="sn">10.</span> Set CH-2 to duty and CH-1 to standby at the BMS. Confirm the duty selection has taken and that the standby machine will start on a duty failure.</div>
+<div class="st"><span class="sn">11.</span> Watch the loop for fifteen minutes. Supply temperature to return to within 0.5 K of the starting value and hall temperatures to show no sustained rise.</div>
+<h2>IF THE CHANGEOVER FAILS</h2>
+<p>If CH-2 fails to start or fails to hold setpoint, leave CH-1 on duty and running, stop P-2, and report the CH-2 fault. Do not attempt a second start without the duty engineer's agreement. If CH-1 has already been stopped when the CH-2 fault appears, restart CH-1 immediately; note that a restart within the anti-recycle timer will be refused and the machine will not start again for up to ${v==="D1"?"fifteen":"twenty"} minutes.</p>
+<h2>RECORDS</h2>
+<p>Record the changeover in the plant log with the times of each step. <span class="stale">Copy the entry to the monthly mechanical return, Form MR-6.</span> (Form MR-6 withdrawn 2019.)</p>
+<h2>REVISION HISTORY</h2>
+<p class="rev">Rev 4 · 2016-03-15 · Anti-recycle timer note added after a failed changeover.<br>
+Rev 5 · 2018-10-22 · Sequence renumbered. Pre-conditions moved to lettered list. CH-3 reference retained pending review.<br>
+${v==="D1"?"Marked for review 2022 following the CH-3 decommissioning — review not recorded.":"Rev 6 · 2024-11-12 · CH-3 (2023 installation) added at pre-condition (d). Changeover under reduced redundancy explicitly excluded from this document."}</p>`,
+  extract:v=>({
+    system:"Mechanical, water side. Chillers CH-1 and CH-2, primary pumps P-1 and P-2, machine isolation valves, and the chilled water loop serving the halls.",
+    changes:[
+      "A second chiller and its primary pump are started.",
+      "Duty is transferred and the original machine is unloaded and stopped.",
+      "Isolation valves may be closed to release CH-1 for maintenance.",
+      "Duty and standby selection at the building management system is changed."
+    ],
+    rollback:true,
+    rollbackNote:"Yes. The section headed 'If the changeover fails' gives a defined return to the previous state, including the anti-recycle timer constraint that limits how quickly that return can be made.",
+    elements:{scope:"present",pre:"present",steps:"present",verify:"present",rollback:"present",approve:"partial"},
+    blind:v==="D1"
+      ? "The pre-conditions ask that the standby machine be available but do not say what the plant configuration is. The only reference to a third machine at (d) is marked as decommissioned in 2022. The document does not tell me how many chillers are actually on line today, what the load is, or what the outside conditions are."
+      : "Pre-condition (d) requires CH-3 to be confirmed on line and carrying load before the changeover starts, and explicitly excludes a changeover under reduced redundancy from the scope of this document."
+  })
+}
+];
+
+const SETS=[{id:"D1"},{id:"D2"}];
+
+/* fixed integer derived from SET — the run is identical every time the file is opened */
+const RK=(Math.imul(SET+1,2654435761)^0x9E3779B9)>>>0;
+
+const S={vi:SET,rk:RK,learner:"",t:0,running:false,timer:null,
+  view:"lib",open:"A",cls:{},partner:{},res:{},asst:{}};
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function stamp(){
+  const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());
+}
+let V=SETS[SET];
+
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const docById=id=>DOCS.filter(d=>d.id===id)[0];
+const ctrlNo=d=>"DC-"+String((S.rk%9000)+d.id.charCodeAt(0)*31%900+1000);
+function blank(id){ return {tier:"",why:"",cond:"",missing:"",mop:{}}; }
+function cls(id){ if(!S.cls[id]) S.cls[id]=blank(id); return S.cls[id]; }
+
+/* ---------- library view ---------- */
+function renderLib(){
+  const el=$("libView");
+  if(!el.dataset.built){
+    el.innerHTML=`
+      <div class="caveat noprint">A confident answer from an assistant is not the same as a correct one. The assistant can read a document faster than you can and will list what it touches without missing a section. It can quote the line that states the purpose of the activity, and the purpose is what fixes the type. It cannot see your plant, your redundancy configuration or today's load, so it cannot set the Level of Risk. The extraction column can be delegated. The reasoning column is yours. The document number prefix is not evidence of type, any more than the title or the page count is — a document numbered SOP- may describe maintenance, and a four page document may carry more risk than an eleven page one. Classify from the purpose, not from the header.</div>
+      <div class="tile" style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
+          <span class="counter" id="libCount"></span>
+          <span class="spacer" style="flex:1"></span>
+          <span class="counter">Click a row to open the document</span>
+        </div>
+        <div style="overflow:auto"><table id="docTable"></table></div>
+      </div>
+      <div class="reader" id="reader"></div>`;
+    el.dataset.built="1";
+  }
+  $("libCount").textContent=DOCS.length+" documents in this set · unsorted, as retrieved";
+  $("docTable").innerHTML=
+    `<thead><tr>
+       <th style="cursor:default">Document number</th>
+       <th style="cursor:default">Title</th>
+       <th style="cursor:default">Revision</th>
+       <th style="cursor:default">Pages</th>
+       <th style="cursor:default">Owner</th>
+       <th style="cursor:default">Your type</th>
+     </tr></thead><tbody>`+
+    DOCS.map(d=>{
+      const t=cls(d.id).tier;
+      return `<tr class="docrow ${S.open===d.id?'sel':''}" data-d="${d.id}">
+        <td class="docno">${d.no}</td>
+        <td><div class="doctitle">${esc(d.title)}</div><div class="docmeta">${esc(d.sys)}</div></td>
+        <td class="mono" style="white-space:nowrap;font-size:12px">${d.rev(V.id)}</td>
+        <td class="mono">${d.pages}</td>
+        <td style="font-size:12px">${esc(d.owner)}</td>
+        <td>${t?`<span class="sev ${t==="EOP"?"critical":t==="MOP"?"high":t==="SOP"?"medium":"low"}">${t==="DEPENDS"?"DEPENDS":t}</span>`:`<span class="counter">—</span>`}</td>
+      </tr>`;}).join("")+`</tbody>`;
+  $("docTable").onclick=e=>{
+    const r=e.target.closest(".docrow"); if(!r)return;
+    S.open=r.dataset.d; renderLib();
+  };
+  renderReader();
+}
+function renderReader(){
+  const d=docById(S.open);
+  const a=S.asst[S.open]||{};
+  $("reader").innerHTML=`
+    <div class="rhead">
+      <h3>${esc(d.title)}</h3>
+      <div class="rmeta">
+        <span>${d.no}</span><span>${d.rev(V.id)}</span><span>${d.pages} pages</span>
+        <span>${esc(d.owner)}</span><span>Control ${ctrlNo(d)}</span>
+      </div>
+    </div>
+    <div class="paper">${d.body(V.id)}</div>
+    <div class="copbar noprint">
+      <button id="btnSum" class="primary">Summarise with assistant</button>
+      <button id="btnAsk">Ask the assistant: what is the Level of Risk?</button>
+      <button id="btnClearA">Clear panel</button>
+      <span class="spacer" style="flex:1"></span>
+      <button id="btnToSheet">Classify this document</button>
+    </div>
+    ${a.sum?copSummary(d):""}
+    ${a.ask?copRefusal(d):""}`;
+  $("btnSum").onclick=()=>{S.asst[S.open]=Object.assign({},S.asst[S.open],{sum:true});renderReader();};
+  $("btnAsk").onclick=()=>{S.asst[S.open]=Object.assign({},S.asst[S.open],{ask:true});renderReader();};
+  $("btnClearA").onclick=()=>{S.asst[S.open]={};renderReader();};
+  $("btnToSheet").onclick=()=>{showView("sheet");};
+}
+function copHead(tag){
+  return `<div class="ch"><div class="glyph"></div>
+    <div class="cname">Assistant</div><div class="ctag">${tag}</div>
+    <div class="spacer" style="flex:1"></div>
+    <div class="ctag">document extraction</div></div>`;
+}
+function copSummary(d){
+  const x=d.extract(V.id);
+  const rowEl=e=>`<li>${e.n} — <span class="el ${x.elements[e.k]}">${x.elements[e.k].toUpperCase()}</span></li>`;
+  return `<div class="cop noprint">
+    ${copHead("summary of "+d.no)}
+    <div class="cb">
+      <div class="blk"><h5>System touched</h5><div>${esc(x.system)}</div></div>
+      <div class="blk"><h5>What changes state</h5><ul>${x.changes.map(c=>"<li>"+esc(c)+"</li>").join("")}</ul></div>
+      <div class="blk"><h5>Rollback section</h5><div>${x.rollback?"Present.":"Not present."} ${esc(x.rollbackNote)}</div></div>
+      <div class="blk"><h5>Six MOP elements, as found in the text</h5><ul>${ELEMENTS.map(rowEl).join("")}</ul></div>
+      <div class="blk" style="margin-bottom:0"><h5>What the document does not tell me</h5><div>${esc(x.blind)}</div></div>
+    </div>
+    <div class="cf">Extraction only. Present, partial and absent describe what is written in the document, not whether the document is adequate. I have not set the Level of Risk.</div>
+  </div>`;
+}
+function copRefusal(d){
+  return `<div class="cop noprint">
+    ${copHead("classification request")}
+    <div class="cb">
+      <div class="refuse">
+        <b>I am not going to answer that from this document alone.</b><br><br>
+        I can tell you what ${d.no} touches, what it changes and which of the six elements are written down, and I can quote the line that states its purpose — that line fixes the type, and it is on the page in front of you. The Level of Risk is a different question. It depends on the redundancy you actually have configured today, what is already out of service, how much load is on the plant and what the operating conditions are. None of that is in the document, and none of it is in front of me.<br><br>
+        If you tell me the configuration and the current state, I will tell you what follows from it. I will not guess, and an answer that sounds confident would be worth nothing to you here.
+      </div>
+    </div>
+    <div class="cf">The judgement is yours to make and yours to sign. Record the evidence that decided it on the classification sheet.</div>
+  </div>`;
+}
+
+/* ---------- classification sheet ---------- */
+function renderSheet(){
+  const el=$("sheetView");
+  if(el.dataset.built==="1"){return;}
+  el.dataset.built="1";
+  el.innerHTML=`
+    <div class="caveat noprint">One type per document, and the evidence that decided it. The type follows from the purpose of the activity: quote the line in the document that states that purpose. "It is routine" is not evidence, it is the conclusion written again. Having fixed the type, set the Level of Risk from the state of the plant — or, for an EOP, the Incident Severity from the CEN Matrix. If the Level of Risk cannot be set without knowing the state of the plant, say so and name the conditions.</div>`+
+    DOCS.map(sheetBlock).join("")+
+    `<div class="submit">
+       <h3>Submission sheet</h3>
+       <div class="sub">Five documents, a type and a reason for each, the six-element checklist for anything you have called a Method of Procedure, and named conditions for anything whose Level of Risk you have called conditional.</div>
+       <div class="row noprint">
+         <div class="fld"><label>Your name</label><input type="text" id="subName" style="width:260px" value="${esc(S.learner)}"></div>
+       </div>
+       <div class="row noprint">
+         <button class="primary" id="btnSubmit">Build submission sheet</button>
+         <button id="btnClearSheet">Clear the sheet</button>
+       </div>
+       <div class="result" id="clsResult"></div>
+     </div>`;
+  el.onchange=onSheetChange;
+  el.oninput=onSheetInput;
+  $("btnSubmit").onclick=buildSheet;
+  $("btnClearSheet").onclick=()=>{S.cls={};S.res={};S.partner={};$("sheetView").dataset.built="";renderSheet();renderLib();};
+  DOCS.forEach(d=>syncBlock(d.id));
+}
+function sheetBlock(d){
+  const c=cls(d.id);
+  return `<div class="csheet" id="blk_${d.id}">
+    <div class="chd">
+      <h3>${esc(d.title)}</h3>
+      <span class="docno">${d.no}</span>
+      <span class="counter">${d.rev(V.id)} · ${d.pages} pages · ${esc(d.owner)}</span>
+    </div>
+    <div class="tiers">${TIERS.map(t=>`
+      <label class="tchip ${c.tier===t.k?'on':''}" data-tier="${t.k}" data-d="${d.id}">
+        <input type="radio" name="tier_${d.id}" value="${t.k}" ${c.tier===t.k?'checked':''}>
+        <span><b>${t.n}</b> <span class="tdesc">${t.d}</span></span>
+      </label>`).join("")}</div>
+    <div class="fld">
+      <label>Evidence that decided it — required, and be specific</label>
+      <textarea rows="3" data-why="${d.id}" placeholder="Quote the section or line that states the purpose of the activity, and say what that purpose makes this document: incident response, routine operation, maintenance, drill or administration.">${esc(c.why)}</textarea>
+    </div>
+    <div class="subblk hidden" id="cond_${d.id}">
+      <div class="fld">
+        <label>Conditions — required. What state of the plant drives the Level of Risk up, and what state brings it back down?</label>
+        <textarea rows="3" data-cond="${d.id}" placeholder="Name the things you would have to know before you could answer: redundancy configuration, what is already out of service, current load, operating conditions.">${esc(c.cond)}</textarea>
+      </div>
+    </div>
+    <div class="subblk hidden" id="mop_${d.id}">
+      <div class="fld" style="margin-bottom:10px"><label>Six-element check — required for a Method of Procedure</label></div>
+      <table class="eltab"><thead><tr>
+        <th style="cursor:default">Element</th><th style="cursor:default">Present</th>
+        <th style="cursor:default">Missing</th><th style="cursor:default">Not clear</th>
+      </tr></thead><tbody>${ELEMENTS.map(e=>`<tr>
+        <td class="elname">${e.n}</td>
+        ${["present","missing","unclear"].map(st=>`<td><label><input type="radio" name="el_${d.id}_${e.k}" data-el="${d.id}|${e.k}" value="${st}" ${(c.mop||{})[e.k]===st?'checked':''}></label></td>`).join("")}
+      </tr>`).join("")}</tbody></table>
+      <div class="fld" style="margin-top:12px">
+        <label>What is missing, and what would you add before this is approved</label>
+        <textarea rows="2" data-missing="${d.id}" placeholder="Name the gaps you have marked missing or not clear, and what you would write to close them.">${esc(c.missing)}</textarea>
+      </div>
+    </div>
+  </div>`;
+}
+function onSheetChange(e){
+  const t=e.target;
+  if(t.name&&t.name.indexOf("tier_")===0){
+    const id=t.name.slice(5); cls(id).tier=t.value;
+    [...document.querySelectorAll(`#blk_${id} .tchip`)].forEach(l=>
+      l.classList.toggle("on",l.dataset.tier===t.value));
+    syncBlock(id); renderLib();
+  }
+  if(t.dataset.el){
+    const p=t.dataset.el.split("|"); const c=cls(p[0]);
+    c.mop=c.mop||{}; c.mop[p[1]]=t.value;
+  }
+}
+function onSheetInput(e){
+  const t=e.target;
+  if(t.id==="subName"){ S.learner=t.value; }
+  if(t.dataset.why!==undefined&&t.dataset.why) cls(t.dataset.why).why=t.value;
+  if(t.dataset.cond!==undefined&&t.dataset.cond) cls(t.dataset.cond).cond=t.value;
+  if(t.dataset.missing!==undefined&&t.dataset.missing) cls(t.dataset.missing).missing=t.value;
+}
+function syncBlock(id){
+  const c=cls(id);
+  const cd=$("cond_"+id), mp=$("mop_"+id);
+  if(cd) cd.classList.toggle("hidden",c.tier!=="DEPENDS");
+  if(mp) mp.classList.toggle("hidden",c.tier!=="MOP");
+}
+
+/* ---------- submission sheet ---------- */
+function tierName(k){
+  if(!k) return "";
+  const t=TIERS.filter(x=>x.k===k)[0];
+  return t?t.n:k;
+}
+function srow(k,v){ return '<div class="srow"><div class="sk">'+k+'</div><div class="sv">'+v+'</div></div>'; }
+function buildSheet(){
+  const missing=[];
+  let h='<div class="sheet"><h4>'+LAB.lab+" \u2014 "+LAB.title+'</h4>';
+  const nm=($("subName")?$("subName").value.trim():"")||S.learner;
+  S.learner=nm;
+  h+=srow("Your name",esc(nm)||"&mdash;");
+  h+=srow("Completed",stamp());
+  h+=srow("Elapsed in session",fmtElapsed(S.t));
+  DOCS.forEach(d=>{
+    const c=cls(d.id);
+    h+='<h4>'+esc(d.no)+" \u2014 "+esc(d.title)+'</h4>';
+    h+=srow("Type recorded",c.tier?esc(tierName(c.tier)):"not recorded");
+    h+=srow("Evidence that decided it",esc(c.why)||"not recorded");
+    if(!c.tier) missing.push(d.no+": type");
+    if(!(c.why||"").trim()) missing.push(d.no+": evidence");
+    if(c.tier==="MOP"){
+      h+=srow("Six-element check",ELEMENTS.map(e=>e.n+": "+(((c.mop||{})[e.k])||"not marked")).join("\n"));
+      h+=srow("What is missing, and what you would add",esc(c.missing)||"not recorded");
+      ELEMENTS.forEach(e=>{ if(!((c.mop||{})[e.k])) missing.push(d.no+": six-element check ("+e.n.toLowerCase()+")"); });
+      if(!(c.missing||"").trim()) missing.push(d.no+": what is missing");
+    }
+    if(c.tier==="DEPENDS"){
+      h+=srow("Conditions named",esc(c.cond)||"not recorded");
+      if(!(c.cond||"").trim()) missing.push(d.no+": conditions");
+    }
+    const r=S.res[d.id]||{}, p=S.partner[d.id];
+    if(p||r.tier||(r.note||"").trim()){
+      h+=srow("Partner compare",
+        "Partner: "+(p?esc(tierName(p)):"not entered")+
+        " \u00b7 Resolution: "+(r.tier?esc(tierName(r.tier)):"unresolved")+
+        ((r.note||"").trim()?"\n"+esc(r.note):""));
+    }
+  });
+  if(missing.length)
+    h+='<div class="note" style="margin-top:14px"><b>Not yet filled in:</b> '+missing.map(esc).join("; ")+
+       ". This is a completeness check only \u2014 it says nothing about what you have written.</div>";
+  h+='<div class="note" style="margin-top:12px">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>';
+  h+='<div class="row noprint" style="margin-top:12px"><button id="btnPrintSheet">Print submission sheet</button></div></div>';
+  const r=$("clsResult");
+  r.className="result show";
+  r.innerHTML=h;
+  $("btnPrintSheet").onclick=()=>window.print();
+}
+
+/* ---------- partner compare ---------- */
+function renderCmp(){
+  const el=$("cmpView");
+  if(el.dataset.built!=="1"){
+    el.dataset.built="1";
+    el.innerHTML=`
+      <div class="caveat noprint">Enter your partner's classification beside your own. Where you disagree, resolve it by argument — one of you quotes the line that states the purpose of the activity, the other says why that reading is wrong, and one of you changes their mind for a reason you can both write down. Do not settle it by picking something in the middle. If neither of you argued for the answer you have written in the resolution column, you have both stopped thinking and the tool will say so.</div>
+      <div class="tile"><div style="overflow:auto"><table id="cmpTable"></table></div></div>`;
+    el.onchange=e=>{
+      const t=e.target;
+      if(t.dataset.partner){S.partner[t.dataset.partner]=t.value;renderCmp();}
+      if(t.dataset.res){(S.res[t.dataset.res]=S.res[t.dataset.res]||{}).tier=t.value;renderCmp();}
+    };
+    el.oninput=e=>{
+      const t=e.target;
+      if(t.dataset.resnote){(S.res[t.dataset.resnote]=S.res[t.dataset.resnote]||{}).note=t.value;}
+    };
+  }
+  const opt=(sel,extra)=>`<option value="">${extra||"— not entered —"}</option>`+
+    TIERS.map(t=>`<option value="${t.k}" ${sel===t.k?"selected":""}>${t.k==="DEPENDS"?"Level of Risk depends":t.k}</option>`).join("");
+  $("cmpTable").innerHTML=
+    `<thead><tr>
+       <th style="cursor:default">Document</th>
+       <th style="cursor:default">Your type</th>
+       <th style="cursor:default">Partner's type</th>
+       <th style="cursor:default">Status</th>
+       <th style="cursor:default">Resolution</th>
+     </tr></thead><tbody>`+
+    DOCS.map(d=>{
+      const mine=cls(d.id).tier, theirs=S.partner[d.id]||"", res=(S.res[d.id]||{});
+      let st='<span class="cmpstat none">NOT ENTERED</span>';
+      if(mine&&theirs) st = mine===theirs
+        ? '<span class="cmpstat agree">AGREED</span>'
+        : '<span class="cmpstat dis">DISAGREEMENT — ARGUE IT OUT</span>';
+      const split = mine&&theirs&&res.tier&&res.tier!==mine&&res.tier!==theirs;
+      return `<tr>
+        <td><div class="doctitle">${esc(d.title)}</div><div class="docmeta">${d.no} · ${d.rev(V.id)}</div></td>
+        <td>${mine?`<span class="sev ${mine==="EOP"?"critical":mine==="MOP"?"high":mine==="SOP"?"medium":"low"}">${mine==="DEPENDS"?"DEPENDS":mine}</span>`:'<span class="counter">—</span>'}</td>
+        <td><select data-partner="${d.id}">${opt(theirs)}</select></td>
+        <td>${st}${mine&&theirs&&mine!==theirs?'<div class="docmeta" style="margin-top:5px">One of you has read something the other has not. Find out which.</div>':''}</td>
+        <td style="min-width:280px">
+          <select data-res="${d.id}">${opt(res.tier,"— unresolved —")}</select>
+          <textarea rows="2" data-resnote="${d.id}" style="margin-top:7px" placeholder="Who changed their mind, and what changed it.">${esc(res.note||"")}</textarea>
+          ${split?'<div class="split">You have both moved to a type neither of you argued for. That is splitting the difference, and it means the argument was never had. Go back and make the case for one of the two answers on the table.</div>':''}
+        </td>
+      </tr>`;}).join("")+`</tbody>`;
+}
+
+/* ---------- run loop ---------- */
+function pushSeries(){
+}
+function render(){
+  $("clock").textContent=fmtClock(S.t);
+  $("elapsed").textContent=fmtElapsed(S.t);
+}
+function tick(){
+  if(S.t>=LAB.duration){
+    stopRun();
+    $("statusBadge").textContent="Time up"; $("statusBadge").className="badge hold";
+    return;
+  }
+  S.t=Math.min(LAB.duration,S.t+1/60);
+  render();
+}
+function startRun(){
+  if(S.running)return;
+  S.running=true;
+  $("statusBadge").textContent="In session"; $("statusBadge").className="badge run";
+  S.timer=setInterval(tick,1000);
+}
+function stopRun(done){
+  S.running=false; clearInterval(S.timer); S.timer=null;
+  if(done!==undefined){
+    $("statusBadge").textContent=done?"Session complete":"Held";
+    $("statusBadge").className="badge "+(done?"":"hold");
+  }
+}
+function resetRun(){
+  stopRun();
+  rnd=mulberry32((S.rk ^ Math.imul(S.vi,2654435761))>>>0);
+  S.t=0; S.cls={}; S.partner={}; S.res={}; S.asst={}; S.open="A";
+  ["libView","sheetView","cmpView"].forEach(v=>{$(v).dataset.built="";$(v).innerHTML="";});
+  render();
+  showView("lib");
+  startRun();
+}
+
+/* ---------- nav ---------- */
+function showView(v){
+  S.view=v;
+  $("libView").classList.toggle("hidden",v!=="lib");
+  $("sheetView").classList.toggle("hidden",v!=="sheet");
+  $("cmpView").classList.toggle("hidden",v!=="cmp");
+  $("btnLib").className=v==="lib"?"primary":"";
+  $("btnSheet").className=v==="sheet"?"primary":"";
+  $("btnCmp").className=v==="cmp"?"primary":"";
+  if(v==="lib")renderLib();
+  if(v==="sheet")renderSheet();
+  if(v==="cmp")renderCmp();
+  const m=document.querySelector("main"); if(m)m.scrollTop=0;
+}
+function showConsole(){
+  $("toolbar").classList.remove("hidden");
+  resetRun();
+}
+/* ---------- wiring ---------- */
+$("btnLib").onclick=()=>showView("lib");
+$("btnSheet").onclick=()=>showView("sheet");
+$("btnCmp").onclick=()=>showView("cmp");
+$("btnRestart").onclick=resetRun;
+window.addEventListener("resize",()=>{render();});
+render();
+showConsole();
+</script>
+<!-- LQ_SUBMISSION_MODULE -->
+<script id="lqData">var LQ={"lab": "524.4.1", "title": "Classify the Document Library", "handout": "GLAB 524.4.1 - Classify the Document Library", "file": "524-4-1-A_DocSort.html", "set": "A", "items": [{"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 2. Open the document library and read all five scripts from start to finish before you classify any of them. Do not sort as you go. The first document you read will look obvious, and at that point you have nothing to compare it with. Record the document number, the title and the owning department for each of the five."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 3. For each script in turn, use Microsoft Copilot to summarise two things and only two things: which system the document touches, and what changes state when it is executed. Copy both answers onto your sheet. These are extraction questions. The assistant is faster and more complete at them than you are, and using it here is the point of the exercise. Record below, for each of the five documents, the system it touches and what changes state when it is executed."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 4. Ask the assistant to classify one of the documents for you. It will decline. Read the refusal, then write one sentence in your own words explaining why the refusal is correct and not a limitation of the tool."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 5. Answer the classifying question in writing for each of the five: what is the purpose of the activity this document exists to carry out? Write the purpose, not the type. Routine operation under normal conditions or a step supporting an EOP, preventive or corrective maintenance done in house by CE Technicians, response to an event already in progress, drill training built on an EOP failure scenario, or an administrative or support process."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 6. Assign each script to one of the five procedure types: EOP, SOP, MOP, DSP or AP. One of the five is not a CE procedure at all — it is project or contractor work that none of the five definitions reaches. Marking it Not a CE procedure is a correct answer and you are expected to find it. Then assign the Level of Risk separately, and for anything you have made an EOP record the Incident Severity from the CEN Matrix instead. For each one, quote the specific line from the document that decided the type. A type with no quoted evidence is a partial pass and will be marked as one."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 7. Two of the five document numbers carry a prefix that contradicts the content. Name both, and for each say what the number claims and what the content actually shows. If you have not found two, go back; you have classified at least one document by its number."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 8. For every script you have classified as a MOP, check it against the six required elements: scope and system state, numbered single-action steps, a rollback plan, go and no-go criteria, verification points, and sign-off spaces. Tick each element present, partial or absent. Clause 5.3.2 also requires the steps to comply with local statutory requirements, equipment manufacturer requirements and Microsoft Preventive Maintenance Standards, and to include shutdown, isolation and start-up steps where the maintenance task requires them. The lab tool lists the same six under the same names, so tick straight against them when you enter the check."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 9. For each element you have marked partial or absent, write what a technician standing at the plant would not know because it is missing. Missing is a finding. A MOP handed to you with no rollback plan is something you raise before the window opens, not during it, and an entry-level technician raising it is doing the job correctly."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 10. One of the five carries a Level of Risk that cannot be settled from the paper alone. Its procedure type is not in doubt; the risk is. Identify it. State what the Level of Risk would be under full redundancy with a healthy standby machine available, and what it becomes when a unit is already out of service. Then list the conditions that decide it: how many machines are on line and healthy, whether anything is already out for service, the current load and the outside conditions."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 11. Write your conditional answer out as you would hand it to a shift lead. One short paragraph. It should name the document, its procedure type, both possible Levels of Risk, and the specific facts you would need to check before starting. Somebody reading it should be able to go and check those facts without ringing you."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 12. Compare all five classifications with your partner. Where you agree, move on. Where you disagree, each of you states the quoted line you relied on, and one of you changes position. Do not split the difference and do not average two types. Two learners who compromise have both stopped thinking. Record which document you disagreed on and what evidence changed your mind, or why it did not."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "image", "p": "Step 13. Type your name into the submission panel, press Build submission sheet, print or export it, and attach or paste the sheet with your five procedure types, your Level of Risk assignments, your evidence and your six-element check."}, {"s": "Part 2: Reflection", "k": "text", "p": "Which document did you classify wrongly on first reading, and what did you lean on when you did it: the prefix on the number, the page count, or the content? Be specific about the habit, because it is the habit that will follow you onto the floor."}, {"s": "Part 2: Reflection", "k": "text", "p": "You will be handed a MOP with no rollback section within your first month on site. Write, in the words you would actually say out loud, what you would say to the person who handed it to you."}, {"s": "Part 2: Reflection", "k": "text", "p": "The assistant read all five documents faster and more completely than you did, and it still could not answer the only question that mattered. Describe one other task on a data centre floor where a tool can do the extraction but not the decision."}, {"s": "Part 2: Reflection", "k": "text", "p": "The procedure type is a property of the purpose of the work and does not move. The Level of Risk is a property of the plant on the day. What would you need to find out about your own site on your first morning before you could put a Level of Risk on anything held in its library?"}]};</script>
+<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+     Collects every handout question and its response inside this lab tool and
+     exports ONE print-to-PDF submission sheet for Canvas grading.
+     Self-contained. No external libraries. Safe to re-inject (idempotent).
+
+     v2.0 — WCAG 2.1 AA pass (label association, headings, alt text, contrast,
+     status announcement, authored focus); image downscale before storage with a
+     visible error if the quota still throws; Save-as-PDF filename set from the
+     learner name; print pagination and running header; duplicate learner-name
+     rows stripped from the harvested simulator record.
+     ========================================================================= -->
+<style id="lqStyle">
+  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
+  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+  #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#9db6c9;font-weight:700}
+  #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
+    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+  #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
+  #lqCard .lqq{margin-bottom:16px}
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+    cursor:pointer}
+  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+    margin-right:6px;font-weight:700}
+  #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
+    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
+  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+  #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
+  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard .lqimgwrap{margin-top:7px}
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+    border-radius:5px;display:block;margin-top:8px}
+  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+
+  /* authored focus — the simulators author none, so this is the only visible ring.
+     Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
+     in the simulator above as much as in the submission panel. */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+  @media print{ :focus-visible{outline:none!important} }
+
+  /* error banner for a storage failure the learner must know about */
+  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr b{color:#fff}
+
+  /* screen-reader-only live region */
+  .lqvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* ---- the assembled submission sheet ---- */
+  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
+  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
+  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+    padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
+  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
+    font-size:12px;color:#a8c0d3;line-height:1.9}
+
+  #lqPrint{display:none}
+  #lqPrint .lqpage{width:100%;border-collapse:collapse}
+
+  /* ---- print: only the sheet ---- */
+  @media print{
+    body.lq-print{background:#fff!important;color:#000!important;
+      overflow:visible!important;height:auto!important}
+    body.lq-print>*{display:none!important}
+    body.lq-print>#lqPrint{display:block!important}
+
+    /* Everything harvested from the simulator arrives in the dark console palette:
+       near-white text that would print invisibly, on backgrounds the browser drops
+       by default. Flatten the whole print container to ink on paper first, then
+       re-assert the few greys that carry meaning. */
+    body.lq-print #lqPrint,body.lq-print #lqPrint *{
+      color:#000!important;background-color:transparent!important;background-image:none!important;
+      box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
+
+    /* running header — a thead repeats on every page in every engine that paginates */
+    body.lq-print #lqPrint thead.lqrhead{display:table-header-group}
+    body.lq-print #lqPrint td.lqrh{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      font-size:8pt;color:#444!important;border-bottom:.5pt solid #999!important;
+      padding:0 0 3pt;text-align:left}
+    body.lq-print #lqPrint td.lqrh .r{float:right}
+    body.lq-print #lqPrint td.lqbody{padding:6pt 0 0}
+
+    body.lq-print #lqPrint .lqsheet{background:#fff;border:0;padding:0;margin:0;color:#000}
+    body.lq-print #lqPrint h1{color:#000}
+    body.lq-print #lqPrint h1,body.lq-print #lqPrint h2{border-bottom-color:#999!important}
+    body.lq-print #lqPrint h2{color:#000;border-bottom:1px solid #999;
+      page-break-after:avoid;break-after:avoid}
+    body.lq-print #lqPrint .lqmeta,body.lq-print #lqPrint .lqrow .k,
+    body.lq-print #lqPrint .lqa .q{color:#444!important}
+    body.lq-print #lqPrint .lqa .q .qn{color:#000!important}
+    body.lq-print #lqPrint .lqrow,body.lq-print #lqPrint .lqa{border-bottom:1px solid #ddd!important}
+    body.lq-print #lqPrint .lqa,body.lq-print #lqPrint .lqrow,
+    body.lq-print #lqPrint .lqsign,body.lq-print #lqPrint .lqgap{
+      page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint .lqa .a.blank{color:#000;font-style:italic}
+    body.lq-print #lqPrint .lqgap,body.lq-print #lqPrint .lqgap.ok{
+      background:#fff!important;border:1pt solid #666!important;color:#000!important}
+    body.lq-print #lqPrint .lqsign{color:#000;border-top:1px solid #999}
+    body.lq-print #lqPrint .noprint{display:none!important}
+    body.lq-print #lqPrint button{display:none!important}
+    /* harvested simulator tables keep their column headers across pages */
+    body.lq-print #lqPrint thead{display:table-header-group}
+    body.lq-print #lqPrint tr{page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint p,body.lq-print #lqPrint .a{orphans:3;widows:3}
+    @page{margin:16mm 14mm 14mm}
+  }
+</style>
+<script id="lqScript">
+(function(){
+  if(window.__lqLoaded) return; window.__lqLoaded=true;
+
+  var esc=function(s){return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
+
+  var KEY="uci2227:"+LQ.file;
+  var store={}, storageBroken=false;
+  try{ store=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ store={}; }
+
+  /* ---------- cross-lab storage budget ----------
+     Every lab in the module is served from one origin, so all 43 share a single
+     ~5 MB localStorage budget. Seventeen image questions at ~325 KB apiece is 5.4 MB
+     — a learner working through the whole module on one browser profile would run out
+     near the end. Images belonging to OTHER labs are evicted when room is needed,
+     oldest and already-exported first. Text answers are never evicted: they are tiny,
+     and they are the part a learner cannot reproduce. An evicted image is already
+     inside the submission PDF that lab produced. */
+  function otherLabKeys(){
+    var out=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0&&k!==KEY) out.push(k);
+      }
+    }catch(e){}
+    return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
+  }
+  function evictOtherImages(target){
+    /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
+    var recs=[];
+    otherLabKeys().forEach(function(k){
+      var raw,obj;
+      try{ raw=localStorage.getItem(k)||"{}"; obj=JSON.parse(raw); }catch(e){ return; }
+      var imgBytes=0;
+      for(var f in obj) if(/_img$/.test(f)) imgBytes+=String(obj[f]).length;
+      if(imgBytes>0) recs.push({k:k,obj:obj,bytes:imgBytes,ts:obj._ts||0,done:obj._done?1:0});
+    });
+    recs.sort(function(a,b){ return (b.done-a.done)||(a.ts-b.ts); });
+    var freed=0;
+    for(var i=0;i<recs.length&&freed<target;i++){
+      var r=recs[i];
+      for(var f in r.obj) if(/_img$/.test(f)) delete r.obj[f];
+      r.obj._evicted=true;
+      try{ localStorage.setItem(r.k,JSON.stringify(r.obj)); freed+=r.bytes; }catch(e){}
+    }
+    return freed;
+  }
+
+  function save(){
+    store._ts=Date.now();
+    var payload;
+    try{ payload=JSON.stringify(store); }catch(e){ return false; }
+    try{
+      localStorage.setItem(KEY,payload);
+      if(storageBroken){ storageBroken=false; showStoreErr(null); }
+      return true;
+    }catch(e){
+      /* make room from other labs, then try once more */
+      if(evictOtherImages(payload.length+200000)>0){
+        try{
+          localStorage.setItem(KEY,payload);
+          if(storageBroken){ storageBroken=false; showStoreErr(null); }
+          return true;
+        }catch(e2){}
+      }
+      storageBroken=true;
+      showStoreErr(e);
+      return false;
+    }
+  }
+  function showStoreErr(e){
+    var b=document.getElementById("lqStoreErr");
+    if(!b) return;
+    if(!e){ b.style.display="none"; return; }
+    b.style.display="block";
+    b.innerHTML='<b>Your work is no longer being saved in this browser.</b><br>'
+      +'Storage is full or switched off — usually private browsing, or a great many images '
+      +'attached across the labs on this machine. Everything on screen is intact and the '
+      +'submission PDF will still build correctly — but <b>do not refresh or close this tab</b>. '
+      +'Press <b>Build submission PDF</b> now and save the file. '
+      +'Then press <b>Clear my responses</b> to free the space up for the next lab.';
+    if(b.scrollIntoView) b.scrollIntoView({block:"nearest"});
+  }
+
+  function announce(msg){
+    var s=document.getElementById("lqStatus");
+    if(s){ s.textContent=""; setTimeout(function(){ s.textContent=msg; },30); }
+  }
+
+  /* ---------- detect the set letter the tool is running ---------- */
+  function setLetter(){
+    try{ if(typeof SETLETTER!=="undefined"&&SETLETTER) return SETLETTER; }catch(e){}
+    var tag=document.getElementById("setTag");
+    if(tag&&tag.textContent){
+      var m=tag.textContent.match(/set\s+([A-H])/i); if(m) return m[1].toUpperCase();
+    }
+    var m2=(LQ.file||"").match(/524-\d-\d-([A-H])_/); if(m2) return m2[1];
+    return LQ.set||"—";
+  }
+
+  /* ---------- downscale an image before it goes anywhere near storage ----------
+     A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
+     about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
+     capture under 400 KB, which is still far more detail than the PDF can show. */
+  var MAXPX=1600, JPEGQ=0.82;
+  function downscale(file,cb){
+    var rd=new FileReader();
+    rd.onerror=function(){ cb(null,"The browser could not read that file."); };
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ cb(null,"That file does not look like an image the browser can open."); };
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(rd.result,null); return; }
+          var sc=Math.min(1,MAXPX/Math.max(w,h));
+          if(sc>=1&&rd.result.length<600000){ cb(rd.result,null); return; }
+          var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+          var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+          var x=c.getContext("2d");
+          x.fillStyle="#fff"; x.fillRect(0,0,cw,ch);
+          x.drawImage(img,0,0,cw,ch);
+          cb(c.toDataURL("image/jpeg",JPEGQ),null);
+        }catch(err){ cb(rd.result,null); }
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+
+  /* ---------- build the card ---------- */
+  var host=document.querySelector("main .wrap")||document.querySelector("main")||document.body;
+  var card=document.createElement("section");
+  card.id="lqCard";
+  card.setAttribute("aria-labelledby","lqCardTitle");
+
+  var qs=LQ.items, secs=[], cur=null;
+  qs.forEach(function(it,i){
+    if(!cur||cur.name!==it.s){ cur={name:it.s,list:[]}; secs.push(cur); }
+    cur.list.push({i:i,it:it});
+  });
+
+  var html=""
+   +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
+   +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
+   +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
+   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<div id="lqStoreErr" role="alert"></div>'
+   +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
+   +'<div class="lqid">'
+   +'<div class="lqfld" style="flex:1 1 260px"><label for="lqName">Your name</label>'
+     +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
+     +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
+     +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
+   +'</div>';
+
+  secs.forEach(function(sec,si){
+    html+='<h3 class="lqsec" id="lqSec'+si+'">'+esc(sec.name||"Questions")+'</h3>';
+    sec.list.forEach(function(o){
+      var id="lqQ"+o.i, n=o.i+1;
+      html+='<div class="lqq">';
+      if(o.it.k==="image"){
+        html+='<p class="lqp"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</p>'
+             +'<div class="lqimgwrap">'
+             +'<label class="lqfilelbl" for="'+id+'_f">Attach your image for question '+n+'</label>'
+             +'<input type="file" accept="image/*" id="'+id+'_f">'
+             +'<p class="lqnote" style="margin:5px 0 0">A photo or screenshot. It is resized and '
+             +'embedded in the PDF you hand in.</p>'
+             +'<img id="'+id+'_img" alt="Your attached image for question '+n+'" style="display:none">'
+             +'<label class="lqfilelbl" for="'+id+'" style="margin-top:8px">Caption or note for question '+n+'</label>'
+             +'<textarea id="'+id+'" rows="2" placeholder="Add any caption or note that goes with the image.">'
+             +esc(store[id]||"")+'</textarea></div>';
+      }else{
+        html+='<label class="lqp" for="'+id+'"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</label>'
+             +'<textarea id="'+id+'" rows="3" placeholder="Type your answer here.">'+esc(store[id]||"")+'</textarea>';
+      }
+      html+='</div>';
+    });
+  });
+
+  html+='<div class="lqbtns">'
+    +'<button type="button" class="lqprimary" id="lqBuild">Build submission PDF</button>'
+    +'<button type="button" id="lqPreview">Preview without printing</button>'
+    +'<button type="button" id="lqClear">Clear my responses</button>'
+    +'<span class="lqnote">The PDF carries every question, your responses and the simulator record. One file, one upload.</span>'
+    +'</div><div id="lqOut" role="region" aria-label="Submission sheet preview"></div>';
+
+  card.innerHTML=html;
+  host.appendChild(card);
+
+  /* ---------- wiring ---------- */
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
+    var el=document.getElementById(id);
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+  });
+  qs.forEach(function(it,i){
+    var id="lqQ"+i, ta=document.getElementById(id);
+    if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
+    var f=document.getElementById(id+"_f");
+    if(f) f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      announce("Processing your image for question "+(i+1)+".");
+      downscale(file,function(dataUrl,err){
+        if(err){ announce(err); alert(err); return; }
+        var img=document.getElementById(id+"_img");
+        img.src=dataUrl; img.style.display="block";
+        store[id+"_img"]=dataUrl;
+        var okSave=save();
+        announce("Image attached to question "+(i+1)+
+          (okSave?"." : ", but it could not be saved in this browser. Build your PDF now."));
+      });
+    };
+    if(store[id+"_img"]){
+      var im0=document.getElementById(id+"_img");
+      if(im0){ im0.src=store[id+"_img"]; im0.style.display="block"; }
+    }
+  });
+
+  /* an image of this lab was evicted to make room for another lab on the shared
+     origin, and this lab had not yet been exported — say so plainly */
+  if(store._evicted&&!store._done){
+    var eb=document.getElementById("lqStoreErr");
+    eb.style.display="block";
+    eb.innerHTML='<b>An image you attached is no longer stored.</b><br>'
+      +'This browser ran out of room across all the labs on this machine and dropped it. '
+      +'Your typed answers are all still here — only the image went. '
+      +'Attach it again before you build your submission PDF.';
+    delete store._evicted; save();
+  }
+
+  document.getElementById("lqClear").onclick=function(){
+    if(!confirm("Clear every response you have typed in this lab? This cannot be undone.")) return;
+    store={}; save();
+    qs.forEach(function(it,i){
+      var ta=document.getElementById("lqQ"+i); if(ta) ta.value="";
+      var im=document.getElementById("lqQ"+i+"_img"); if(im){ im.removeAttribute("src"); im.style.display="none"; }
+      var fi=document.getElementById("lqQ"+i+"_f"); if(fi) fi.value="";
+    });
+    document.getElementById("lqOut").innerHTML="";
+    announce("All responses cleared.");
+  };
+
+  /* ---------- guard the simulator's Restart button ----------
+     Restart wipes the simulator record but not the responses typed here, which
+     would leave a submission whose prose describes a record that no longer exists.
+     A capture-phase listener runs ahead of the tool's own onclick, so one confirm
+     covers every variant of the handler. */
+  (function(){
+    var rb=document.getElementById("btnRestart")||document.getElementById("btnReset");
+    if(!rb||card.contains(rb)) return;
+    rb.addEventListener("click",function(ev){
+      if(rb.dataset.lqOk==="1"){ rb.dataset.lqOk=""; return; }
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      var ok=confirm(
+        "Restart the scenario?\n\n"+
+        "Everything you recorded in the simulator — readings, marks, logs, the "+
+        "submission sheet it built — is wiped and the run starts again.\n\n"+
+        "The answers you typed in the submission panel lower down are KEPT. If they "+
+        "describe readings you are about to erase, build your submission PDF first.");
+      if(ok){ rb.dataset.lqOk="1"; rb.click(); }
+    },true);
+  })();
+
+  /* ---------- harvest the simulator's own record ---------- */
+  var REC_SEL=".sheet, .result.show";
+  function collect(){
+    var raw=[];
+    Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
+      if(card.contains(s)) return;
+      if(!s.textContent.replace(/\s/g,"")) return;
+      raw.push(s);
+    });
+    return raw.filter(function(s){
+      return !raw.some(function(o){ return o!==s && o.contains(s); });
+    });
+  }
+
+  /* the module already prints the learner name in its own Learner block, and every
+     simulator sheet prints it again — four of them twice. Strip it from the clone. */
+  var NAMEKEY=/^(your\s+)?(name|learner(\s+name)?)\s*:?\s*$/i;
+  function stripDuplicateName(root){
+    Array.prototype.forEach.call(root.querySelectorAll(".learnerline"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    var rows=root.querySelectorAll("div,tr,p");
+    Array.prototype.forEach.call(rows,function(r){
+      var first=r.firstElementChild;
+      if(!first||r.children.length>3) return;
+      if(NAMEKEY.test((first.textContent||"").trim())){
+        if(r.parentNode) r.parentNode.removeChild(r);
+      }
+    });
+  }
+
+  function toolRecord(){
+    var found=collect();
+    if(!found.length){
+      var btns=document.querySelectorAll("button");
+      var hit=null;
+      Array.prototype.forEach.call(btns,function(b){
+        if(card.contains(b)||hit) return;
+        var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+        if(/print/.test(t)) return;
+        if(/^build submission sheet$/.test(t)) hit=b;
+      });
+      if(!hit){
+        Array.prototype.forEach.call(btns,function(b){
+          if(card.contains(b)||hit) return;
+          var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+          if(/print/.test(t)) return;
+          if(/build .*sheet|submission sheet|submit .*(map|answer|sheet|round|log)|^submit$/.test(t)) hit=b;
+        });
+      }
+      if(hit){ try{ hit.click(); }catch(e){} }
+      found=collect();
+    }
+    if(!found.length) return null;
+    var wrap=document.createElement("div");
+    found.forEach(function(s){
+      var c=s.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      });
+      stripDuplicateName(c);
+      wrap.appendChild(c);
+    });
+    return wrap.innerHTML;
+  }
+
+  /* ---------- assemble the one sheet ---------- */
+  function build(){
+    var name=document.getElementById("lqName").value.trim();
+    var coh=document.getElementById("lqCohort").value.trim();
+    var dt=document.getElementById("lqDate").value.trim();
+    var gaps=[];
+    if(!name) gaps.push("Your name");
+    if(!coh)  gaps.push("Cohort / section");
+
+    var h=''
+     +'<div class="lqsheet">'
+     +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
+     +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
+       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+     +'<h2>Learner</h2>'
+     +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Built</span><span class="v">'
+       +esc(new Date().toLocaleString())+'</span></div>';
+
+    var rec=LQ.nosim?null:toolRecord();
+    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
+    else if(!LQ.nosim){
+      gaps.push("The simulator record — work through the lab tool above and press its own "
+               +"“Build submission sheet” button before you build this PDF");
+    }else{
+      h+='<h2>Assessed on the floor</h2>'
+        +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
+        +'Observed and signed off by the instructor against the handout. '
+        +'The instructor signature below records that sign-off.</span></div>';
+    }
+
+    var curSec=null;
+    qs.forEach(function(it,i){
+      if(it.s!==curSec){ curSec=it.s; h+='<h2>'+esc(curSec||"Questions")+'</h2>'; }
+      var ta=document.getElementById("lqQ"+i);
+      var a=ta?ta.value.trim():"";
+      var im=store["lqQ"+i+"_img"];
+      if(!a&&!im) gaps.push("Q"+(i+1));
+      h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
+      if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
+      h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
+    });
+
+    if(gaps.length){
+      h+='<div class="lqgap"><b>Not yet filled in ('+gaps.length+'):</b> '+esc(gaps.join(", "))
+        +'.<br>This is a completeness check, not a grade. Fill them in and build again, '
+        +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
+    }else{
+      h+='<div class="lqgap ok">'
+        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+    }
+
+    h+='<div class="lqsign">Learner signature: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'Instructor verification: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
+
+    document.getElementById("lqOut").innerHTML=h;
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
+    return h;
+  }
+
+  document.getElementById("lqPreview").onclick=function(){
+    build();
+    var o=document.getElementById("lqOut");
+    if(o&&o.scrollIntoView) o.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* ---------- the one PDF ---------- */
+  function safeName(s){
+    return String(s||"").normalize?String(s||"").normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+      :String(s||"").replace(/[^\w\s-]/g,"").trim();
+  }
+  function fileTitle(){
+    var n=safeName(document.getElementById("lqName").value).split(/\s+/).filter(Boolean);
+    var last=n.length>1?n[n.length-1]:(n[0]||"Learner");
+    var first=n.length>1?n.slice(0,-1).join("_"):"";
+    var who=first?(last+"_"+first):last;
+    return who+"_"+String(LQ.lab||"").replace(/[^\d.]/g,"");
+  }
+
+  document.getElementById("lqBuild").onclick=function(){
+    var h=build();
+    /* this lab's images are now inside a PDF the learner holds, so they become the
+       first thing evicted when another lab needs room on the shared origin */
+    store._done=true; save();
+
+    var old=document.getElementById("lqPrint"); if(old) old.parentNode.removeChild(old);
+
+    /* The sheet goes inside a one-cell table whose thead repeats on every printed
+       page, so pages 2+ still carry the learner name, the lab and the set. */
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+      +esc(document.getElementById("lqName").value.trim()||"Name not entered")
+      +' · '+esc(LQ.title);
+    var pr=document.createElement("div"); pr.id="lqPrint";
+    pr.innerHTML='<table class="lqpage"><thead class="lqrhead"><tr><td class="lqrh">'
+      +runHead+'</td></tr></thead><tbody><tr><td class="lqbody">'+h+'</td></tr></tbody></table>';
+    document.body.appendChild(pr);
+
+    /* the browser suggests document.title as the Save-as-PDF filename */
+    var prevTitle=document.title;
+    document.title=fileTitle();
+    document.body.classList.add("lq-print");
+
+    var restored=false;
+    var done=function(){
+      if(restored) return; restored=true;
+      document.body.classList.remove("lq-print");
+      document.title=prevTitle;
+      var a=document.getElementById("lqPrint"); if(a&&a.parentNode) a.parentNode.removeChild(a);
+      window.removeEventListener("afterprint",done);
+      if(mq&&mq.removeListener) mq.removeListener(mqHandler);
+    };
+    var mq=window.matchMedia?window.matchMedia("print"):null;
+    var mqHandler=function(m){ if(!m.matches) done(); };
+    if(mq&&mq.addListener) mq.addListener(mqHandler);
+    window.addEventListener("afterprint",done);
+
+    setTimeout(function(){
+      window.print();
+      /* generous fallback: mobile print sheets are asynchronous, and tearing the
+         container out too early yields a blank PDF */
+      setTimeout(done,60000);
+    },80);
+  };
+})();
+</script>
+<!-- ===== end submission module ============================================= -->
+
+</body>
+</html>

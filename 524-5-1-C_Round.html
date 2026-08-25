@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>524.5.1 — UCI 2227 — Lab 5.1 Full Facility Round (Training Simulator)</title>
+<style>
+  :root{
+    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
+    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:7px 13px}
+  button:hover{background:#1b3044;border-color:#2d4d68}
+  button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  button.primary:hover{background:#0a8bd8}
+  button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input[type=text],input[type=number],textarea{
+    font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:7px 9px}
+  textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
+  h1,h2,h3{margin:0;font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex:0 0 auto}
+  .brand{font-weight:700;letter-spacing:.4px;font-size:14px}
+  .brand span{color:var(--blue)}
+  .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
+  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+
+  main{flex:1;overflow:auto;padding:18px}
+  .wrap{max-width:1500px;margin:0 auto}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;margin-bottom:4px}
+  .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
+
+  /* ---------- console ---------- */
+  .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
+    border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  canvas{display:block;width:100%;height:auto}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .stepchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+  .stepchip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+
+  /* ---------- alarms ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+    font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+  th:hover{color:var(--blue)}
+  td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
+  .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
+
+  .hidden{display:none !important}
+
+  /* ---------- submission ---------- */
+  .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
+  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
+  .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
+  .result.show{display:block}
+  .result.show{background:var(--panel2);border:1px solid var(--line)}
+  @media print{
+    body{background:#fff;color:#000;overflow:visible}
+    header,.toolbar,.noprint{display:none !important}
+    main{overflow:visible}
+  }
+
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);margin-bottom:8px}
+  .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+
+  /* ---------- additive: Lab 5.1 round ---------- */
+  .toolbar button.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .blockmsg{background:#2a1512;border:1px solid #6d3129;border-radius:7px;
+    padding:11px 13px;font-size:12.5px;line-height:1.55;margin-bottom:12px}
+  .okmsg{background:#12261c;border:1px solid #1d5b41;border-radius:7px;
+    padding:11px 13px;font-size:12.5px;line-height:1.55;margin-bottom:12px}
+  .infomsg{background:#132c3f;border:1px solid #23485f;border-radius:7px;
+    padding:11px 13px;font-size:12.5px;line-height:1.55;margin-bottom:12px}
+  .small{font-size:12px;color:var(--dim);line-height:1.55}
+  .tiny{font-size:11px;color:var(--faint);line-height:1.5}
+  .stnlist{display:flex;flex-direction:column;gap:6px}
+  .stnrow{display:flex;gap:11px;align-items:center;padding:8px 12px;border-radius:7px;
+    border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:13px}
+  .stnrow:hover{border-color:#2f5a78}
+  .stnrow.done{border-color:#1d5b41;background:#12261c}
+  .stnrow.cur{border-color:var(--blue);background:#16324a}
+  .stnrow.lock{opacity:.5}
+  .stnrow .sn{font-family:var(--mono);color:var(--blue);font-weight:700;min-width:42px}
+  .stnrow .ss{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .readgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:12px 0}
+  .readcell{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+  .readcell .rl{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .readcell .rv{font-family:var(--mono);font-size:23px;font-weight:700;margin:5px 0 3px}
+  .readcell .rh{font-size:11px;color:var(--faint);margin-bottom:8px}
+  .readcell input{width:100%}
+  .led{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-2px;border:1px solid #00000055}
+  .led.n{background:#2f9c66;box-shadow:0 0 7px rgba(55,192,122,.65)}
+  .led.f{background:#e8a33d;box-shadow:0 0 7px rgba(232,163,61,.65)}
+  .led.a{background:#e8604c;box-shadow:0 0 7px rgba(232,96,76,.65)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin:10px 0 4px}
+  .gcard{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px 15px}
+  .gcard h3{font-size:13px;margin-bottom:2px}
+  .gcard .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
+  .digit{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:1px}
+  .prevbox{background:var(--panel2);border:1px solid var(--line);border-radius:7px;
+    padding:9px 11px;font-size:12px;color:var(--dim);line-height:1.5;margin:9px 0}
+  .fldrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:9px}
+  .tag{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .tag.norm{background:#22303a;color:#8ba6bd}
+  .tag.dev{background:#4a3418;color:#ffc069}
+  .tag.na{background:#1c3a4f;color:#7fc4ea}
+  .tag.short{background:#4a1f1a;color:#ff8f7d}
+  .thermgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+  .findrow{display:grid;grid-template-columns:2.1fr 1fr 1.6fr;gap:10px;margin-bottom:10px}
+  .logscroll{max-height:44vh;overflow:auto}
+  .sheetrow{display:flex;justify-content:space-between;gap:16px;padding:5px 0;
+    border-bottom:1px solid #182b3b;font-size:12.5px}
+  .sheetrow span:first-child{color:var(--faint)}
+  .sheetrow span:last-child{text-align:right}
+  .sheet h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin:18px 0 8px}
+  .sheet h3{font-size:15px;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">FACILITY ROUND — SHIFT LOG</div>
+    <div class="sysname">524.5.1 &middot; UCI 2227 · Lab 5.1 · objective M5.1 · Set C · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="spacer"></div>
+    <div id="statusBadge" class="badge">Ready</div>
+    <div>
+      <div class="clocklbl">Site time</div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <button id="btnPane_prev" class="primary">Previous round</button>
+    <button id="btnPane_route">Route</button>
+    <button id="btnPane_leak">Leak panel</button>
+    <button id="btnPane_fuel">Fuel</button>
+    <button id="btnPane_therm">Thermal</button>
+    <button id="btnPane_log">Shift log</button>
+    <span class="spacer"></span>
+    <span class="counter" id="progress">Station 1 of 12</span>
+    <span class="counter" id="elapsed">T+00:00</span>
+    <button id="btnRestart">Restart</button>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <section id="roundView"></section>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SET = 2;   /* fixed for this file */
+/* ============================================================
+   UCI 2227 — Lab 5.1 · Full Facility Round
+   Standalone training console. Offline, no libraries, no network.
+   Telemetry model and chart code are identical to the other lab tools.
+   ============================================================ */
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=mulberry32(1);
+function noise(amp){return (rnd()*2-1)*amp;}
+function fmtClock(mins){
+  const base=3*60+14; // scenarios run from 03:14 site time
+  const total=base+mins;
+  const h=Math.floor(total/60)%24, m=Math.floor(total%60), s=Math.floor((mins%1)*60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function fmtElapsed(mins){
+  return "T+"+String(Math.floor(mins)).padStart(2,"0")+":"+String(Math.floor((mins%1)*60)).padStart(2,"0");
+}
+
+/* ---------- this lab ---------- */
+const LAB={lab:"Lab 5.1",obj:"M5.1",title:"Full Facility Round",duration:55};
+
+const CONFIGS=[
+  {id:"R1",z1:"Z3",z2:"BULK",z3:"SW-B"},
+  {id:"R2",z1:"Z7",z2:"DT2",z3:"PD-C"},
+  {id:"R3",z1:"Z5",z2:"DT1",z3:"PD-A"}
+];
+
+/* zones on the leak detection panel */
+const ZONES=[
+  {id:"Z1",loc:"Switchgear room floor void"},
+  {id:"Z2",loc:"UPS-A room"},
+  {id:"Z3",loc:"UPS-B room"},
+  {id:"Z4",loc:"PDU row A pipework"},
+  {id:"Z5",loc:"Mechanical yard pipework"},
+  {id:"Z6",loc:"Pump room"},
+  {id:"Z7",loc:"Hall A perimeter"},
+  {id:"Z8",loc:"Hall B perimeter"},
+  {id:"Z9",loc:"Chilled water risers"}
+];
+
+/* fuel tanks. Values are fixed, not noised, so the arithmetic is exact. */
+const TANKS=[
+  {id:"DT1",name:"GEN-1 day tank",cap:1000,unit:"L",prev:940,v0:938,v1:896,rep:5},
+  {id:"DT2",name:"GEN-2 day tank",cap:1000,unit:"L",prev:952,v0:949,v1:903,rep:5},
+  {id:"BULK",name:"Bulk fuel tank",cap:50000,unit:"L",prev:38400,v0:38370,v1:37950,rep:60}
+];
+
+/* infrared capture points */
+const THERM=[
+  {id:"SW-A",grp:"SW",gname:"MSB-A CB-101 outgoing lugs",ph:"Phase A",base:41.8},
+  {id:"SW-B",grp:"SW",gname:"MSB-A CB-101 outgoing lugs",ph:"Phase B",base:42.6},
+  {id:"SW-C",grp:"SW",gname:"MSB-A CB-101 outgoing lugs",ph:"Phase C",base:40.9},
+  {id:"PD-A",grp:"PD",gname:"PDU-03 subfeed F2 lugs",ph:"Phase A",base:38.4},
+  {id:"PD-B",grp:"PD",gname:"PDU-03 subfeed F2 lugs",ph:"Phase B",base:39.1},
+  {id:"PD-C",grp:"PD",gname:"PDU-03 subfeed F2 lugs",ph:"Phase C",base:38.0}
+];
+
+/* the twelve stations, in route order */
+const STATIONS=[
+  {id:"ST01",name:"Main switchgear room",need:"therm:SW",
+   task:"Read the incomer instrumentation, then take the three assigned infrared captures on the CB-101 outgoing lugs in the Thermal pane.",
+   reads:[{label:"Incomer A ammeter",unit:"A",base:1180,j:30,dp:0},
+          {label:"Switchroom ambient",unit:"°C",base:24.6,j:0.5,dp:1}]},
+  {id:"ST02",name:"UPS-A",need:"",
+   task:"Uninterruptible power supply A. Read the load and the battery autonomy from the front panel. Check the room for anything out of place.",
+   reads:[{label:"UPS-A output load",unit:"%",base:42,j:3,dp:0},
+          {label:"UPS-A battery autonomy",unit:"min",base:11.4,j:0.6,dp:1}]},
+  {id:"ST03",name:"UPS-B",need:"",
+   task:"Uninterruptible power supply B. Same two readings. Note anything about the room itself, not only the panel.",
+   reads:[{label:"UPS-B output load",unit:"%",base:39,j:3,dp:0},
+          {label:"UPS-B battery autonomy",unit:"min",base:12.1,j:0.6,dp:1}]},
+  {id:"ST04",name:"PDU rows",need:"therm:PD",
+   task:"Power distribution units. Read the two row loads, then take the three assigned infrared captures on the PDU-03 subfeed F2 lugs in the Thermal pane.",
+   reads:[{label:"PDU-03 load",unit:"%",base:61,j:4,dp:0},
+          {label:"PDU-07 load",unit:"%",base:54,j:4,dp:0}]},
+  {id:"ST05",name:"Generator yard — sets and day tanks",need:"fuel:DT1,DT2",
+   task:"Both sets. Read the jacket water heater and the starting battery, then log both day tank gauges in the Fuel pane, with the comparison against the previous round.",
+   reads:[{label:"GEN-1 jacket water heater",unit:"°C",base:41.0,j:1.2,dp:1},
+          {label:"GEN-2 starting battery",unit:"V dc",base:26.4,j:0.3,dp:1}]},
+  {id:"ST06",name:"Fuel farm",need:"fuel:BULK",
+   task:"Bulk storage. Read the transfer pump hour meter and the bund water level, then log the bulk tank gauge in the Fuel pane with the comparison against the previous round.",
+   reads:[{label:"Transfer pump hour meter",unit:"h",base:1442,j:6,dp:0},
+          {label:"Bund water level",unit:"mm",base:12,j:4,dp:0}]},
+  {id:"ST07",name:"Mechanical yard — chillers and towers",need:"",
+   task:"Chillers and cooling towers. Read the chilled water supply temperature and the CT-2 basin level. The previous round left a note about this station.",
+   reads:[{label:"Chilled water supply",unit:"°C",base:7.2,j:0.3,dp:1},
+          {label:"CT-2 basin level",unit:"mm",base:318,j:10,dp:0}]},
+  {id:"ST08",name:"Pump room",need:"",
+   task:"Primary and secondary pumps. Read the P-2 discharge pressure and the bearing temperature. Listen as well as look.",
+   reads:[{label:"P-2 discharge pressure",unit:"kPa",base:412,j:9,dp:0},
+          {label:"P-2 bearing temperature",unit:"°C",base:46.3,j:1.1,dp:1}]},
+  {id:"ST09",name:"Hall A",need:"",
+   task:"Data hall A. Read the cold aisle temperature and the containment differential pressure at the marked point, not wherever is convenient.",
+   reads:[{label:"Hall A cold aisle temperature",unit:"°C",base:22.4,j:0.5,dp:1},
+          {label:"Hall A containment differential",unit:"Pa",base:11,j:2,dp:0}]},
+  {id:"ST10",name:"Hall B",need:"",
+   task:"Data hall B. Same two readings at the marked point.",
+   reads:[{label:"Hall B cold aisle temperature",unit:"°C",base:22.9,j:0.5,dp:1},
+          {label:"Hall B containment differential",unit:"Pa",base:9,j:2,dp:0}]},
+  {id:"ST11",name:"Leak detection panel",need:"leak:all",
+   task:"Record the state of every cable segment in the Leak panel pane — all nine, including the ones that are normal. Then read the panel supply and count the segments that are not in the normal state.",
+   reads:[{label:"Panel supply",unit:"V dc",base:24.3,j:0.2,dp:1},
+          {label:"Segments not in normal state",unit:"count",calc:"leakcount",base:0,j:0,dp:0}]},
+  {id:"ST12",name:"Building management system desk",need:"",
+   task:"BMS desk, where BMS means building management system. Read the active alarm count and the age of the oldest unacknowledged alarm. This is where the round is written up, not where it is done.",
+   reads:[{label:"Active alarms",unit:"count",base:3,j:0,dp:0},
+          {label:"Oldest unacknowledged alarm",unit:"min",base:27,j:6,dp:0}]}
+];
+
+const S={ci:SET,learner:"",t:0,running:false,timer:null,speed:12,
+  series:{},alarms:[],sortKey:"time",sortDir:1,filters:new Set(),acked:new Set(),marks:{},
+  pane:"prev",prevAck:false,prevAckAt:"",idx:0,draft:{},stnLog:{},leakRec:{},leakAt:{},
+  fuelRec:{},thermCap:{},thermRec:{},log:[],shortcuts:0,routeMsg:"",routeMsgKind:"block",find:[{},{},{},{}],handover:"",fuelMsg:"",thermMsg:""};
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let V=CONFIGS[SET];
+let D=null;
+
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function n2(v,dp){return Number(v).toFixed(dp);}
+function prevStamp(i){
+  const t=23*60+20+i*4;
+  const h=Math.floor(t/60)%24,m=t%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
+
+/* ---------- model ---------- */
+function buildRound(v){
+  const R={};
+  R.leak=ZONES.map(z=>({id:z.id,loc:z.loc,state:z.id===v.z1?"fault":"normal"}));
+  const faults=R.leak.filter(z=>z.state!=="normal").length;
+
+  R.fuel=TANKS.map(t=>{
+    const now=(t.id===v.z2)?t.v1:t.v0;
+    return {id:t.id,name:t.name,cap:t.cap,unit:t.unit,prev:t.prev,now:now,rep:t.rep};
+  });
+
+  const amb={SW:+(24.6+noise(0.3)).toFixed(1),PD:+(23.9+noise(0.3)).toFixed(1)};
+  const temps={};
+  THERM.forEach(c=>{temps[c.id]=+(c.base+noise(0.4)).toFixed(1);});
+  const pick=THERM.filter(c=>c.id===v.z3)[0];
+  const sibs=THERM.filter(c=>c.grp===pick.grp&&c.id!==pick.id).map(c=>c.id);
+  temps[v.z3]=+(((temps[sibs[0]]+temps[sibs[1]])/2)+20).toFixed(1);
+  R.therm=THERM.map(c=>({id:c.id,grp:c.grp,gname:c.gname,ph:c.ph,amb:amb[c.grp],t:temps[c.id]}));
+
+  R.stn={};
+  STATIONS.forEach(s=>{
+    R.stn[s.id]={reads:s.reads.map(r=>{
+      let truth;
+      if(r.calc==="leakcount") truth=faults;
+      else truth=+(r.base+noise(r.j)).toFixed(r.dp);
+      if(truth<0) truth=0;
+      return {label:r.label,unit:r.unit,dp:r.dp,truth:truth};
+    })};
+  });
+
+  /* previous round record — four hours earlier, same route, same standard */
+  R.prev={
+    by:"A. Whitfield",shift:"night shift, first round",
+    stn:STATIONS.map((s,i)=>({id:s.id,name:s.name,t:prevStamp(i),
+      vals:R.stn[s.id].reads.map(r=>{
+        if(r.label==="Segments not in normal state") return "0";
+        /* the hour meter is a run-hours counter and no transfer is logged since the weekly
+           test, so it has to read exactly the same as this round — and it can never fall */
+        if(r.label==="Transfer pump hour meter") return n2(r.truth,r.dp);
+        let x=+(r.truth+noise(r.dp===0?3:0.4)).toFixed(r.dp);
+        if(x<0)x=0;
+        return n2(x,r.dp);
+      })})),
+    leakAt:"23:58",
+    fuelAt:"23:38",
+    thermAt:"23:22",
+    therm:THERM.map(c=>({id:c.id,gname:c.gname,ph:c.ph,t:n2(+(c.base+noise(0.4)).toFixed(1),1)})),
+    watch:"Watch this: the CT-2 cooling tower basin make-up valve cycled three times during my round, which is more than it normally does. Basin level read 318 mm and was steady while I stood there. Read it again and write the number down so we have two points. Also the BMS desk still shows the door-held alarm from Tuesday — acknowledged, not cleared, engineering know about it, do not chase it.",
+    context:"Neither generator has run on load since the weekly test six days ago. No fuel transfer pump operation is logged since that test. Expect both day tanks and the bulk tank to read the same as this record, within gauge repeatability of about ±5 L on a day tank and about ±60 L on the bulk tank."
+  };
+  return R;
+}
+
+/* ---------- logging ---------- */
+function logIt(src,item,value,tag,note){
+  S.log.push({t:fmtClock(S.t),src:src,item:item,value:value,tag:tag||"norm",note:note||""});
+}
+
+/* ---------- canvas: leak map ---------- */
+function drawLeakMap(cv){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth,H=230;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+"px";
+  const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0);
+  x.clearRect(0,0,W,H);
+  x.fillStyle="#0d1a25"; x.fillRect(0,0,W,H);
+  x.strokeStyle="#20364a"; x.lineWidth=1; x.strokeRect(10.5,10.5,W-21,H-21);
+  const cols=3,rows=3, cw=(W-40)/cols, ch=(H-40)/rows;
+  const colmap={normal:"#37c07a",fault:"#e8a33d",alarm:"#e8604c"};
+  D.leak.forEach((z,i)=>{
+    const c=i%cols, r=Math.floor(i/cols);
+    const x0=20+c*cw+8, y0=20+r*ch+8, w=cw-16, h=ch-16;
+    x.strokeStyle="#1d3346"; x.setLineDash([2,3]);
+    x.strokeRect(x0+.5,y0+.5,w,h); x.setLineDash([]);
+    // the sensing cable run: a serpentine inside the area
+    x.strokeStyle=colmap[z.state]; x.lineWidth=2.2;
+    x.beginPath();
+    const legs=3, dy=h/(legs+1);
+    for(let k=1;k<=legs;k++){
+      const yy=y0+dy*k;
+      if(k%2){ x.moveTo(x0+6,yy); x.lineTo(x0+w-6,yy); }
+      else   { x.moveTo(x0+w-6,yy); x.lineTo(x0+6,yy); }
+      if(k<legs){
+        const yn=y0+dy*(k+1);
+        if(k%2){ x.moveTo(x0+w-6,yy); x.lineTo(x0+w-6,yn); }
+        else   { x.moveTo(x0+6,yy);   x.lineTo(x0+6,yn); }
+      }
+    }
+    x.stroke();
+    if(z.state==="fault"){ // show the break in the run
+      x.strokeStyle="#0d1a25"; x.lineWidth=6;
+      x.beginPath(); x.moveTo(x0+w*0.52,y0+dy-6); x.lineTo(x0+w*0.52,y0+dy+6); x.stroke();
+      x.strokeStyle="#e8a33d"; x.lineWidth=1.4;
+      x.beginPath(); x.moveTo(x0+w*0.48,y0+dy-7); x.lineTo(x0+w*0.48,y0+dy+7); x.stroke();
+      x.beginPath(); x.moveTo(x0+w*0.56,y0+dy-7); x.lineTo(x0+w*0.56,y0+dy+7); x.stroke();
+    }
+    x.fillStyle="#8ba6bd"; x.font="11px "+getComputedStyle(document.body).fontFamily;
+    x.textAlign="left"; x.textBaseline="top";
+    x.fillText(z.id+" · "+z.loc,x0+2,y0-13);
+  });
+}
+
+/* ---------- canvas: fuel gauge ---------- */
+function drawGauge(cv,pct){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth,H=128;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+"px";
+  const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0);
+  x.clearRect(0,0,W,H);
+  const cx=W/2, cy=H-16, r=Math.min(W/2-14,H-32);
+  x.lineWidth=13; x.lineCap="butt";
+  x.strokeStyle="#16283a";
+  x.beginPath(); x.arc(cx,cy,r,Math.PI,2*Math.PI); x.stroke();
+  const p=clamp(pct,0,100)/100;
+  x.strokeStyle=p<0.25?"#e8604c":(p<0.5?"#e8a33d":"#33a6e8");
+  x.beginPath(); x.arc(cx,cy,r,Math.PI,Math.PI+Math.PI*p); x.stroke();
+  x.strokeStyle="#3c5a76"; x.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const a=Math.PI+Math.PI*(i/4);
+    x.beginPath();
+    x.moveTo(cx+Math.cos(a)*(r-9),cy+Math.sin(a)*(r-9));
+    x.lineTo(cx+Math.cos(a)*(r+9),cy+Math.sin(a)*(r+9));
+    x.stroke();
+  }
+  const a=Math.PI+Math.PI*p;
+  x.strokeStyle="#dfeaf3"; x.lineWidth=2.4;
+  x.beginPath(); x.moveTo(cx,cy); x.lineTo(cx+Math.cos(a)*(r-4),cy+Math.sin(a)*(r-4)); x.stroke();
+  x.fillStyle="#dfeaf3"; x.beginPath(); x.arc(cx,cy,4,0,7); x.fill();
+  x.fillStyle="#5c7a92"; x.font="10px "+getComputedStyle(document.body).fontFamily;
+  x.textAlign="left"; x.textBaseline="alphabetic"; x.fillText("0%",cx-r-4,cy+13);
+  x.textAlign="right"; x.fillText("100%",cx+r+4,cy+13);
+}
+
+/* ---------- canvas: infrared patch ---------- */
+function irColour(t,lo,hi){
+  const stops=[[0,16,18,34],[0.22,42,42,122],[0.45,150,48,110],[0.66,224,90,32],[0.85,240,180,40],[1,255,246,208]];
+  const u=clamp((t-lo)/(hi-lo),0,1);
+  let a=stops[0],b=stops[stops.length-1];
+  for(let i=0;i<stops.length-1;i++){ if(u>=stops[i][0]&&u<=stops[i+1][0]){a=stops[i];b=stops[i+1];break;} }
+  const f=(u-a[0])/Math.max(1e-6,(b[0]-a[0]));
+  const r=Math.round(a[1]+(b[1]-a[1])*f),g=Math.round(a[2]+(b[2]-a[2])*f),bl=Math.round(a[3]+(b[3]-a[3])*f);
+  return "rgb("+r+","+g+","+bl+")";
+}
+function drawIR(cv,spot,amb,salt){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth,H=132;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+"px";
+  const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0);
+  const lo=amb-4, hi=Math.max(spot+3,amb+28);
+  const cell=4, jr=mulberry32(salt|0);
+  const cxp=W*0.5, cyp=H*0.46, rad=Math.min(W,H)*0.30;
+  for(let py=0;py<H;py+=cell){
+    for(let px=0;px<W;px+=cell){
+      const dx=(px-cxp)/rad, dy=(py-cyp)/(rad*0.82);
+      const d2=dx*dx+dy*dy;
+      // conductor body runs left to right through the frame
+      const bar=Math.exp(-Math.pow((py-cyp)/(H*0.20),2))*0.42;
+      const jt=Math.exp(-d2*1.35);
+      let t=amb+1.5+bar*(spot-amb)*0.55+jt*(spot-amb);
+      t+=(jr()*2-1)*0.6;
+      x.fillStyle=irColour(t,lo,hi);
+      x.fillRect(px,py,cell,cell);
+    }
+  }
+  // crosshair on the spot
+  x.strokeStyle="rgba(255,255,255,.9)"; x.lineWidth=1;
+  x.beginPath(); x.moveTo(cxp-9,cyp); x.lineTo(cxp+9,cyp);
+  x.moveTo(cxp,cyp-9); x.lineTo(cxp,cyp+9); x.stroke();
+  x.strokeStyle="rgba(255,255,255,.55)";
+  x.beginPath(); x.arc(cxp,cyp,11,0,7); x.stroke();
+  // scale bar
+  const bw=W-24;
+  for(let i=0;i<bw;i++){
+    x.fillStyle=irColour(lo+(hi-lo)*(i/bw),lo,hi);
+    x.fillRect(12+i,H-12,1,7);
+  }
+  x.fillStyle="#dfeaf3"; x.font="9px "+getComputedStyle(document.body).fontFamily;
+  x.textAlign="left"; x.textBaseline="alphabetic";
+  x.fillText(n2(lo,0)+" °C",12,H-14);
+  x.textAlign="right"; x.fillText(n2(hi,0)+" °C",W-12,H-14);
+  x.textAlign="left";
+  x.fillText("SP1",cxp+13,cyp+4);
+}
+
+/* ---------- view: shell ---------- */
+function buildView(){
+  const el=$("roundView");
+  el.innerHTML=`
+    <section id="panePrev" class="pane"></section>
+    <section id="paneRoute" class="pane hidden"></section>
+    <section id="paneLeak" class="pane hidden"></section>
+    <section id="paneFuel" class="pane hidden"></section>
+    <section id="paneTherm" class="pane hidden"></section>
+    <section id="paneLog" class="pane hidden"></section>`;
+  el.dataset.built="1";
+}
+const PANES=["prev","route","leak","fuel","therm","log"];
+const PANEID={prev:"panePrev",route:"paneRoute",leak:"paneLeak",fuel:"paneFuel",therm:"paneTherm",log:"paneLog"};
+function setPane(p){
+  S.pane=p;
+  PANES.forEach(k=>{
+    $(PANEID[k]).classList.toggle("hidden",k!==p);
+    const b=$("btnPane_"+k);
+    b.classList.toggle("on",k===p);
+    b.classList.toggle("primary",k===p&&p==="prev"&&!S.prevAck);
+  });
+  if(p==="prev")renderPrev();
+  if(p==="route")renderRoute();
+  if(p==="leak")renderLeak();
+  if(p==="fuel")renderFuel();
+  if(p==="therm")renderTherm();
+  if(p==="log")renderLog();
+}
+
+/* ---------- view: previous round ---------- */
+function renderPrev(){
+  const p=D.prev;
+  const rows=p.stn.map((s,i)=>{
+    const reads=D.stn[s.id].reads;
+    return `<tr><td class="mono">${s.t}</td><td class="mono">${s.id}</td><td>${esc(s.name)}</td>
+      <td>${reads.map((r,k)=>esc(r.label)+": <span class='mono'>"+esc(s.vals[k])+" "+esc(r.unit)+"</span>").join("<br>")}</td></tr>`;
+  }).join("");
+  const th=p.therm.map(c=>`<tr><td>${esc(c.gname)}</td><td>${esc(c.ph)}</td><td class="mono">${esc(c.t)} °C</td></tr>`).join("");
+  const fu=D.fuel.map(f=>`<tr><td>${esc(f.name)}</td><td class="mono">${f.prev} ${f.unit}</td>
+      <td class="mono">${n2(f.prev/f.cap*100,1)} %</td><td class="mono">${p.fuelAt}</td></tr>`).join("");
+  const lk=D.leak.map(z=>`<tr><td class="mono">${z.id}</td><td>${esc(z.loc)}</td>
+      <td>NORMAL</td><td class="mono">${p.leakAt}</td></tr>`).join("");
+  $("panePrev").innerHTML=`
+    <div class="card">
+      <h3>Previous round record — ${esc(p.by)}, ${esc(p.shift)}</h3>
+      <p style="margin-bottom:10px">Walked 23:20 to 00:04, same twelve stations, same order. This is the record your round is compared against. Read it before you walk, not after — a reading with nothing to compare it to is a number, not information.</p>
+      <div class="infomsg" style="margin-bottom:12px"><b>Note left for the next round</b><br>${esc(p.watch)}</div>
+      <div class="infomsg"><b>Plant context recorded at the end of that round</b><br>${esc(p.context)}</div>
+      <table style="margin-bottom:6px"><thead><tr><th style="cursor:default">Time</th><th style="cursor:default">Stn</th>
+        <th style="cursor:default">Station</th><th style="cursor:default">Readings taken</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>
+    <div class="grid g2" style="margin-bottom:14px">
+      <div class="card" style="margin:0">
+        <h3>Fuel gauges, previous round</h3>
+        <p>Read at ${esc(p.fuelAt)}. These are the numbers you subtract from.</p>
+        <table><thead><tr><th style="cursor:default">Tank</th><th style="cursor:default">Level</th>
+          <th style="cursor:default">Percent</th><th style="cursor:default">Time</th></tr></thead><tbody>${fu}</tbody></table>
+      </div>
+      <div class="card" style="margin:0">
+        <h3>Leak detection panel, previous round</h3>
+        <p>Read at ${esc(p.leakAt)}. Every segment was in the normal state.</p>
+        <table><thead><tr><th style="cursor:default">Seg</th><th style="cursor:default">Location</th>
+          <th style="cursor:default">State</th><th style="cursor:default">Time</th></tr></thead><tbody>${lk}</tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Infrared captures, previous round</h3>
+      <p>Read at ${esc(p.thermAt)} with the same instrument at the same points, ambient 24 °C in the switchroom and 24 °C at the PDU rows.</p>
+      <table><thead><tr><th style="cursor:default">Connection</th><th style="cursor:default">Point</th>
+        <th style="cursor:default">Spot temperature</th></tr></thead><tbody>${th}</tbody></table>
+    </div>
+    <div class="card noprint" id="prevAckCard"></div>`;
+  paintAck();
+}
+function paintAck(){
+  const c=$("prevAckCard"); if(!c)return;
+  if(S.prevAck){
+    c.innerHTML=`<h3>Acknowledged</h3>
+      <div class="okmsg" style="margin-top:10px;margin-bottom:0">Previous round record read and acknowledged at
+        <span class="mono">${esc(S.prevAckAt)}</span>. The route is unlocked. Come back to this pane whenever you need the numbers to compare against — you will need them at the fuel gauges.</div>`;
+  }else{
+    c.innerHTML=`<h3>Acknowledge before you walk</h3>
+      <p style="margin-bottom:10px">The route is locked until this is signed. It is signed with your name and the site clock, and it appears in the log.</p>
+      <button class="primary" id="btnAckPrev">I have read the previous round record</button>`;
+    $("btnAckPrev").onclick=()=>{
+      S.prevAck=true; S.prevAckAt=fmtClock(S.t);
+      logIt("Handover","Previous round record","read and acknowledged","norm",
+        "Watch item noted: CT-2 basin make-up valve cycling, re-read the basin level at the mechanical yard.");
+      paintAck(); setPane("route");
+    };
+  }
+}
+
+/* ---------- view: route ---------- */
+function requiresOK(s){
+  if(!s.need) return {ok:true};
+  const parts=s.need.split(":");
+  if(parts[0]==="leak"){
+    const missing=D.leak.filter(z=>!S.leakRec[z.id]).length;
+    return missing? {ok:false,msg:"This station is not finished. "+missing+" leak detection segment"+(missing===1?" has":"s have")+" no recorded state. Open the Leak panel pane and record every segment, including the ones reading normal — a segment with no entry is indistinguishable from a segment nobody looked at."}:{ok:true};
+  }
+  if(parts[0]==="fuel"){
+    const ids=parts[1].split(",");
+    const missing=ids.filter(id=>!S.fuelRec[id]||!S.fuelRec[id].logged);
+    return missing.length? {ok:false,msg:"This station is not finished. Not yet logged in the Fuel pane: "+missing.map(id=>D.fuel.filter(f=>f.id===id)[0].name).join(", ")+". Each tank needs the reading, the difference against the previous round, and a trend judgement."}:{ok:true};
+  }
+  if(parts[0]==="therm"){
+    const grp=parts[1];
+    const missing=D.therm.filter(c=>c.grp===grp&&!(S.thermRec[c.id]&&S.thermRec[c.id].logged));
+    return missing.length? {ok:false,msg:"This station is not finished. "+missing.length+" assigned infrared capture"+(missing.length===1?" is":"s are")+" not logged. Open the Thermal pane, capture each point, then log the spot temperature and the difference against the neighbouring phases."}:{ok:true};
+  }
+  return {ok:true};
+}
+function renderRoute(){
+  const el=$("paneRoute");
+  if(!S.prevAck){
+    el.innerHTML=`<div class="card"><h3>The route is locked</h3>
+      <div class="blockmsg" style="margin-top:10px"><b>The previous round record has not been acknowledged.</b><br>
+      A round is a comparison instrument: the numbers you take are read against the numbers taken last time, by the same route in the same order. Open the previous round record, read it, and acknowledge it. The route unlocks when you do.</div>
+      <button class="primary" id="btnGoPrev">Open the previous round record</button></div>`;
+    $("btnGoPrev").onclick=()=>setPane("prev");
+    return;
+  }
+  const done=S.idx;
+  const chips=STATIONS.map((s,i)=>`<div class="stepchip ${i<S.idx?'on':''}">${s.id}</div>`).join("");
+  const list=STATIONS.map((s,i)=>{
+    const cls=i<S.idx?"done":(i===S.idx?"cur":"lock");
+    const st=i<S.idx?("logged "+S.stnLog[s.id].t):(i===S.idx?"current station":"not reached");
+    return `<div class="stnrow ${cls}" data-i="${i}"><span class="sn">${s.id}</span>
+      <span>${esc(s.name)}</span><span class="ss">${esc(st)}</span></div>`;
+  }).join("");
+  const msg=S.routeMsg?`<div class="${S.routeMsgKind==='block'?'blockmsg':'infomsg'}">${S.routeMsg}</div>`:"";
+  el.innerHTML=`
+    <div class="card">
+      <h3>Route — twelve stations, walked in order</h3>
+      <p>The order is fixed because the next shift reads this log expecting the same order. Stations open one at a time. ${S.shortcuts?"Stations opened out of order so far: <b>"+S.shortcuts+"</b>, all recorded in the log.":"No out-of-order attempts recorded."}</p>
+      <div class="steps">${chips}</div>
+      <div class="stnlist" style="margin-top:12px" id="stnList">${list}</div>
+    </div>
+    <div class="card" id="stnCard">${msg}<div id="stnBody"></div></div>`;
+  $("stnList").onclick=e=>{
+    const r=e.target.closest(".stnrow"); if(!r)return;
+    const i=+r.dataset.i;
+    if(i===S.idx)return;
+    if(i<S.idx){
+      S.routeMsgKind="info";
+      S.routeMsg="<b>"+STATIONS[i].id+" is already logged</b> at "+S.stnLog[STATIONS[i].id].t+". A logged reading is not edited after the fact. If it was wrong, add a corrected entry with a note saying why — the log is a record of what was seen and when, not a tidy final answer.";
+    }else{
+      S.shortcuts++;
+      logIt("Route","Station opened out of order",STATIONS[i].id+" from "+STATIONS[S.idx].id,"short",
+        "Route order enforced. Station reached in order instead.");
+      S.routeMsgKind="block";
+      S.routeMsg="<b>That station is out of order.</b> You are at "+STATIONS[S.idx].id+" ("+esc(STATIONS[S.idx].name)+") and you tried to open "+STATIONS[i].id+". The route order is what makes your log comparable with the one you just read, and with the one the next shift writes. The attempt has been written to the log.";
+    }
+    renderRoute();
+  };
+  renderStationCard();
+}
+function renderStationCard(){
+  const body=$("stnBody"); if(!body)return;
+  if(S.idx>=STATIONS.length){
+    body.innerHTML=`<h3>Route complete</h3>
+      <div class="okmsg" style="margin-top:10px">All twelve stations logged. Go to the Shift log pane, check the record reads the way you would want it to read if someone else had written it, then identify your findings and route each one.</div>
+      <button class="primary" id="btnGoLog">Open the shift log</button>`;
+    $("btnGoLog").onclick=()=>setPane("log");
+    return;
+  }
+  const s=STATIONS[S.idx], d=S.draft[s.id]||(S.draft[s.id]={});
+  const reads=D.stn[s.id].reads;
+  const req=requiresOK(s);
+  const cells=reads.map((r,i)=>`
+    <div class="readcell">
+      <div class="rl">${esc(r.label)}</div>
+      <div class="rv">${n2(r.truth,r.dp)}<span class="unit" style="font-size:13px;color:var(--dim);margin-left:4px">${esc(r.unit)}</span></div>
+      <div class="rh">instrument indication — write it into your log</div>
+      <input type="text" id="rd_${i}" placeholder="value" value="${esc(d["r"+i]||"")}">
+    </div>`).join("");
+  body.innerHTML=`
+    <h3>${s.id} · ${esc(s.name)}</h3>
+    <p style="margin-bottom:6px">${esc(s.task)}</p>
+    ${req.ok?"":'<div class="blockmsg">'+esc(req.msg)+"</div>"}
+    <div class="readgrid">${cells}</div>
+    <div class="fld" style="margin-bottom:10px">
+      <label>What you observed here — plain words, what a stranger would need</label>
+      <textarea id="stObs" rows="2" placeholder="e.g. Both sets in auto, no leaks under either skid, day tank sight glasses match the gauges.">${esc(d.obs||"")}</textarea>
+    </div>
+    <div class="fldrow">
+      <div class="fld"><label>Deviation tag</label>
+        <select id="stTag">
+          <option value="">— choose —</option>
+          <option value="norm" ${d.tag==="norm"?"selected":""}>Within normal — nothing to carry</option>
+          <option value="dev" ${d.tag==="dev"?"selected":""}>Deviation — something here goes in the findings</option>
+        </select></div>
+      <div class="fld"><label>Could not check</label>
+        <select id="stNa">
+          <option value="" ${!d.na?"selected":""}>Everything at this station was checked</option>
+          <option value="1" ${d.na?"selected":""}>Something here could not be checked</option>
+        </select></div>
+    </div>
+    <div class="fld ${d.na?"":"hidden"}" id="naWrap" style="margin-bottom:12px">
+      <label>Could not check — what, and why (required)</label>
+      <textarea id="stNaWhy" rows="2" placeholder="e.g. the item could not be reached or read — say what it was, why, and what you did instead.">${esc(d.nawhy||"")}</textarea>
+    </div>
+    <button class="primary" id="btnDone">Complete station and log</button>`;
+  reads.forEach((r,i)=>{ $("rd_"+i).oninput=e=>{d["r"+i]=e.target.value;}; });
+  $("stObs").oninput=e=>{d.obs=e.target.value;};
+  $("stTag").onchange=e=>{d.tag=e.target.value;};
+  $("stNa").onchange=e=>{d.na=!!e.target.value; $("naWrap").classList.toggle("hidden",!d.na);};
+  $("stNaWhy").oninput=e=>{d.nawhy=e.target.value;};
+  $("btnDone").onclick=completeStation;
+}
+function completeStation(){
+  const s=STATIONS[S.idx], d=S.draft[s.id]||{}, reads=D.stn[s.id].reads;
+  const req=requiresOK(s);
+  if(!req.ok){S.routeMsgKind="block";S.routeMsg="<b>Not yet.</b> "+esc(req.msg);renderRoute();return;}
+  const miss=[];
+  reads.forEach((r,i)=>{ if(!String(d["r"+i]||"").trim()) miss.push(r.label); });
+  if(String(d.obs||"").trim().length<6) miss.push("your observation");
+  if(!d.tag) miss.push("the deviation tag");
+  if(d.na&&String(d.nawhy||"").trim().length<6) miss.push("could not check — what and why");
+  if(miss.length){
+    S.routeMsgKind="block";
+    S.routeMsg="<b>"+s.id+" is not complete.</b> Still blank: "+esc(miss.join("; "))+". A blank field cannot be read by anybody later, because nobody can tell whether the value was normal or never taken. If you could not check something, say so and say why — that is a valid entry.";
+    renderRoute(); return;
+  }
+  const stamp=fmtClock(S.t);
+  const vals=reads.map((r,i)=>String(d["r"+i]).trim());
+  S.stnLog[s.id]={t:stamp,vals:vals,obs:d.obs,tag:d.tag,na:!!d.na,nawhy:d.nawhy||""};
+  reads.forEach((r,i)=>logIt(s.id+" "+s.name,r.label,vals[i]+" "+r.unit,d.tag,""));
+  logIt(s.id+" "+s.name,"Observation",d.obs,d.tag,"");
+  if(d.na) logIt(s.id+" "+s.name,"Could not check",d.nawhy,"na","Recorded as not checked with a reason.");
+  S.idx++;
+  S.routeMsgKind="info";
+  S.routeMsg="<b>"+s.id+" logged at "+stamp+".</b>"+(S.idx<STATIONS.length?" Next station: "+STATIONS[S.idx].id+" · "+esc(STATIONS[S.idx].name)+".":" That is the whole route.");
+  render(); renderRoute();
+}
+
+/* ---------- view: leak panel ---------- */
+function renderLeak(){
+  const el=$("paneLeak");
+  const rows=D.leak.map(z=>{
+    const cls=z.state==="normal"?"n":(z.state==="fault"?"f":"a");
+    const rec=S.leakRec[z.id]||"";
+    return `<tr><td class="mono">${z.id}</td><td>${esc(z.loc)}</td>
+      <td style="text-align:center"><span class="led ${cls}"></span></td>
+      <td><select data-z="${z.id}" style="width:100%">
+        <option value="">— not recorded —</option>
+        <option value="normal" ${rec==="normal"?"selected":""}>Normal — cable healthy, no water</option>
+        <option value="fault" ${rec==="fault"?"selected":""}>Fault — cable open, zone unmonitored</option>
+        <option value="alarm" ${rec==="alarm"?"selected":""}>Alarm — water detected</option>
+      </select></td>
+      <td class="mono">${esc(S.leakAt[z.id]||"—")}</td></tr>`;
+  }).join("");
+  const donecount=Object.keys(S.leakRec).filter(k=>S.leakRec[k]).length;
+  el.innerHTML=`
+    <div class="card">
+      <h3>Leak detection panel — nine sensing cable segments</h3>
+      <p>The panel gives you a lamp per segment and nothing else. Read the lamp, read the legend, record the state. Record all nine, including the boring ones: a segment with no entry against it reads, to the next shift, exactly like a segment nobody walked past.</p>
+      <canvas id="leakMap"></canvas>
+      <div class="legend">
+        <span><span class="led n"></span> &nbsp;Green — normal. Cable healthy, no water.</span>
+        <span><span class="led f"></span> &nbsp;Amber — cable fault. The sensing cable is open somewhere along the run. The zone is unmonitored. Nothing is wet.</span>
+        <span><span class="led a"></span> &nbsp;Red — alarm. Water detected on the cable.</span>
+      </div>
+      <div class="tiny">Record the lamp you can see against each segment. The legend above is the panel legend, printed on the door of the panel.</div>
+      <table style="margin-top:12px"><thead><tr>
+        <th style="cursor:default">Seg</th><th style="cursor:default">Location</th>
+        <th style="cursor:default;text-align:center">Panel lamp</th>
+        <th style="cursor:default">State you are recording</th><th style="cursor:default">Logged</th>
+      </tr></thead><tbody>${rows}</tbody></table>
+      <div class="counter" style="margin-top:10px">${donecount} of 9 segments recorded</div>
+    </div>`;
+  drawLeakMap($("leakMap"));
+  el.querySelectorAll("select[data-z]").forEach(sel=>{
+    sel.onchange=e=>{
+      const z=e.target.dataset.z, v=e.target.value;
+      const zone=D.leak.filter(q=>q.id===z)[0];
+      if(!v){delete S.leakRec[z];delete S.leakAt[z];}
+      else{
+        S.leakRec[z]=v; S.leakAt[z]=fmtClock(S.t);
+        logIt("Leak detection panel",z+" · "+zone.loc,v.toUpperCase(),v==="normal"?"norm":"dev","");
+      }
+      renderLeak();
+    };
+  });
+}
+
+/* ---------- view: fuel ---------- */
+function renderFuel(){
+  const el=$("paneFuel");
+  const cards=D.fuel.map(f=>{
+    const rec=S.fuelRec[f.id]||{};
+    const pct=f.now/f.cap*100;
+    return `<div class="gcard">
+      <h3>${esc(f.name)}</h3>
+      <div class="sub">Capacity ${f.cap.toLocaleString("en-GB")} ${f.unit} · gauge repeatability about ±${f.rep} ${f.unit}</div>
+      <canvas class="fg" data-id="${f.id}" data-pct="${pct.toFixed(3)}"></canvas>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 2px">
+        <span class="digit">${f.now.toLocaleString("en-GB")}</span><span class="small">${f.unit} · ${n2(pct,1)} %</span>
+      </div>
+      <div class="prevbox">Previous round, ${esc(D.prev.fuelAt)}: <span class="mono">${f.prev.toLocaleString("en-GB")} ${f.unit}</span>
+        (${n2(f.prev/f.cap*100,1)} %). Expected change since then: <span class="mono">0 ${f.unit}</span> — no generator run on load and no transfer logged.</div>
+      <div class="fld" style="margin-bottom:8px"><label>Reading you are logging (${f.unit})</label>
+        <input type="text" data-fv="${f.id}" value="${esc(rec.v||"")}" placeholder="value from the gauge"></div>
+      <div class="fld" style="margin-bottom:8px"><label>Difference against the previous round (${f.unit}, signed)</label>
+        <input type="text" data-fd="${f.id}" value="${esc(rec.d||"")}" placeholder="this reading minus last reading"></div>
+      <div class="fld" style="margin-bottom:10px"><label>Against the expected trend</label>
+        <select data-ft="${f.id}">
+          <option value="">— choose —</option>
+          <option value="as" ${rec.tr==="as"?"selected":""}>As expected — inside gauge repeatability</option>
+          <option value="below" ${rec.tr==="below"?"selected":""}>Below the expected trend</option>
+          <option value="above" ${rec.tr==="above"?"selected":""}>Above the expected trend</option>
+        </select></div>
+      <button data-flog="${f.id}" class="${rec.logged?"":"primary"}">${rec.logged?"Logged "+esc(rec.at)+" — log again":"Log this tank"}</button>
+    </div>`;
+  }).join("");
+  el.innerHTML=`
+    <div class="card">
+      <h3>Fuel gauges — two day tanks and the bulk tank</h3>
+      <p>Read the gauge, write down the digital value, then subtract the previous round from it. The subtraction is the whole point. A tank level on its own tells you almost nothing; a tank level against the last one tells you whether anything is leaving the site that should not be.</p>
+      <div class="infomsg" style="margin-bottom:0"><b>What the plant has been doing:</b> ${esc(D.prev.context)}</div>
+      ${S.fuelMsg?'<div class="blockmsg" style="margin-top:12px;margin-bottom:0">'+esc(S.fuelMsg)+"</div>":""}
+    </div>
+    <div class="grid g3">${cards}</div>`;
+  el.querySelectorAll("canvas.fg").forEach(cv=>drawGauge(cv,parseFloat(cv.dataset.pct)));
+  el.querySelectorAll("input[data-fv]").forEach(i=>i.oninput=e=>{
+    const id=e.target.dataset.fv; S.fuelRec[id]=S.fuelRec[id]||{}; S.fuelRec[id].v=e.target.value;});
+  el.querySelectorAll("input[data-fd]").forEach(i=>i.oninput=e=>{
+    const id=e.target.dataset.fd; S.fuelRec[id]=S.fuelRec[id]||{}; S.fuelRec[id].d=e.target.value;});
+  el.querySelectorAll("select[data-ft]").forEach(i=>i.onchange=e=>{
+    const id=e.target.dataset.ft; S.fuelRec[id]=S.fuelRec[id]||{}; S.fuelRec[id].tr=e.target.value;});
+  el.querySelectorAll("button[data-flog]").forEach(b=>b.onclick=e=>{
+    const id=e.target.dataset.flog, f=D.fuel.filter(q=>q.id===id)[0];
+    const r=S.fuelRec[id]||(S.fuelRec[id]={});
+    if(!String(r.v||"").trim()||!String(r.d||"").trim()||!r.tr){
+      S.fuelMsg=f.name+" is not logged. All three are needed: the reading, the signed difference against the previous round, and the trend judgement.";
+      renderFuel(); return;
+    }
+    S.fuelMsg="";
+    r.logged=true; r.at=fmtClock(S.t);
+    logIt("Fuel — "+f.name,"Level",String(r.v).trim()+" "+f.unit,r.tr==="as"?"norm":"dev",
+      "Previous round "+f.prev+" "+f.unit+" at "+D.prev.fuelAt+". Difference logged: "+String(r.d).trim()+" "+f.unit+
+      ". Trend judgement: "+(r.tr==="as"?"as expected":r.tr==="below"?"below expected":"above expected")+".");
+    renderFuel();
+  });
+}
+
+/* ---------- view: thermal ---------- */
+function renderTherm(){
+  const el=$("paneTherm");
+  const groups=[{g:"SW",t:"Main switchgear room — MSB-A CB-101 outgoing lugs",
+                 s:"Three-phase connection, load balanced within a few percent. Compare each phase against the mean of the other two."},
+                {g:"PD",t:"PDU rows — PDU-03 subfeed F2 lugs",
+                 s:"Same instrument, same distance, same emissivity setting. The diagnostic is the difference between phases, not the absolute number."}];
+  el.innerHTML=`
+    <div class="card">
+      <h3>Infrared thermal captures — six assigned connections</h3>
+      <p>Infrared, often shortened to IR, does not tell you a connection is bad because it is warm. Everything carrying current is warm. It tells you a connection is bad because it is warmer than the two beside it doing the same work. Capture the point, read the spot temperature and the ambient, then write down the difference against the neighbouring phases.</p>
+      ${S.thermMsg?'<div class="blockmsg" style="margin-bottom:0">'+esc(S.thermMsg)+"</div>":""}
+    </div>
+    ${groups.map(gr=>{
+      const items=D.therm.filter(c=>c.grp===gr.g).map(c=>{
+        const rec=S.thermRec[c.id]||{}, cap=!!S.thermCap[c.id];
+        return `<div class="gcard">
+          <h3>${esc(c.ph)}</h3>
+          <div class="sub">${esc(c.id)} · ambient ${n2(c.amb,1)} °C</div>
+          <canvas class="ir" data-id="${c.id}" ${cap?"":'style="display:none"'}></canvas>
+          ${cap?`<div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 2px">
+                  <span class="digit">${n2(c.t,1)}</span><span class="small">°C spot · ambient ${n2(c.amb,1)} °C</span></div>`
+                :`<div class="prevbox" style="text-align:center;padding:22px 10px">No capture taken at this point yet.</div>`}
+          <div class="prevbox">Previous round, ${esc(D.prev.thermAt)}: <span class="mono">${esc(D.prev.therm.filter(p=>p.id===c.id)[0].t)} °C</span></div>
+          <button data-cap="${c.id}" class="${cap?"":"primary"}" style="margin-bottom:10px">${cap?"Capture again":"Capture"}</button>
+          <div class="fld" style="margin-bottom:8px"><label>Spot temperature (°C)</label>
+            <input type="text" data-tv="${c.id}" ${cap?"":"disabled"} value="${esc(rec.v||"")}" placeholder="from the capture"></div>
+          <div class="fld" style="margin-bottom:8px"><label>Difference against the mean of the other two phases (°C, signed)</label>
+            <input type="text" data-td="${c.id}" ${cap?"":"disabled"} value="${esc(rec.d||"")}" placeholder="this phase minus the mean of the other two"></div>
+          <div class="fld" style="margin-bottom:10px"><label>Assessment</label>
+            <select data-ta="${c.id}" ${cap?"":"disabled"}>
+              <option value="">— choose —</option>
+              <option value="ok" ${rec.a==="ok"?"selected":""}>Within normal spread — under 10 °C above its neighbours</option>
+              <option value="out" ${rec.a==="out"?"selected":""}>Outlier — 10 °C or more above its neighbours</option>
+            </select></div>
+          <button data-tlog="${c.id}" ${cap?"":"disabled"} class="${rec.logged?"":"primary"}">${rec.logged?"Logged "+esc(rec.at)+" — log again":"Log this capture"}</button>
+        </div>`;
+      }).join("");
+      return `<div class="card"><h3>${esc(gr.t)}</h3><p>${esc(gr.s)}</p>
+        <div class="thermgrid">${items}</div></div>`;
+    }).join("")}`;
+  el.querySelectorAll("canvas.ir").forEach(cv=>{
+    const c=D.therm.filter(q=>q.id===cv.dataset.id)[0];
+    if(S.thermCap[c.id]) drawIR(cv,c.t,c.amb,(S.rkey+c.id.charCodeAt(0)*7+c.id.charCodeAt(3))|0);
+  });
+  el.querySelectorAll("button[data-cap]").forEach(b=>b.onclick=e=>{
+    const id=e.target.dataset.cap;
+    S.thermCap[id]=true;
+    const c=D.therm.filter(q=>q.id===id)[0];
+    logIt("Thermal — "+c.gname,c.ph+" capture","spot "+n2(c.t,1)+" °C, ambient "+n2(c.amb,1)+" °C","norm",
+      "Image captured. Reading and comparison still to be logged.");
+    renderTherm();
+  });
+  el.querySelectorAll("input[data-tv]").forEach(i=>i.oninput=e=>{
+    const id=e.target.dataset.tv; S.thermRec[id]=S.thermRec[id]||{}; S.thermRec[id].v=e.target.value;});
+  el.querySelectorAll("input[data-td]").forEach(i=>i.oninput=e=>{
+    const id=e.target.dataset.td; S.thermRec[id]=S.thermRec[id]||{}; S.thermRec[id].d=e.target.value;});
+  el.querySelectorAll("select[data-ta]").forEach(i=>i.onchange=e=>{
+    const id=e.target.dataset.ta; S.thermRec[id]=S.thermRec[id]||{}; S.thermRec[id].a=e.target.value;});
+  el.querySelectorAll("button[data-tlog]").forEach(b=>b.onclick=e=>{
+    const id=e.target.dataset.tlog, c=D.therm.filter(q=>q.id===id)[0];
+    const r=S.thermRec[id]||(S.thermRec[id]={});
+    if(!String(r.v||"").trim()||!String(r.d||"").trim()||!r.a){
+      S.thermMsg=c.ph+" at "+c.gname+" is not logged. All three are needed: the spot temperature, the signed difference against the mean of the other two phases, and the assessment. The absolute temperature on its own diagnoses nothing.";
+      renderTherm(); return;
+    }
+    S.thermMsg="";
+    r.logged=true; r.at=fmtClock(S.t);
+    logIt("Thermal — "+c.gname,c.ph,String(r.v).trim()+" °C",r.a==="out"?"dev":"norm",
+      "Ambient "+n2(c.amb,1)+" °C. Difference against the mean of the other two phases: "+String(r.d).trim()+
+      " °C. Assessment: "+(r.a==="out"?"outlier":"within normal spread")+".");
+    renderTherm();
+  });
+}
+
+/* ---------- view: shift log ---------- */
+function findOptions(){
+  const o=[{v:"",l:"— choose the logged item —"}];
+  D.leak.forEach(z=>o.push({v:"LK:"+z.id,l:"Leak detection "+z.id+" — "+z.loc}));
+  D.fuel.forEach(f=>o.push({v:"FU:"+f.id,l:"Fuel — "+f.name}));
+  D.therm.forEach(c=>o.push({v:"TH:"+c.id,l:"Thermal — "+c.gname+" "+c.ph}));
+  STATIONS.forEach(s=>o.push({v:"ST:"+s.id,l:"Station observation — "+s.id+" "+s.name}));
+  return o;
+}
+function renderLog(){
+  const el=$("paneLog");
+  const opts=findOptions();
+  const rows=S.log.map(e=>`<tr>
+      <td class="mono">${esc(e.t)}</td><td>${esc(e.src)}</td><td>${esc(e.item)}</td>
+      <td class="mono">${esc(e.value)}</td>
+      <td><span class="tag ${e.tag}">${e.tag==="norm"?"NORMAL":e.tag==="dev"?"DEVIATION":e.tag==="na"?"NOT CHECKED":"SHORTCUT"}</span></td>
+      <td class="small">${esc(e.note)}</td></tr>`).join("");
+  const findRows=[0,1,2,3].map(i=>{
+    const f=S.find[i]||{};
+    return `<div class="findrow">
+      <select data-fi="${i}">${opts.map(o=>`<option value="${o.v}" ${f.item===o.v?"selected":""}>${esc(o.l)}</option>`).join("")}</select>
+      <select data-fu="${i}">
+        <option value="">— urgency —</option>
+        <option value="now" ${f.urg==="now"?"selected":""}>Escalate now</option>
+        <option value="carry" ${f.urg==="carry"?"selected":""}>Carry to handover</option>
+      </select>
+      <input type="text" data-fn="${i}" value="${esc(f.note||"")}" placeholder="one line: what it is and why that urgency">
+    </div>`;
+  }).join("");
+  el.innerHTML=`
+    <div class="card">
+      <h3>Shift log — every reading, as it was taken</h3>
+      <p>${S.log.length} entries. This is the record. It is written to be read by somebody who was not here, at 07:00, in a hurry.</p>
+      <div class="logscroll">
+        <table><thead><tr>
+          <th style="cursor:default">Time</th><th style="cursor:default">Source</th><th style="cursor:default">Item</th>
+          <th style="cursor:default">Value</th><th style="cursor:default">Tag</th><th style="cursor:default">Note</th>
+        </tr></thead><tbody>${rows||'<tr><td colspan="6" class="small">Nothing logged yet.</td></tr>'}</tbody></table>
+      </div>
+    </div>
+    <div class="submit noprint">
+      <h3>Findings and escalation routing</h3>
+      <div class="sub">For each thing you are raising, pick the logged item it came from, decide whether it goes now or goes to the handover, and write one line saying what it is and why you routed it that way. Use as many rows as you need and leave the rest blank.</div>
+      <div class="fld" style="margin-bottom:14px"><label>Your name</label>
+        <input type="text" id="learnerName" placeholder="first and last name" style="width:260px" value="${esc(S.learner||"")}"></div>
+      ${findRows}
+      <div class="fld" style="margin:12px 0">
+        <label>Your handover sentence — what the next shift needs, in the order they need it</label>
+        <textarea id="hoText" rows="3" placeholder="Round complete, all twelve stations. Write what the next shift needs, in the order they need it.">${esc(S.handover||"")}</textarea>
+      </div>
+      <button class="primary" id="btnSubmit">Build submission sheet</button>
+      <div class="tiny" style="margin-top:12px">Keep this log. It is the input to the SBAR handover gate in Lab 5.3, where SBAR means Situation, Background, Assessment, Recommendation. You cannot write a handover from memory, and you will be asked to.</div>
+    </div>
+    <div class="result" id="roundResult"></div>`;
+  el.querySelectorAll("select[data-fi]").forEach(s=>s.onchange=e=>{
+    const i=+e.target.dataset.fi; S.find[i]=S.find[i]||{}; S.find[i].item=e.target.value;});
+  el.querySelectorAll("select[data-fu]").forEach(s=>s.onchange=e=>{
+    const i=+e.target.dataset.fu; S.find[i]=S.find[i]||{}; S.find[i].urg=e.target.value;});
+  el.querySelectorAll("input[data-fn]").forEach(s=>s.oninput=e=>{
+    const i=+e.target.dataset.fn; S.find[i]=S.find[i]||{}; S.find[i].note=e.target.value;});
+  $("learnerName").oninput=e=>{S.learner=e.target.value;};
+  $("hoText").oninput=e=>{S.handover=e.target.value;};
+  $("btnSubmit").onclick=buildSheet;
+}
+
+/* ---------- submission sheet ---------- */
+function findLabel(id){
+  const o=findOptions().filter(q=>q.v===id)[0];
+  return o?o.l:id;
+}
+function pad2(n){return String(n).padStart(2,"0");}
+function stampNow(){
+  const d=new Date();
+  return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes());
+}
+function urgWord(u){return u==="now"?"Escalate now":u==="carry"?"Carry to handover":"not recorded";}
+function trendWord(t){return t==="as"?"as expected":t==="below"?"below the expected trend":t==="above"?"above the expected trend":"not recorded";}
+function sRow(k,v){return `<div class="sheetrow"><span>${k}</span><span>${v}</span></div>`;}
+function buildSheet(){
+  const miss=[];
+  if(!S.prevAck) miss.push("previous round record not acknowledged");
+  STATIONS.forEach(s=>{ if(!S.stnLog[s.id]) miss.push(s.id+" "+s.name+" — station not logged"); });
+  D.leak.forEach(z=>{ if(!S.leakRec[z.id]) miss.push("leak detection "+z.id+" — no state recorded"); });
+  D.fuel.forEach(f=>{ const r=S.fuelRec[f.id]||{}; if(!r.logged) miss.push(f.name+" — not logged"); });
+  D.therm.forEach(c=>{
+    const r=S.thermRec[c.id]||{};
+    if(!S.thermCap[c.id]) miss.push(c.gname+" "+c.ph+" — no capture taken");
+    else if(!r.logged) miss.push(c.gname+" "+c.ph+" — captured but not logged");
+  });
+  S.find.forEach((f,i)=>{
+    f=f||{};
+    const any=f.item||f.urg||String(f.note||"").trim();
+    if(!any) return;
+    if(!f.item) miss.push("finding "+(i+1)+" — no logged item chosen");
+    if(!f.urg) miss.push("finding "+(i+1)+" — no urgency recorded");
+    if(!String(f.note||"").trim()) miss.push("finding "+(i+1)+" — no note written");
+  });
+  if(!String(S.handover||"").trim()) miss.push("handover sentence");
+
+  const stnRows=STATIONS.map(s=>{
+    const rec=S.stnLog[s.id], reads=D.stn[s.id].reads;
+    if(!rec) return `<tr><td class="mono">${s.id}</td><td>${esc(s.name)}</td><td class="mono">—</td>
+      <td colspan="3" class="small">not logged</td></tr>`;
+    const vals=reads.map((r,i)=>esc(r.label)+": <span class='mono'>"+esc(rec.vals[i])+" "+esc(r.unit)+"</span>").join("<br>");
+    return `<tr><td class="mono">${s.id}</td><td>${esc(s.name)}</td><td class="mono">${esc(rec.t)}</td>
+      <td>${vals}</td><td class="small">${esc(rec.obs)}</td>
+      <td class="small">${rec.tag==="dev"?"Deviation":"Within normal"}${rec.na?"<br>Could not check: "+esc(rec.nawhy):""}</td></tr>`;
+  }).join("");
+
+  const lkRows=D.leak.map(z=>`<tr><td class="mono">${z.id}</td><td>${esc(z.loc)}</td>
+    <td>${S.leakRec[z.id]?esc(S.leakRec[z.id].toUpperCase()):"not recorded"}</td>
+    <td class="mono">${esc(S.leakAt[z.id]||"—")}</td></tr>`).join("");
+
+  const fuRows=D.fuel.map(f=>{
+    const r=S.fuelRec[f.id]||{};
+    return `<tr><td>${esc(f.name)}</td><td class="mono">${f.prev.toLocaleString("en-GB")} ${f.unit}</td>
+      <td class="mono">${esc(r.v||"—")}</td><td class="mono">${esc(r.d||"—")}</td>
+      <td>${trendWord(r.tr)}</td><td class="mono">${esc(r.at||"—")}</td></tr>`;
+  }).join("");
+
+  const thRows=D.therm.map(c=>{
+    const r=S.thermRec[c.id]||{};
+    return `<tr><td>${esc(c.gname)}</td><td>${esc(c.ph)}</td>
+      <td class="mono">${S.thermCap[c.id]?"captured":"not captured"}</td>
+      <td class="mono">${esc(r.v||"—")}</td><td class="mono">${esc(r.d||"—")}</td>
+      <td>${r.a==="out"?"10 °C or more above its neighbours":r.a==="ok"?"under 10 °C above its neighbours":"not recorded"}</td>
+      <td class="mono">${esc(r.at||"—")}</td></tr>`;
+  }).join("");
+
+  const naRows=STATIONS.filter(s=>S.stnLog[s.id]&&S.stnLog[s.id].na)
+    .map(s=>`<tr><td class="mono">${s.id}</td><td>${esc(s.name)}</td><td>${esc(S.stnLog[s.id].nawhy)}</td></tr>`).join("");
+
+  const fdRows=S.find.map((f,i)=>{
+    f=f||{};
+    if(!f.item&&!f.urg&&!String(f.note||"").trim()) return "";
+    return `<tr><td class="mono">${i+1}</td><td>${esc(findLabel(f.item||"—"))}</td>
+      <td>${urgWord(f.urg)}</td><td class="small">${esc(f.note||"")}</td></tr>`;
+  }).join("");
+
+  const r=$("roundResult");
+  r.className="result show";
+  r.innerHTML=`<div class="sheet">
+    <h3>Lab 5.1 — Full Facility Round · submission sheet</h3>
+    ${sRow("Your name",esc(S.learner||"—"))}
+    ${sRow("Completed",stampNow())}
+    ${sRow("Site time at completion",fmtClock(S.t))}
+    ${sRow("Elapsed",fmtElapsed(S.t))}
+    ${sRow("Previous round record",S.prevAck?("read and acknowledged at "+esc(S.prevAckAt)):"not acknowledged")}
+    ${sRow("Stations logged",S.idx+" of 12")}
+    ${sRow("Stations opened out of order",String(S.shortcuts))}
+
+    <h4>Stations, readings and timestamps</h4>
+    <table><thead><tr><th style="cursor:default">Stn</th><th style="cursor:default">Station</th>
+      <th style="cursor:default">Time</th><th style="cursor:default">Readings recorded</th>
+      <th style="cursor:default">Observation</th><th style="cursor:default">Tag</th></tr></thead>
+      <tbody>${stnRows}</tbody></table>
+
+    <h4>Leak detection segments</h4>
+    <table><thead><tr><th style="cursor:default">Seg</th><th style="cursor:default">Location</th>
+      <th style="cursor:default">State recorded</th><th style="cursor:default">Logged</th></tr></thead>
+      <tbody>${lkRows}</tbody></table>
+
+    <h4>Fuel gauges</h4>
+    <table><thead><tr><th style="cursor:default">Tank</th><th style="cursor:default">Previous round</th>
+      <th style="cursor:default">Reading logged</th><th style="cursor:default">Difference entered</th>
+      <th style="cursor:default">Against the expected trend</th><th style="cursor:default">Logged</th></tr></thead>
+      <tbody>${fuRows}</tbody></table>
+
+    <h4>Infrared captures</h4>
+    <table><thead><tr><th style="cursor:default">Connection</th><th style="cursor:default">Point</th>
+      <th style="cursor:default">Capture</th><th style="cursor:default">Spot temperature</th>
+      <th style="cursor:default">Difference against neighbours</th><th style="cursor:default">Assessment</th>
+      <th style="cursor:default">Logged</th></tr></thead><tbody>${thRows}</tbody></table>
+
+    <h4>Recorded as not checked</h4>
+    ${naRows?`<table><thead><tr><th style="cursor:default">Stn</th><th style="cursor:default">Station</th>
+      <th style="cursor:default">What could not be checked, and why</th></tr></thead><tbody>${naRows}</tbody></table>`
+      :`<div class="small">Nothing was recorded as not checked.</div>`}
+
+    <h4>Findings raised and urgency assigned</h4>
+    ${fdRows?`<table><thead><tr><th style="cursor:default">#</th><th style="cursor:default">Logged item</th>
+      <th style="cursor:default">Urgency recorded</th><th style="cursor:default">Your note</th></tr></thead>
+      <tbody>${fdRows}</tbody></table>`:`<div class="small">No findings entered.</div>`}
+
+    <h4>Handover sentence</h4>
+    <div class="small" style="white-space:pre-wrap">${esc(S.handover||"— not written —")}</div>
+
+    ${miss.length?`<h4>Fields still blank</h4><div class="small">${miss.map(m=>"— "+esc(m)).join("<br>")}</div>`:""}
+
+    <div class="small" style="margin-top:16px">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
+    <div class="row noprint" style="margin-top:12px"><button class="primary" id="btnPrintSheet">Print submission sheet</button></div>
+  </div>`;
+  const pb=$("btnPrintSheet"); if(pb) pb.onclick=()=>window.print();
+  logIt("Submission","Submission sheet built",stampNow(),"norm","");
+}
+
+/* ---------- run loop ---------- */
+function pushSeries(){
+}
+function render(){
+  $("clock").textContent=fmtClock(S.t);
+  $("elapsed").textContent=fmtElapsed(S.t);
+  $("progress").textContent=S.idx>=STATIONS.length?"Route complete":("Station "+(S.idx+1)+" of 12");
+}
+function tick(){
+  S.t=S.t+0.25;
+  if(S.t>=LAB.duration&&$("statusBadge").className.indexOf("hold")<0){
+    $("statusBadge").textContent="Over the window"; $("statusBadge").className="badge hold";
+  }
+  pushSeries(); render();
+}
+function startRun(){
+  if(S.running)return;
+  S.running=true;
+  $("statusBadge").textContent="Round in progress"; $("statusBadge").className="badge run";
+  S.timer=setInterval(tick,Math.max(60,1000*15/S.speed));
+}
+function stopRun(done){
+  S.running=false; clearInterval(S.timer); S.timer=null;
+  $("statusBadge").textContent=done?"Round complete":"Held";
+  $("statusBadge").className="badge "+(done?"":"hold");
+}
+function resetRun(){
+  stopRun(false);
+  rnd=mulberry32((1013904223 + SET*2654435761)>>>0);
+  S.t=0; S.series={}; S.acked=new Set(); S.marks={}; S.filters=new Set();
+  S.prevAck=false; S.prevAckAt=""; S.idx=0; S.draft={}; S.stnLog={};
+  S.leakRec={}; S.leakAt={}; S.fuelRec={}; S.thermCap={}; S.thermRec={};
+  S.log=[]; S.shortcuts=0; S.routeMsg=""; S.routeMsgKind="block"; S.fuelMsg=""; S.thermMsg="";
+  S.find=[{},{},{},{}]; S.handover="";
+  D=buildRound(V);
+  const vw=$("roundView"); vw.dataset.built=""; vw.innerHTML="";
+  buildView();
+  pushSeries(); render();
+  setPane("prev");
+  startRun();
+}
+
+/* ---------- boot ---------- */
+PANES.forEach(p=>{ $("btnPane_"+p).onclick=()=>setPane(p); });
+$("btnRestart").onclick=resetRun;
+window.addEventListener("resize",()=>{
+  if(S.pane==="leak"&&$("leakMap"))drawLeakMap($("leakMap"));
+  if(S.pane==="fuel")renderFuel();
+  if(S.pane==="therm")renderTherm();
+});
+resetRun();
+</script>
+<!-- LQ_SUBMISSION_MODULE -->
+<script id="lqData">var LQ={"lab": "524.5.1", "title": "Full Facility Round", "handout": "GLAB 524.5.1 - Full Facility Round", "file": "524-5-1-C_Round.html", "set": "C", "items": [{"s": "Part 1: Walking the round", "k": "text", "p": "Step 1. Open the previous shift round record before you leave the desk and read all of it, including entries that look routine. Write down the two or three things it tells you to watch: an open work order, a note left at a particular station, a value that was already drifting. Acknowledge the record in the lab tool. The route will not unlock until you have, and that is deliberate — ninety seconds of reading is the only thing that makes your own numbers mean anything."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 4. At ST01, main switchgear room, take the three assigned infrared captures on the MSB-A CB-101 outgoing lugs — phase A, phase B and phase C. Log each temperature next to the other two phases of the same connection. The differential between phases on an evenly loaded three-phase joint is the whole diagnosis, and it takes four extra words to record. Paste your switchgear thermal captures here."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 5. At ST04, PDU rows, take the three assigned infrared captures on the PDU-03 subfeed F2 lugs, again phase by phase. A power distribution unit (PDU) subfeed carries hall load, so a hot lug here has a direct route to the floor. Heat at a connection means resistance, resistance means a loosening or corroding joint, and that joint is on its way to an arcing fault. Paste your PDU thermal captures here."}, {"s": "Part 1: Walking the round", "k": "text", "p": "Step 12. Escalate now any finding that does not wait. State it in one sentence containing the measurement, the comparison, the location and what you are asking for, in this shape: “[device and location] reading [value] against [the values it is compared with], [the size of the difference] — requesting [the action you want] before [the deadline].” Write your escalation sentence here."}, {"s": "Part 2: Reflection", "k": "text", "p": "Of the findings on your route, which travelled to the handover and which did not wait? Explain where you drew the line and what makes that line sit where it does rather than one finding further along. A technician who escalates everything will be ignored by the fourth call; a technician who escalates nothing hands over the one thing that mattered in a sentence nobody reads."}, {"s": "Part 2: Reflection", "k": "text", "p": "A leak detection segment showing CABLE FAULT is not showing “no leak”. Explain, in your own words, what that segment is actually telling you about the floor it covers, and what a next shift would wrongly assume if your log recorded it as “not in alarm”."}, {"s": "Part 2: Reflection", "k": "text", "p": "A fuel finding is only visible because a previous shift wrote down a number. Describe exactly what the previous record bought you here, and what your own fuel entries will or will not buy the shift that follows you. Be specific about which words in your entry carry the comparison."}, {"s": "Part 2: Reflection", "k": "text", "p": "Pick the weakest entry in your own log — the one that would be least useful to someone arriving cold at 2am. Quote it, say what is missing, and rewrite it to the standard you would want to receive."}]};</script>
+<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+     Collects every handout question and its response inside this lab tool and
+     exports ONE print-to-PDF submission sheet for Canvas grading.
+     Self-contained. No external libraries. Safe to re-inject (idempotent).
+
+     v2.0 — WCAG 2.1 AA pass (label association, headings, alt text, contrast,
+     status announcement, authored focus); image downscale before storage with a
+     visible error if the quota still throws; Save-as-PDF filename set from the
+     learner name; print pagination and running header; duplicate learner-name
+     rows stripped from the harvested simulator record.
+     ========================================================================= -->
+<style id="lqStyle">
+  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
+  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+  #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#9db6c9;font-weight:700}
+  #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
+    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+  #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
+  #lqCard .lqq{margin-bottom:16px}
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+    cursor:pointer}
+  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+    margin-right:6px;font-weight:700}
+  #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
+    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
+  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+  #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
+  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard .lqimgwrap{margin-top:7px}
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+    border-radius:5px;display:block;margin-top:8px}
+  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+
+  /* authored focus — the simulators author none, so this is the only visible ring.
+     Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
+     in the simulator above as much as in the submission panel. */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+  @media print{ :focus-visible{outline:none!important} }
+
+  /* error banner for a storage failure the learner must know about */
+  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr b{color:#fff}
+
+  /* screen-reader-only live region */
+  .lqvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* ---- the assembled submission sheet ---- */
+  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
+  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
+  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+    padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
+  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
+    font-size:12px;color:#a8c0d3;line-height:1.9}
+
+  #lqPrint{display:none}
+  #lqPrint .lqpage{width:100%;border-collapse:collapse}
+
+  /* ---- print: only the sheet ---- */
+  @media print{
+    body.lq-print{background:#fff!important;color:#000!important;
+      overflow:visible!important;height:auto!important}
+    body.lq-print>*{display:none!important}
+    body.lq-print>#lqPrint{display:block!important}
+
+    /* Everything harvested from the simulator arrives in the dark console palette:
+       near-white text that would print invisibly, on backgrounds the browser drops
+       by default. Flatten the whole print container to ink on paper first, then
+       re-assert the few greys that carry meaning. */
+    body.lq-print #lqPrint,body.lq-print #lqPrint *{
+      color:#000!important;background-color:transparent!important;background-image:none!important;
+      box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
+
+    /* running header — a thead repeats on every page in every engine that paginates */
+    body.lq-print #lqPrint thead.lqrhead{display:table-header-group}
+    body.lq-print #lqPrint td.lqrh{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      font-size:8pt;color:#444!important;border-bottom:.5pt solid #999!important;
+      padding:0 0 3pt;text-align:left}
+    body.lq-print #lqPrint td.lqrh .r{float:right}
+    body.lq-print #lqPrint td.lqbody{padding:6pt 0 0}
+
+    body.lq-print #lqPrint .lqsheet{background:#fff;border:0;padding:0;margin:0;color:#000}
+    body.lq-print #lqPrint h1{color:#000}
+    body.lq-print #lqPrint h1,body.lq-print #lqPrint h2{border-bottom-color:#999!important}
+    body.lq-print #lqPrint h2{color:#000;border-bottom:1px solid #999;
+      page-break-after:avoid;break-after:avoid}
+    body.lq-print #lqPrint .lqmeta,body.lq-print #lqPrint .lqrow .k,
+    body.lq-print #lqPrint .lqa .q{color:#444!important}
+    body.lq-print #lqPrint .lqa .q .qn{color:#000!important}
+    body.lq-print #lqPrint .lqrow,body.lq-print #lqPrint .lqa{border-bottom:1px solid #ddd!important}
+    body.lq-print #lqPrint .lqa,body.lq-print #lqPrint .lqrow,
+    body.lq-print #lqPrint .lqsign,body.lq-print #lqPrint .lqgap{
+      page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint .lqa .a.blank{color:#000;font-style:italic}
+    body.lq-print #lqPrint .lqgap,body.lq-print #lqPrint .lqgap.ok{
+      background:#fff!important;border:1pt solid #666!important;color:#000!important}
+    body.lq-print #lqPrint .lqsign{color:#000;border-top:1px solid #999}
+    body.lq-print #lqPrint .noprint{display:none!important}
+    body.lq-print #lqPrint button{display:none!important}
+    /* harvested simulator tables keep their column headers across pages */
+    body.lq-print #lqPrint thead{display:table-header-group}
+    body.lq-print #lqPrint tr{page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint p,body.lq-print #lqPrint .a{orphans:3;widows:3}
+    @page{margin:16mm 14mm 14mm}
+  }
+</style>
+<script id="lqScript">
+(function(){
+  if(window.__lqLoaded) return; window.__lqLoaded=true;
+
+  var esc=function(s){return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
+
+  var KEY="uci2227:"+LQ.file;
+  var store={}, storageBroken=false;
+  try{ store=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ store={}; }
+
+  /* ---------- cross-lab storage budget ----------
+     Every lab in the module is served from one origin, so all 43 share a single
+     ~5 MB localStorage budget. Seventeen image questions at ~325 KB apiece is 5.4 MB
+     — a learner working through the whole module on one browser profile would run out
+     near the end. Images belonging to OTHER labs are evicted when room is needed,
+     oldest and already-exported first. Text answers are never evicted: they are tiny,
+     and they are the part a learner cannot reproduce. An evicted image is already
+     inside the submission PDF that lab produced. */
+  function otherLabKeys(){
+    var out=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0&&k!==KEY) out.push(k);
+      }
+    }catch(e){}
+    return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
+  }
+  function evictOtherImages(target){
+    /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
+    var recs=[];
+    otherLabKeys().forEach(function(k){
+      var raw,obj;
+      try{ raw=localStorage.getItem(k)||"{}"; obj=JSON.parse(raw); }catch(e){ return; }
+      var imgBytes=0;
+      for(var f in obj) if(/_img$/.test(f)) imgBytes+=String(obj[f]).length;
+      if(imgBytes>0) recs.push({k:k,obj:obj,bytes:imgBytes,ts:obj._ts||0,done:obj._done?1:0});
+    });
+    recs.sort(function(a,b){ return (b.done-a.done)||(a.ts-b.ts); });
+    var freed=0;
+    for(var i=0;i<recs.length&&freed<target;i++){
+      var r=recs[i];
+      for(var f in r.obj) if(/_img$/.test(f)) delete r.obj[f];
+      r.obj._evicted=true;
+      try{ localStorage.setItem(r.k,JSON.stringify(r.obj)); freed+=r.bytes; }catch(e){}
+    }
+    return freed;
+  }
+
+  function save(){
+    store._ts=Date.now();
+    var payload;
+    try{ payload=JSON.stringify(store); }catch(e){ return false; }
+    try{
+      localStorage.setItem(KEY,payload);
+      if(storageBroken){ storageBroken=false; showStoreErr(null); }
+      return true;
+    }catch(e){
+      /* make room from other labs, then try once more */
+      if(evictOtherImages(payload.length+200000)>0){
+        try{
+          localStorage.setItem(KEY,payload);
+          if(storageBroken){ storageBroken=false; showStoreErr(null); }
+          return true;
+        }catch(e2){}
+      }
+      storageBroken=true;
+      showStoreErr(e);
+      return false;
+    }
+  }
+  function showStoreErr(e){
+    var b=document.getElementById("lqStoreErr");
+    if(!b) return;
+    if(!e){ b.style.display="none"; return; }
+    b.style.display="block";
+    b.innerHTML='<b>Your work is no longer being saved in this browser.</b><br>'
+      +'Storage is full or switched off — usually private browsing, or a great many images '
+      +'attached across the labs on this machine. Everything on screen is intact and the '
+      +'submission PDF will still build correctly — but <b>do not refresh or close this tab</b>. '
+      +'Press <b>Build submission PDF</b> now and save the file. '
+      +'Then press <b>Clear my responses</b> to free the space up for the next lab.';
+    if(b.scrollIntoView) b.scrollIntoView({block:"nearest"});
+  }
+
+  function announce(msg){
+    var s=document.getElementById("lqStatus");
+    if(s){ s.textContent=""; setTimeout(function(){ s.textContent=msg; },30); }
+  }
+
+  /* ---------- detect the set letter the tool is running ---------- */
+  function setLetter(){
+    try{ if(typeof SETLETTER!=="undefined"&&SETLETTER) return SETLETTER; }catch(e){}
+    var tag=document.getElementById("setTag");
+    if(tag&&tag.textContent){
+      var m=tag.textContent.match(/set\s+([A-H])/i); if(m) return m[1].toUpperCase();
+    }
+    var m2=(LQ.file||"").match(/524-\d-\d-([A-H])_/); if(m2) return m2[1];
+    return LQ.set||"—";
+  }
+
+  /* ---------- downscale an image before it goes anywhere near storage ----------
+     A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
+     about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
+     capture under 400 KB, which is still far more detail than the PDF can show. */
+  var MAXPX=1600, JPEGQ=0.82;
+  function downscale(file,cb){
+    var rd=new FileReader();
+    rd.onerror=function(){ cb(null,"The browser could not read that file."); };
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ cb(null,"That file does not look like an image the browser can open."); };
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(rd.result,null); return; }
+          var sc=Math.min(1,MAXPX/Math.max(w,h));
+          if(sc>=1&&rd.result.length<600000){ cb(rd.result,null); return; }
+          var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+          var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+          var x=c.getContext("2d");
+          x.fillStyle="#fff"; x.fillRect(0,0,cw,ch);
+          x.drawImage(img,0,0,cw,ch);
+          cb(c.toDataURL("image/jpeg",JPEGQ),null);
+        }catch(err){ cb(rd.result,null); }
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+
+  /* ---------- build the card ---------- */
+  var host=document.querySelector("main .wrap")||document.querySelector("main")||document.body;
+  var card=document.createElement("section");
+  card.id="lqCard";
+  card.setAttribute("aria-labelledby","lqCardTitle");
+
+  var qs=LQ.items, secs=[], cur=null;
+  qs.forEach(function(it,i){
+    if(!cur||cur.name!==it.s){ cur={name:it.s,list:[]}; secs.push(cur); }
+    cur.list.push({i:i,it:it});
+  });
+
+  var html=""
+   +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
+   +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
+   +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
+   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<div id="lqStoreErr" role="alert"></div>'
+   +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
+   +'<div class="lqid">'
+   +'<div class="lqfld" style="flex:1 1 260px"><label for="lqName">Your name</label>'
+     +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
+     +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
+     +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
+   +'</div>';
+
+  secs.forEach(function(sec,si){
+    html+='<h3 class="lqsec" id="lqSec'+si+'">'+esc(sec.name||"Questions")+'</h3>';
+    sec.list.forEach(function(o){
+      var id="lqQ"+o.i, n=o.i+1;
+      html+='<div class="lqq">';
+      if(o.it.k==="image"){
+        html+='<p class="lqp"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</p>'
+             +'<div class="lqimgwrap">'
+             +'<label class="lqfilelbl" for="'+id+'_f">Attach your image for question '+n+'</label>'
+             +'<input type="file" accept="image/*" id="'+id+'_f">'
+             +'<p class="lqnote" style="margin:5px 0 0">A photo or screenshot. It is resized and '
+             +'embedded in the PDF you hand in.</p>'
+             +'<img id="'+id+'_img" alt="Your attached image for question '+n+'" style="display:none">'
+             +'<label class="lqfilelbl" for="'+id+'" style="margin-top:8px">Caption or note for question '+n+'</label>'
+             +'<textarea id="'+id+'" rows="2" placeholder="Add any caption or note that goes with the image.">'
+             +esc(store[id]||"")+'</textarea></div>';
+      }else{
+        html+='<label class="lqp" for="'+id+'"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</label>'
+             +'<textarea id="'+id+'" rows="3" placeholder="Type your answer here.">'+esc(store[id]||"")+'</textarea>';
+      }
+      html+='</div>';
+    });
+  });
+
+  html+='<div class="lqbtns">'
+    +'<button type="button" class="lqprimary" id="lqBuild">Build submission PDF</button>'
+    +'<button type="button" id="lqPreview">Preview without printing</button>'
+    +'<button type="button" id="lqClear">Clear my responses</button>'
+    +'<span class="lqnote">The PDF carries every question, your responses and the simulator record. One file, one upload.</span>'
+    +'</div><div id="lqOut" role="region" aria-label="Submission sheet preview"></div>';
+
+  card.innerHTML=html;
+  host.appendChild(card);
+
+  /* ---------- wiring ---------- */
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
+    var el=document.getElementById(id);
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+  });
+  qs.forEach(function(it,i){
+    var id="lqQ"+i, ta=document.getElementById(id);
+    if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
+    var f=document.getElementById(id+"_f");
+    if(f) f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      announce("Processing your image for question "+(i+1)+".");
+      downscale(file,function(dataUrl,err){
+        if(err){ announce(err); alert(err); return; }
+        var img=document.getElementById(id+"_img");
+        img.src=dataUrl; img.style.display="block";
+        store[id+"_img"]=dataUrl;
+        var okSave=save();
+        announce("Image attached to question "+(i+1)+
+          (okSave?"." : ", but it could not be saved in this browser. Build your PDF now."));
+      });
+    };
+    if(store[id+"_img"]){
+      var im0=document.getElementById(id+"_img");
+      if(im0){ im0.src=store[id+"_img"]; im0.style.display="block"; }
+    }
+  });
+
+  /* an image of this lab was evicted to make room for another lab on the shared
+     origin, and this lab had not yet been exported — say so plainly */
+  if(store._evicted&&!store._done){
+    var eb=document.getElementById("lqStoreErr");
+    eb.style.display="block";
+    eb.innerHTML='<b>An image you attached is no longer stored.</b><br>'
+      +'This browser ran out of room across all the labs on this machine and dropped it. '
+      +'Your typed answers are all still here — only the image went. '
+      +'Attach it again before you build your submission PDF.';
+    delete store._evicted; save();
+  }
+
+  document.getElementById("lqClear").onclick=function(){
+    if(!confirm("Clear every response you have typed in this lab? This cannot be undone.")) return;
+    store={}; save();
+    qs.forEach(function(it,i){
+      var ta=document.getElementById("lqQ"+i); if(ta) ta.value="";
+      var im=document.getElementById("lqQ"+i+"_img"); if(im){ im.removeAttribute("src"); im.style.display="none"; }
+      var fi=document.getElementById("lqQ"+i+"_f"); if(fi) fi.value="";
+    });
+    document.getElementById("lqOut").innerHTML="";
+    announce("All responses cleared.");
+  };
+
+  /* ---------- guard the simulator's Restart button ----------
+     Restart wipes the simulator record but not the responses typed here, which
+     would leave a submission whose prose describes a record that no longer exists.
+     A capture-phase listener runs ahead of the tool's own onclick, so one confirm
+     covers every variant of the handler. */
+  (function(){
+    var rb=document.getElementById("btnRestart")||document.getElementById("btnReset");
+    if(!rb||card.contains(rb)) return;
+    rb.addEventListener("click",function(ev){
+      if(rb.dataset.lqOk==="1"){ rb.dataset.lqOk=""; return; }
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      var ok=confirm(
+        "Restart the scenario?\n\n"+
+        "Everything you recorded in the simulator — readings, marks, logs, the "+
+        "submission sheet it built — is wiped and the run starts again.\n\n"+
+        "The answers you typed in the submission panel lower down are KEPT. If they "+
+        "describe readings you are about to erase, build your submission PDF first.");
+      if(ok){ rb.dataset.lqOk="1"; rb.click(); }
+    },true);
+  })();
+
+  /* ---------- harvest the simulator's own record ---------- */
+  var REC_SEL=".sheet, .result.show";
+  function collect(){
+    var raw=[];
+    Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
+      if(card.contains(s)) return;
+      if(!s.textContent.replace(/\s/g,"")) return;
+      raw.push(s);
+    });
+    return raw.filter(function(s){
+      return !raw.some(function(o){ return o!==s && o.contains(s); });
+    });
+  }
+
+  /* the module already prints the learner name in its own Learner block, and every
+     simulator sheet prints it again — four of them twice. Strip it from the clone. */
+  var NAMEKEY=/^(your\s+)?(name|learner(\s+name)?)\s*:?\s*$/i;
+  function stripDuplicateName(root){
+    Array.prototype.forEach.call(root.querySelectorAll(".learnerline"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    var rows=root.querySelectorAll("div,tr,p");
+    Array.prototype.forEach.call(rows,function(r){
+      var first=r.firstElementChild;
+      if(!first||r.children.length>3) return;
+      if(NAMEKEY.test((first.textContent||"").trim())){
+        if(r.parentNode) r.parentNode.removeChild(r);
+      }
+    });
+  }
+
+  function toolRecord(){
+    var found=collect();
+    if(!found.length){
+      var btns=document.querySelectorAll("button");
+      var hit=null;
+      Array.prototype.forEach.call(btns,function(b){
+        if(card.contains(b)||hit) return;
+        var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+        if(/print/.test(t)) return;
+        if(/^build submission sheet$/.test(t)) hit=b;
+      });
+      if(!hit){
+        Array.prototype.forEach.call(btns,function(b){
+          if(card.contains(b)||hit) return;
+          var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+          if(/print/.test(t)) return;
+          if(/build .*sheet|submission sheet|submit .*(map|answer|sheet|round|log)|^submit$/.test(t)) hit=b;
+        });
+      }
+      if(hit){ try{ hit.click(); }catch(e){} }
+      found=collect();
+    }
+    if(!found.length) return null;
+    var wrap=document.createElement("div");
+    found.forEach(function(s){
+      var c=s.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      });
+      stripDuplicateName(c);
+      wrap.appendChild(c);
+    });
+    return wrap.innerHTML;
+  }
+
+  /* ---------- assemble the one sheet ---------- */
+  function build(){
+    var name=document.getElementById("lqName").value.trim();
+    var coh=document.getElementById("lqCohort").value.trim();
+    var dt=document.getElementById("lqDate").value.trim();
+    var gaps=[];
+    if(!name) gaps.push("Your name");
+    if(!coh)  gaps.push("Cohort / section");
+
+    var h=''
+     +'<div class="lqsheet">'
+     +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
+     +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
+       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+     +'<h2>Learner</h2>'
+     +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Built</span><span class="v">'
+       +esc(new Date().toLocaleString())+'</span></div>';
+
+    var rec=LQ.nosim?null:toolRecord();
+    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
+    else if(!LQ.nosim){
+      gaps.push("The simulator record — work through the lab tool above and press its own "
+               +"“Build submission sheet” button before you build this PDF");
+    }else{
+      h+='<h2>Assessed on the floor</h2>'
+        +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
+        +'Observed and signed off by the instructor against the handout. '
+        +'The instructor signature below records that sign-off.</span></div>';
+    }
+
+    var curSec=null;
+    qs.forEach(function(it,i){
+      if(it.s!==curSec){ curSec=it.s; h+='<h2>'+esc(curSec||"Questions")+'</h2>'; }
+      var ta=document.getElementById("lqQ"+i);
+      var a=ta?ta.value.trim():"";
+      var im=store["lqQ"+i+"_img"];
+      if(!a&&!im) gaps.push("Q"+(i+1));
+      h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
+      if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
+      h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
+    });
+
+    if(gaps.length){
+      h+='<div class="lqgap"><b>Not yet filled in ('+gaps.length+'):</b> '+esc(gaps.join(", "))
+        +'.<br>This is a completeness check, not a grade. Fill them in and build again, '
+        +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
+    }else{
+      h+='<div class="lqgap ok">'
+        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+    }
+
+    h+='<div class="lqsign">Learner signature: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'Instructor verification: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
+
+    document.getElementById("lqOut").innerHTML=h;
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
+    return h;
+  }
+
+  document.getElementById("lqPreview").onclick=function(){
+    build();
+    var o=document.getElementById("lqOut");
+    if(o&&o.scrollIntoView) o.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* ---------- the one PDF ---------- */
+  function safeName(s){
+    return String(s||"").normalize?String(s||"").normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+      :String(s||"").replace(/[^\w\s-]/g,"").trim();
+  }
+  function fileTitle(){
+    var n=safeName(document.getElementById("lqName").value).split(/\s+/).filter(Boolean);
+    var last=n.length>1?n[n.length-1]:(n[0]||"Learner");
+    var first=n.length>1?n.slice(0,-1).join("_"):"";
+    var who=first?(last+"_"+first):last;
+    return who+"_"+String(LQ.lab||"").replace(/[^\d.]/g,"");
+  }
+
+  document.getElementById("lqBuild").onclick=function(){
+    var h=build();
+    /* this lab's images are now inside a PDF the learner holds, so they become the
+       first thing evicted when another lab needs room on the shared origin */
+    store._done=true; save();
+
+    var old=document.getElementById("lqPrint"); if(old) old.parentNode.removeChild(old);
+
+    /* The sheet goes inside a one-cell table whose thead repeats on every printed
+       page, so pages 2+ still carry the learner name, the lab and the set. */
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+      +esc(document.getElementById("lqName").value.trim()||"Name not entered")
+      +' · '+esc(LQ.title);
+    var pr=document.createElement("div"); pr.id="lqPrint";
+    pr.innerHTML='<table class="lqpage"><thead class="lqrhead"><tr><td class="lqrh">'
+      +runHead+'</td></tr></thead><tbody><tr><td class="lqbody">'+h+'</td></tr></tbody></table>';
+    document.body.appendChild(pr);
+
+    /* the browser suggests document.title as the Save-as-PDF filename */
+    var prevTitle=document.title;
+    document.title=fileTitle();
+    document.body.classList.add("lq-print");
+
+    var restored=false;
+    var done=function(){
+      if(restored) return; restored=true;
+      document.body.classList.remove("lq-print");
+      document.title=prevTitle;
+      var a=document.getElementById("lqPrint"); if(a&&a.parentNode) a.parentNode.removeChild(a);
+      window.removeEventListener("afterprint",done);
+      if(mq&&mq.removeListener) mq.removeListener(mqHandler);
+    };
+    var mq=window.matchMedia?window.matchMedia("print"):null;
+    var mqHandler=function(m){ if(!m.matches) done(); };
+    if(mq&&mq.addListener) mq.addListener(mqHandler);
+    window.addEventListener("afterprint",done);
+
+    setTimeout(function(){
+      window.print();
+      /* generous fallback: mobile print sheets are asynchronous, and tearing the
+         container out too early yields a blank PDF */
+      setTimeout(done,60000);
+    },80);
+  };
+})();
+</script>
+<!-- ===== end submission module ============================================= -->
+
+</body>
+</html>

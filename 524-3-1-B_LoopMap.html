@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>524.3.1 — UCI 2227 — Lab 3.1 Map the Thermodynamic Loops (Training Simulator)</title>
+<style>
+  :root{
+    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
+    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:7px 13px}
+  button:hover{background:#1b3044;border-color:#2d4d68}
+  button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  button.primary:hover{background:#0a8bd8}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input[type=text],input[type=number],textarea{
+    font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:7px 9px}
+  textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
+  h1,h2,h3{margin:0;font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex:0 0 auto}
+  .brand{font-weight:700;letter-spacing:.4px;font-size:14px}
+  .brand span{color:var(--blue)}
+  .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
+  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+
+  main{flex:1;overflow:auto;padding:18px}
+  .wrap{max-width:1500px;margin:0 auto}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;margin-bottom:4px}
+  .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
+  .card ul{color:var(--dim);margin:0;padding-left:20px;line-height:1.7;font-size:13px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+
+  /* ---------- console ---------- */
+  .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
+    border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+  .tile .name{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
+  .chartbox h3{font-size:13px;margin-bottom:2px}
+  .chartbox .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
+  .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .note{font-size:12px;color:var(--dim);line-height:1.55}
+  .hidden{display:none !important}
+
+  /* ---------- submission ---------- */
+  .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
+  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
+  .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
+  .result.show{display:block;background:var(--panel2);border:1px solid var(--line)}
+  .missing{background:#2b2310;border:1px solid #5c4c2e;border-radius:7px;padding:11px;margin:12px 0;
+    font-size:12.5px;line-height:1.6}
+  .closing{margin-top:14px;font-size:12.5px;color:var(--dim);line-height:1.55}
+  .srow{display:flex;justify-content:space-between;gap:14px;padding:5px 0;border-bottom:1px solid #182b3b;font-size:12.5px}
+  .srow span:first-child{color:var(--faint);flex:0 0 40%}
+  .srow span:last-child{font-family:var(--mono);text-align:right;flex:1;white-space:pre-wrap}
+  .shead{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin:16px 0 6px}
+  @media print{
+    body{background:#fff;color:#000;overflow:visible}
+    header,.toolbar,.noprint{display:none !important}
+    main{overflow:visible}
+    .result{background:#fff !important;border:1px solid #999 !important}
+    .srow span:first-child{color:#444}
+    .shead{color:#000}
+  }
+
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);margin-bottom:8px}
+  .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+
+  /* ---------- loop-building canvas ---------- */
+  svg.sch{display:block;width:100%;height:auto;background:var(--panel2);
+    border:1px solid var(--line);border-radius:7px;user-select:none}
+  svg.sch text{font-family:var(--sans);font-size:11px;fill:var(--ink);pointer-events:none}
+  .nbox{fill:#16293a;stroke:#2f5a78;stroke-width:1.2;cursor:pointer}
+  g[data-node]:hover .nbox{fill:#1b3044}
+  .nbox.air{stroke:#33a6e8}
+  .nbox.chw{stroke:#37c07a}
+  .nbox.cw{stroke:#e8a33d}
+  .nbox.ref{stroke:#37c07a}
+  .nbox.sink{stroke:#5c7a92}
+  .nbox.src{fill:#16324a;stroke:var(--ice);stroke-width:2.4}
+  .nbox.hom{stroke:var(--warn);stroke-width:2.4}
+  .hobadge{fill:#3d3220;stroke:var(--warn);stroke-width:1.2}
+  .hobtxt{font-size:10px;font-weight:700;fill:var(--warn)}
+  .lk{stroke:#7fc4ea;stroke-width:2;fill:none}
+  .lkhead{fill:#7fc4ea;stroke:none}
+  .modebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 9px;
+    font-size:12px;color:var(--dim)}
+  .modepill{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .modepill.ho{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:11px;color:var(--faint)}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid;
+    background:#16293a;vertical-align:-1px;margin-right:5px}
+  .lklist{display:flex;flex-direction:column;gap:5px;max-height:280px;overflow:auto;margin-top:8px}
+  .lkrow{display:flex;gap:9px;align-items:center;font-size:12px;padding:5px 8px;border-radius:5px;
+    background:var(--panel2);border:1px solid var(--line)}
+  .lkrow .n{font-family:var(--mono);color:var(--faint);min-width:22px}
+  .lkrow .x{margin-left:auto;color:var(--faint);cursor:pointer;font-family:var(--mono);padding:0 4px}
+  .lkrow .x:hover{color:var(--stop)}
+  .sheet{font-size:12.5px;line-height:1.6;color:var(--dim)}
+  .sheet b{color:var(--ink)}
+  .learnerline{font-size:14px;margin:6px 0 4px}
+  .sheet .dl{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid #182b3b}
+  .sheet .dl span:last-child{font-family:var(--mono);color:var(--ink)}
+  ol.stepl{margin:6px 0 0;padding-left:20px;font-size:12.5px;line-height:1.7;color:var(--dim)}
+  ol.stepl b{color:var(--ink)}
+  .hoslot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 10px;border-radius:7px;
+    background:var(--panel2);border:1px solid var(--line);margin-bottom:9px}
+  .hoslot .lbl{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .hoslot .picked{font-family:var(--mono);font-size:12px;color:var(--ice)}
+  .cyc{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+  .cyc .fld label{white-space:nowrap}
+  .extrow{display:flex;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid #182b3b}
+  .extrow .q{flex:1;font-size:12.5px}
+  .rdout{font-family:var(--mono);font-size:12px;color:var(--blue);margin-top:6px}
+  .fine{font-size:11.5px;color:var(--faint);line-height:1.55;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">THERMODYNAMIC LOOP SIMULATOR</div>
+    <div class="sysname">524.3.1 &middot; UCI 2227 · Lab 3.1 · objective M3.1 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="spacer"></div>
+    <div id="statusBadge" class="badge">Ready</div>
+    <div>
+      <div class="clocklbl">Site time</div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <button id="btnDraw" class="primary">Draw mode</button>
+    <button id="btnUndo">Undo link</button>
+    <button id="btnClear">Clear</button>
+    <span style="width:10px"></span>
+    <button id="btnHandover">Mark handover</button>
+    <button id="btnRefrig">Refrigeration cycle</button>
+    <button id="btnExtension">Extension task</button>
+    <span class="spacer"></span>
+    <span class="counter" id="elapsed">T+00:00</span>
+    <button id="btnRestart">Restart</button>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <section id="loopView"></section>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SET = 1;   /* fixed for this file */
+/* ============================================================
+   UCI 2227 — Lab 3.1 · Map the Thermodynamic Loops
+   Standalone training console. Offline, no libraries, no network.
+   ============================================================ */
+
+/* ---------- fixed scenario ---------- */
+const SETLETTER="ABCDEFGH".charAt(SET);
+const RUNKEY=(0x9E3779B1 ^ Math.imul(SET+1,2654435761))>>>0;
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=mulberry32(1);
+function fmtClock(mins){
+  const base=3*60+14; // scenarios run from 03:14 site time
+  const total=base+mins;
+  const h=Math.floor(total/60)%24, m=Math.floor(total%60), s=Math.floor((mins%1)*60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function fmtElapsed(mins){
+  return "T+"+String(Math.floor(mins)).padStart(2,"0")+":"+String(Math.floor((mins%1)*60)).padStart(2,"0");
+}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function shuffled(a){
+  const b=a.slice();
+  for(let i=b.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=b[i];b[i]=b[j];b[j]=t;}
+  return b;
+}
+
+/* ---------- this lab ---------- */
+const LAB={lab:"Lab 3.1",obj:"M3.1",title:"Map the Thermodynamic Loops",duration:55};
+const PLANTS=[{id:"L1"},{id:"L2"},{id:"L3"}];
+
+/* ---------- node data ---------- */
+const AIR_L1=[
+  {id:"ex", x:40,  y:30,  g:"air", l:["Server exhaust"]},
+  {id:"ha", x:230, y:30,  g:"air", l:["Hot aisle"]},
+  {id:"rt", x:420, y:30,  g:"air", l:["CRAH return"]},
+  {id:"coil",x:610,y:30,  g:"air", l:["CRAH cooling coil","air side"]},
+  {id:"fan",x:800, y:30,  g:"air", l:["CRAH supply fan"]},
+  {id:"pl", x:990, y:30,  g:"air", l:["Underfloor plenum","/ supply duct"]},
+  {id:"ca", x:830, y:120, g:"air", l:["Cold aisle"]},
+  {id:"si", x:330, y:120, g:"air", l:["Server inlet"]}
+];
+function airL2(){
+  return AIR_L1.map(n=>{
+    if(n.id==="rt")   return {id:"rt",x:420,y:30,g:"air",l:["CRAC return"]};
+    if(n.id==="coil") return {id:"coil",x:610,y:30,g:"air",l:["CRAC evaporator coil","air side"]};
+    if(n.id==="fan")  return {id:"fan",x:800,y:30,g:"air",l:["CRAC supply fan"]};
+    return n;
+  });
+}
+
+const CONF={
+  L1:{
+    vb:"0 0 1180 600",
+    nodes:AIR_L1.concat([
+      {id:"coilw",x:610,y:240,g:"chw",l:["CRAH coil","water side"]},
+      {id:"chwr", x:400,y:240,g:"chw",l:["CHW return header"]},
+      {id:"pump", x:190,y:240,g:"chw",l:["Primary CHW pump"]},
+      {id:"evap", x:190,y:340,g:"chw",l:["Chiller evaporator"]},
+      {id:"chws", x:400,y:340,g:"chw",l:["CHW supply header"]},
+      {id:"cond", x:190,y:440,g:"cw", l:["Chiller condenser"]},
+      {id:"cws",  x:400,y:440,g:"cw", l:["CW supply"]},
+      {id:"cwp",  x:610,y:440,g:"cw", l:["Condenser water pump"]},
+      {id:"twr",  x:830,y:440,g:"cw", l:["Cooling tower"]},
+      {id:"cwr",  x:610,y:530,g:"cw", l:["CW return"]},
+      {id:"atm",  x:990,y:530,g:"sink",l:["Atmosphere"]}
+    ]),
+    legend:[["#33a6e8","Air"],["#37c07a","Chilled water"],["#e8a33d","Condenser water"],["#5c7a92","Sink"]],
+    s2:"Draw the <b>chilled water loop</b>. Watch the direction: cold water leaves the chiller for the coil, warm water comes back.",
+    s3:"Draw the <b>condenser water loop</b> and the rejection to atmosphere at the tower.",
+    refnote:"Inside the chiller, a refrigeration cycle lifts heat from one water loop into the other.",
+    sheet:[["Hall IT load","480 kW"],["Chilled water (CHW) supply — design","7.0 °C"],
+           ["Chilled water return — design","13.0 °C"],["CHW flow — design","19.1 l/s"],
+           ["Condenser water supply / return","27.0 / 32.0 °C"],["Outdoor wet-bulb","22.0 °C"],
+           ["Cold aisle set point","24.0 °C"]],
+    dt:{supL:"CHW supply temperature (°C)",retL:"CHW return temperature (°C)",
+        which:"the chilled water loop"},
+    ext:{title:"Extension — the cooling tower fan has failed",
+      intro:"The tower fan motor has tripped. The tower pump is still running and the chiller is still loaded. Take it stage by stage, in the order heat travels, and say what each reading does.",
+      rows:["Condenser water supply temperature to the chiller","Condenser pressure (chiller head pressure)",
+            "Chiller lift","Chilled water supply temperature","Rack inlet temperature","Condenser water flow rate"]}
+  },
+  L2:{
+    vb:"0 0 1180 560",
+    nodes:airL2().concat([
+      {id:"dxevap",x:610,y:250,g:"ref",l:["DX evaporator","refrigerant side"]},
+      {id:"comp",  x:400,y:250,g:"ref",l:["Compressor"]},
+      {id:"ocond", x:400,y:360,g:"ref",l:["Outdoor condenser coil"]},
+      {id:"txv",   x:610,y:360,g:"ref",l:["Expansion device"]},
+      {id:"oair",  x:700,y:470,g:"sink",l:["Outdoor air across","the condenser"]},
+      {id:"atm",   x:950,y:470,g:"sink",l:["Atmosphere"]}
+    ]),
+    legend:[["#33a6e8","Air"],["#37c07a","Refrigerant"],["#5c7a92","Sink"]],
+    s2:"Draw the <b>refrigerant circuit</b> inside the unit: evaporator, compressor, condenser, expansion device, back to the evaporator.",
+    s3:"Draw the <b>rejection path</b>: outdoor condenser coil to outdoor air to atmosphere.",
+    refnote:"Inside the CRAC unit, a refrigerant circuit moves heat from the indoor coil to the outdoor condenser.",
+    sheet:[["Hall IT load","180 kW"],["Return air onto the coil — design","31.0 °C"],
+           ["Supply air off the coil — design","19.0 °C"],["Condensing temperature","45.0 °C"],
+           ["Outdoor dry-bulb","35.0 °C"],["Cold aisle set point","24.0 °C"],
+           ["Chilled water","not applicable to this plant"]],
+    dt:{supL:"Supply air off the coil (°C)",retL:"Return air onto the coil (°C)",
+        which:"the air side of the coil"},
+    ext:{title:"Extension — the outdoor condenser fan has failed",
+      intro:"The condenser fan on the outdoor unit has tripped. The compressor is still running and the indoor fan is still running. Take it stage by stage, in the order heat travels, and say what each reading does.",
+      rows:["Condensing temperature at the outdoor coil","Condenser pressure (head pressure)",
+            "Compressor lift","CRAC supply air temperature","Rack inlet temperature","Indoor supply airflow"]}
+  },
+  L3:{
+    vb:"0 0 1180 600",
+    nodes:AIR_L1.concat([
+      {id:"coilw",x:610,y:240,g:"chw",l:["CRAH coil","water side"]},
+      {id:"chwr", x:400,y:240,g:"chw",l:["CHW return header"]},
+      {id:"pump", x:190,y:240,g:"chw",l:["Primary CHW pump"]},
+      {id:"evap", x:60, y:340,g:"chw",l:["Chiller evaporator"]},
+      {id:"phec", x:300,y:340,g:"chw",l:["Plate heat exchanger","chilled water side"]},
+      {id:"chws", x:540,y:340,g:"chw",l:["CHW supply header"]},
+      {id:"cond", x:60, y:450,g:"cw", l:["Chiller condenser"]},
+      {id:"phew", x:300,y:450,g:"cw", l:["Plate heat exchanger","condenser water side"]},
+      {id:"cws",  x:540,y:450,g:"cw", l:["CW supply"]},
+      {id:"cwp",  x:760,y:450,g:"cw", l:["Condenser water pump"]},
+      {id:"twr",  x:980,y:450,g:"cw", l:["Cooling tower"]},
+      {id:"cwr",  x:760,y:535,g:"cw", l:["CW return"]},
+      {id:"atm",  x:980,y:535,g:"sink",l:["Atmosphere"]}
+    ]),
+    legend:[["#33a6e8","Air"],["#37c07a","Chilled water"],["#e8a33d","Condenser water"],["#5c7a92","Sink"]],
+    s2:"Draw the <b>chilled water loop</b>. On this plant it splits after the pump — draw <b>both</b> paths, through the chiller and through the plate heat exchanger, and bring both back to the supply header.",
+    s3:"Draw the <b>condenser water loop</b>, including the branch that serves the plate heat exchanger, and the rejection to atmosphere at the tower.",
+    refnote:"Inside the chiller, a refrigeration cycle lifts heat from one water loop into the other.",
+    sheet:[["Hall IT load","480 kW"],["Chilled water (CHW) supply — design","7.0 °C"],
+           ["Chilled water return — design","13.0 °C"],["Outdoor wet-bulb — now","0.0 °C"],
+           ["Cooling tower approach","4.0 K"],["Plate heat exchanger approach","1.5 K"],
+           ["Cold aisle set point","24.0 °C"]],
+    dt:{supL:"CHW supply temperature (°C)",retL:"CHW return temperature (°C)",
+        which:"the chilled water loop"},
+    ask:{q:"At the stated outdoor conditions, which path is carrying the load?",
+      opts:[["mech","Mechanical cooling — the chiller"],
+            ["econ","Water-side economiser — the plate heat exchanger, chiller off"],
+            ["part","Partial economiser — both running together"]]},
+    ext:{title:"Extension — the cooling tower fan has failed",
+      intro:"The tower fan motor has tripped. The tower pump is still running. Take it stage by stage, in the order heat travels, and say what each reading does.",
+      rows:["Condenser water supply temperature","Condenser pressure once the chiller picks up the load",
+            "Chiller lift","Chilled water supply temperature","Rack inlet temperature","Condenser water flow rate"]}
+  }
+};
+
+const CYCLE=[["evaporator","Evaporator"],["compressor","Compressor"],
+             ["condenser","Condenser"],["expansion","Expansion device"]];
+
+const S={learner:"",t:0,running:false,timer:null,
+  mode:"draw",src:null,links:[],ho:{1:null,2:null},hoNames:{},hoSlot:1,cycOpts:CYCLE};
+const $=id=>document.getElementById(id);
+let V=PLANTS[SET];
+
+const NW=165, NH=48;
+const conf=()=>CONF[V.id];
+const nodeById=id=>conf().nodes.find(n=>n.id===id);
+const nodeName=id=>{const n=nodeById(id);return n?n.l.join(" "):id;};
+const c2f=c=>c*9/5+32;
+const k2f=k=>k*1.8;
+
+/* ---------- geometry ---------- */
+function centre(n){return {x:n.x+NW/2, y:n.y+NH/2};}
+function edgePoint(n,dx,dy){
+  const c=centre(n), hw=NW/2+3, hh=NH/2+3;
+  const tx=dx===0?Infinity:Math.abs(hw/dx), ty=dy===0?Infinity:Math.abs(hh/dy);
+  const t=Math.min(tx,ty);
+  return {x:c.x+dx*t, y:c.y+dy*t};
+}
+function linkPath(a,b){
+  const na=nodeById(a), nb=nodeById(b);
+  if(!na||!nb) return null;
+  const ca=centre(na), cb=centre(nb);
+  let dx=cb.x-ca.x, dy=cb.y-ca.y;
+  const len=Math.hypot(dx,dy)||1; dx/=len; dy/=len;
+  const p1=edgePoint(na,dx,dy), p2=edgePoint(nb,-dx,-dy);
+  return {p1,p2,dx,dy};
+}
+
+/* ---------- schematic ---------- */
+function svgMarkup(){
+  const C=conf();
+  const parts=[];
+  S.links.forEach(lk=>{
+    const gp=linkPath(lk.a,lk.b); if(!gp) return;
+    const {p1,p2,dx,dy}=gp;
+    const ax=p2.x-dx*11, ay=p2.y-dy*11;
+    const px=-dy, py=dx;
+    const h=[[p2.x,p2.y],[ax+px*5.2,ay+py*5.2],[ax-px*5.2,ay-py*5.2]]
+      .map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+    parts.push(`<g><title>${nodeName(lk.a)} → ${nodeName(lk.b)}</title>`+
+      `<line class="lk" x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${ax.toFixed(1)}" y2="${ay.toFixed(1)}"></line>`+
+      `<polygon class="lkhead" points="${h}"></polygon></g>`);
+  });
+  C.nodes.forEach(n=>{
+    const sel = S.src===n.id ? " src" : "";
+    const hoN = (S.ho[1]===n.id?1:(S.ho[2]===n.id?2:0));
+    const hoc = hoN ? " hom" : "";
+    const lines=n.l.length;
+    const ys = lines===1 ? [NH/2+4] : lines===2 ? [NH/2-4,NH/2+11] : [NH/2-10,NH/2+4,NH/2+18];
+    const txt=n.l.map((s,i)=>`<text x="${n.x+NW/2}" y="${n.y+ys[i]}" text-anchor="middle">${s}</text>`).join("");
+    const badge = hoN
+      ? `<circle class="hobadge" cx="${n.x+NW-8}" cy="${n.y+8}" r="10"></circle>`+
+        `<text class="hobtxt" x="${n.x+NW-8}" y="${n.y+12}" text-anchor="middle">H${hoN}</text>`
+      : "";
+    parts.push(`<g data-node="${n.id}"><title>${n.l.join(" ")}</title>`+
+      `<rect class="nbox ${n.g}${sel}${hoc}" x="${n.x}" y="${n.y}" width="${NW}" height="${NH}" rx="7"></rect>`+
+      txt+badge+`</g>`);
+  });
+  return parts.join("");
+}
+function paintSch(){
+  const sv=$("sch"); if(!sv) return;
+  sv.innerHTML=svgMarkup();
+  paintModebar(); paintLinkList();
+}
+function paintModebar(){
+  const el=$("modebar"); if(!el) return;
+  const pill = S.mode==="draw"
+    ? `<span class="modepill">Draw mode</span>`
+    : `<span class="modepill ho">Mark handover ${S.hoSlot}</span>`;
+  const msg = S.mode==="draw"
+    ? (S.src ? `Source held: <b>${nodeName(S.src)}</b>. Click the component it feeds. Click it again to cancel.`
+             : "Click a source component, then the component it feeds. The arrowhead shows the direction you chose.")
+    : `Click the component where heat crosses from one fluid into another. It will be tagged H${S.hoSlot}.`;
+  el.innerHTML=pill+`<span>${msg}</span>`;
+}
+function paintLinkList(){
+  const el=$("lklist"); if(!el) return;
+  if(!S.links.length){ el.innerHTML=`<div class="fine">No connections drawn yet.</div>`; }
+  else{
+    el.innerHTML=S.links.map((lk,i)=>
+      `<div class="lkrow"><span class="n">${String(i+1).padStart(2,"0")}</span>`+
+      `<span>${nodeName(lk.a)} <b style="color:var(--blue)">&rarr;</b> ${nodeName(lk.b)}</span>`+
+      `<span class="x noprint" data-del="${i}" title="remove">&times;</span></div>`).join("");
+  }
+  $("lkcount").textContent=S.links.length+(S.links.length===1?" connection drawn":" connections drawn");
+}
+
+/* ---------- interaction ---------- */
+function onNodeClick(id){
+  if(S.mode==="handover"){
+    S.ho[S.hoSlot]=id;
+    if(S.hoSlot===1 && !S.ho[2]) S.hoSlot=2;
+    else setMode("draw");
+    paintSch(); paintHo(); return;
+  }
+  if(S.src===null){ S.src=id; }
+  else if(S.src===id){ S.src=null; }
+  else{
+    const a=S.src, b=id;
+    const dup=S.links.some(l=>l.a===a&&l.b===b);
+    if(!dup) S.links.push({a,b});
+    S.src=null;
+  }
+  paintSch();
+}
+function setMode(m){
+  S.mode=m; S.src=null;
+  $("btnDraw").className = m==="draw" ? "primary" : "";
+  $("btnHandover").className = m==="handover" ? "primary" : "";
+  paintModebar();
+}
+
+/* ---------- panels ---------- */
+function paintHo(){
+  const el=$("hoslots"); if(!el) return;
+  readHoNames();
+  const slot=(n)=>{
+    const picked=S.ho[n];
+    return `<div class="hoslot">
+      <span class="lbl">Handover ${n}</span>
+      <span class="picked">${picked?nodeName(picked):"— not marked —"}</span>
+      <button data-hopick="${n}">Mark on the schematic</button>
+      <button data-hoclr="${n}">Clear</button>
+    </div>
+    <div class="fld" style="margin-bottom:14px">
+      <label>Name the component at handover ${n}</label>
+      <input type="text" id="hoName${n}" value="${esc((S.hoNames&&S.hoNames[n])||"")}" placeholder="type the component name">
+    </div>`;
+  };
+  el.innerHTML=slot(1)+slot(2);
+  [1,2].forEach(n=>{const f=$("hoName"+n); if(f) f.oninput=readHoNames;});
+  el.querySelectorAll("[data-hopick]").forEach(b=>b.onclick=()=>{
+    S.hoSlot=+b.dataset.hopick; setMode("handover"); paintSch();
+  });
+  el.querySelectorAll("[data-hoclr]").forEach(b=>b.onclick=()=>{
+    S.ho[+b.dataset.hoclr]=null; paintSch(); paintHo();
+  });
+}
+function readHoNames(){
+  S.hoNames=S.hoNames||{};
+  [1,2].forEach(n=>{const f=$("hoName"+n); if(f) S.hoNames[n]=f.value;});
+}
+function dtReadout(){
+  const sup=parseFloat($("dtSup").value), ret=parseFloat($("dtRet").value), d=parseFloat($("dtDelta").value);
+  const bits=[];
+  if(isFinite(sup)) bits.push(sup.toFixed(1)+" °C = "+c2f(sup).toFixed(1)+" °F");
+  if(isFinite(ret)) bits.push(ret.toFixed(1)+" °C = "+c2f(ret).toFixed(1)+" °F");
+  if(isFinite(d))   bits.push("delta T "+d.toFixed(1)+" K = "+k2f(d).toFixed(1)+" °F difference");
+  $("dtOut").textContent = bits.length?bits.join("   ·   ")
+    :"Enter the temperatures and your delta T; this line shows the Fahrenheit equivalents as you type.";
+}
+
+/* ---------- view ---------- */
+function buildView(){
+  const C=conf(), el=$("loopView");
+  const steps=[
+    "Draw the <b>air loop</b>. Start at the server exhaust and follow the air until it returns to a server inlet. Every watt the servers draw is in that air.",
+    C.s2,
+    C.s3,
+    "Use <b>Mark handover</b> and tag <b>handover 1</b> — the place where heat leaves the air and enters a fluid. Then name the component.",
+    "Work out whether this plant has a further loop-to-loop handover, where heat leaves one fluid loop and enters the next. Mark and name it as handover 2 if it is there, and leave handover 2 unmarked if it is not.",
+    "Read the design condition sheet, enter the two temperatures, and work out delta T. Then put the refrigeration cycle in order.",
+    "Answer the reasoning question, then build your submission sheet."
+  ];
+  const sheetRows=C.sheet.map(r=>`<div class="dl"><span>${r[0]}</span><span>${r[1]}</span></div>`).join("");
+  const cycSel=n=>`<div class="fld"><label>Position ${n}</label><select id="cyc${n}">
+      <option value="">— choose —</option>
+      ${S.cycOpts.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join("")}
+    </select></div>`;
+  const askBlock = C.ask ? `
+    <div class="fld" style="margin-top:14px">
+      <label>${C.ask.q}</label>
+      <select id="ansAsk"><option value="">— choose —</option>
+        ${C.ask.opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join("")}</select>
+    </div>` : "";
+
+  el.innerHTML=`
+    <div class="chartbox" style="margin-bottom:14px">
+      <h3>Loop chart</h3>
+      <div class="sub">Draw every connection in the direction the fluid travels.</div>
+      <div class="modebar noprint" id="modebar"></div>
+      <svg class="sch" id="sch" viewBox="${C.vb}"></svg>
+      <div class="legend">
+        ${C.legend.map(g=>`<span><i style="border-color:${g[0]}"></i>${g[1]}</span>`).join("")}
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="tile">
+        <div class="name">Design condition sheet</div>
+        <div class="sheet" style="margin-top:8px">${sheetRows}</div>
+        <div class="fine">Read the temperatures off this sheet. Nothing on it is a trick, but not every line is needed.</div>
+      </div>
+      <div class="tile">
+        <div class="name">Connections drawn <span class="counter" id="lkcount" style="margin-left:8px"></span></div>
+        <div class="lklist" id="lklist"></div>
+        <div class="fine">Remove a connection with the cross, or use <b>Undo link</b> on the toolbar to drop the last one.</div>
+      </div>
+    </div>
+
+    <div class="tile noprint" style="margin-top:14px">
+      <div class="name">Task</div>
+      <ol class="stepl">${steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+    </div>
+
+    <div class="grid g2" style="margin-top:14px">
+      <div class="tile" id="hoPanel">
+        <div class="name">Handover points</div>
+        <div class="fine" style="margin-bottom:10px">A handover is a place where heat changes fluid — one fluid on one side of the component, a different fluid on the other. Mark every one you can find on this plant, and leave a slot empty if you do not find a second.</div>
+        <div id="hoslots"></div>
+      </div>
+      <div class="tile" id="refPanel">
+        <div class="name">Refrigeration cycle</div>
+        <div class="fine" style="margin-bottom:4px">${C.refnote}
+          Put the four components in the order the refrigerant meets them. <b>Start at the evaporator.</b></div>
+        <div class="cyc">${[1,2,3,4].map(cycSel).join("")}</div>
+      </div>
+    </div>
+
+    <div class="tile" style="margin-top:14px" id="dtPanel">
+      <div class="name">Temperatures and delta T</div>
+      <div class="fine" style="margin-bottom:10px">Read both temperatures off the design condition sheet above and work out the difference across ${C.dt.which}. Delta T is a temperature <i>difference</i>, so it is quoted in kelvin (K), not degrees Celsius. One kelvin of difference equals 1.8 degrees Fahrenheit of difference.</div>
+      <div class="fgrid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="fld"><label>${C.dt.supL}</label><input type="number" step="0.1" id="dtSup" placeholder="0.0"></div>
+        <div class="fld"><label>${C.dt.retL}</label><input type="number" step="0.1" id="dtRet" placeholder="0.0"></div>
+        <div class="fld"><label>Delta T (K)</label><input type="number" step="0.1" id="dtDelta" placeholder="0.0"></div>
+      </div>
+      <div class="rdout" id="dtOut"></div>
+      ${askBlock}
+    </div>
+
+    <div class="tile hidden" id="extPanel" style="margin-top:14px">
+      <div class="name">${C.ext.title}</div>
+      <div class="fine" style="margin-bottom:10px">${C.ext.intro}</div>
+      <div id="extRows">${C.ext.rows.map((q,i)=>`
+        <div class="extrow"><div class="q">${i+1}. ${q}</div>
+          <select id="ext${i}" style="width:150px">
+            <option value="">— choose —</option>
+            <option value="rises">Rises</option>
+            <option value="falls">Falls</option>
+            <option value="unchanged">Unchanged</option>
+          </select></div>`).join("")}</div>
+      <div class="fine">Your answers are recorded on the submission sheet for your instructor to read.</div>
+    </div>
+
+    <div class="submit">
+      <div class="noprint">
+        <h3>Submit your loop chart</h3>
+        <div class="sub">Builds a printable record of the chart you drew, the handovers you marked and every figure you entered.</div>
+        <div class="fld" style="margin-bottom:12px"><label>Your name</label><input type="text" id="learnerName" placeholder="First and last" style="max-width:340px" value="${esc(S.learner)}"></div>
+        <div class="fld" style="margin-bottom:12px">
+          <label>Step 7 — which single component would you ask about first if delta T were half its design value, and why?</label>
+          <textarea id="ansStep7" rows="3" placeholder="Name one component and give the reason, in terms of the loop you have just drawn."></textarea>
+          <div class="fine">Your instructor reads this against the arrows on your own chart, so make the reasoning follow the fluid path you drew.</div>
+        </div>
+        <button class="primary" id="btnSubmit">Build submission sheet</button>
+      </div>
+      <div class="result" id="loopResult"></div>
+    </div>`;
+
+  $("sch").addEventListener("click",e=>{
+    const g=e.target.closest("g[data-node]"); if(!g) return;
+    onNodeClick(g.dataset.node);
+  });
+  $("lklist").onclick=e=>{
+    const x=e.target.closest("[data-del]"); if(!x) return;
+    S.links.splice(+x.dataset.del,1); paintSch();
+  };
+  ["dtSup","dtRet","dtDelta"].forEach(id=>$(id).oninput=dtReadout);
+  $("btnSubmit").onclick=buildSubmission;
+  {const _n=$("learnerName"); if(_n) _n.oninput=()=>{S.learner=_n.value.trim();};}
+  paintHo(); paintSch(); dtReadout();
+}
+
+/* ---------- submission sheet ---------- */
+function val(id){const e=$(id);return e?String(e.value).trim():"";}
+function buildSubmission(){
+  readHoNames();
+  {const _n=$("learnerName"); if(_n) S.learner=_n.value.trim();}
+  const C=conf(), missing=[];
+  if(!S.learner) missing.push("Your name");
+  if(!S.links.length) missing.push("The loop chart — no connections drawn yet");
+  if(!S.ho[1]) missing.push("Handover 1 — not marked on the schematic");
+  if(!(S.hoNames&&S.hoNames[1]&&S.hoNames[1].trim())) missing.push("Handover 1 — component not named");
+  if(!val("dtSup")) missing.push(C.dt.supL);
+  if(!val("dtRet")) missing.push(C.dt.retL);
+  if(!val("dtDelta")) missing.push("Delta T (K)");
+  const cyc=[1,2,3,4].map(i=>val("cyc"+i));
+  if(cyc.some(v=>!v)) missing.push("Refrigeration cycle — all four positions");
+  if(C.ask&&!val("ansAsk")) missing.push("The question on the temperatures and delta T panel");
+  if(!val("ansStep7")) missing.push("Step 7 — your reasoning");
+
+  const row=(k,v)=>`<div class="srow"><span>${esc(k)}</span><span>${esc(v||"—")}</span></div>`;
+  const out=[];
+  const now=new Date();
+  out.push(`<h2 style="font-size:16px">${LAB.lab} — ${LAB.title}</h2>
+    <div class="fine" style="margin:2px 0 10px">UCI 2227 · objective ${LAB.obj} · Set ${SETLETTER} · submission sheet</div>
+    <div class="learnerline"><b>Name:</b> ${esc(S.learner)||"\u2014"}</div>`);
+  out.push(`<div class="shead">Session</div>`);
+  out.push(row("Learner",S.learner));
+  out.push(row("Set",SETLETTER));
+  out.push(row("Completed",now.toLocaleDateString()+" "+now.toLocaleTimeString()));
+  out.push(row("Time at console",fmtElapsed(S.t)));
+
+  out.push(`<div class="shead">Connections drawn, in the order you drew them</div>`);
+  if(!S.links.length) out.push(row("Connections","none drawn"));
+  else S.links.forEach((lk,i)=>out.push(row(String(i+1).padStart(2,"0"),nodeName(lk.a)+"  ->  "+nodeName(lk.b))));
+
+  out.push(`<div class="shead">Handover points</div>`);
+  [1,2].forEach(n=>{
+    const nm=(S.hoNames&&S.hoNames[n]||"").trim();
+    out.push(row("Handover "+n+" — marked at",S.ho[n]?nodeName(S.ho[n]):"not marked"));
+    out.push(row("Handover "+n+" — named as",nm||"—"));
+  });
+
+  out.push(`<div class="shead">Temperatures and delta T</div>`);
+  out.push(row(C.dt.supL,val("dtSup")));
+  out.push(row(C.dt.retL,val("dtRet")));
+  out.push(row("Delta T (K)",val("dtDelta")));
+  if(isFinite(parseFloat(val("dtDelta"))))
+    out.push(row("Delta T in Fahrenheit difference",k2f(parseFloat(val("dtDelta"))).toFixed(1)+" °F"));
+  if(C.ask){
+    const a=val("ansAsk"), o=C.ask.opts.filter(x=>x[0]===a)[0];
+    out.push(row(C.ask.q,o?o[1]:"—"));
+  }
+
+  out.push(`<div class="shead">Refrigeration cycle, as you ordered it</div>`);
+  cyc.forEach((v,i)=>{
+    const o=CYCLE.filter(x=>x[0]===v)[0];
+    out.push(row("Position "+(i+1),o?o[1]:"—"));
+  });
+
+  out.push(`<div class="shead">Step 7 — your reasoning</div>`);
+  out.push(row("Which component you would ask about first, and why",val("ansStep7")));
+
+  const extGiven=C.ext.rows.map((q,i)=>[q,val("ext"+i)]);
+  out.push(`<div class="shead">${esc(C.ext.title)}</div>`);
+  if(extGiven.every(r=>!r[1])) out.push(row("Extension task","not attempted"));
+  else extGiven.forEach(r=>out.push(row(r[0],r[1]||"—")));
+
+  let html=out.join("");
+  if(missing.length){
+    html+=`<div class="missing"><b>Not yet filled in:</b><br>`+
+      missing.map(m=>"· "+esc(m)).join("<br>")+
+      `<br><br>This is a completeness check only. Fill these in and build the sheet again, or hand it in as it stands and explain the gaps to your instructor.</div>`;
+  }
+  html+=`<div class="closing">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
+    <div class="noprint" style="margin-top:12px"><button id="btnPrint">Print submission sheet</button></div>`;
+  const r=$("loopResult");
+  r.className="result show";
+  r.innerHTML=html;
+  $("btnPrint").onclick=()=>window.print();
+  $("statusBadge").textContent="Sheet built"; $("statusBadge").className="badge run";
+  if(r.scrollIntoView) r.scrollIntoView({block:"nearest"});
+}
+
+/* ---------- clock ---------- */
+function render(){
+  $("clock").textContent=fmtClock(S.t);
+  $("elapsed").textContent=fmtElapsed(S.t);
+}
+function tick(){
+  if(S.t>=LAB.duration){stopRun(true);return;}
+  S.t=Math.min(LAB.duration,S.t+1/60);
+  render();
+}
+function startRun(){
+  if(S.running)return;
+  S.running=true;
+  $("statusBadge").textContent="Working"; $("statusBadge").className="badge run";
+  clearInterval(S.timer);
+  S.timer=setInterval(tick,1000);
+}
+function stopRun(done){
+  S.running=false; clearInterval(S.timer); S.timer=null;
+  $("statusBadge").textContent=done?"Time up":"Held";
+  $("statusBadge").className="badge "+(done?"":"hold");
+}
+function startSession(){
+  stopRun(false);
+  rnd=mulberry32(RUNKEY);
+  S.cycOpts=shuffled(CYCLE);
+  S.t=0;
+  S.links=[]; S.ho={1:null,2:null}; S.hoNames={}; S.src=null; S.hoSlot=1; S.mode="draw";
+  buildView(); setMode("draw");
+  render(); startRun();
+}
+
+/* ---------- wiring ---------- */
+$("btnDraw").onclick=()=>{setMode("draw");paintSch();};
+$("btnHandover").onclick=()=>{
+  if(!S.ho[1]) S.hoSlot=1; else if(!S.ho[2]) S.hoSlot=2; else S.hoSlot=1;
+  setMode("handover"); paintSch();
+};
+$("btnUndo").onclick=()=>{S.links.pop();S.src=null;paintSch();};
+$("btnClear").onclick=()=>{S.links=[];S.ho={1:null,2:null};S.src=null;
+  [1,2].forEach(n=>{const f=$("hoName"+n); if(f) f.value="";}); S.hoNames={};
+  paintSch();paintHo();};
+$("btnRefrig").onclick=()=>{const p=$("refPanel");if(p){if(p.scrollIntoView)p.scrollIntoView({block:"center"});const s=$("cyc1");if(s)s.focus();}};
+$("btnRestart").onclick=()=>{S.learner="";startSession();};
+$("btnExtension").onclick=()=>{
+  const p=$("extPanel"); if(!p) return;
+  p.classList.toggle("hidden");
+  if(!p.classList.contains("hidden")&&p.scrollIntoView) p.scrollIntoView({block:"center"});
+};
+window.addEventListener("resize",render);
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&S.src!==null){S.src=null;paintSch();}
+});
+
+/* ---------- boot ---------- */
+$("setTag").textContent="Set "+SETLETTER;
+startSession();
+</script>
+<!-- LQ_SUBMISSION_MODULE -->
+<script id="lqData">var LQ={"lab": "524.3.1", "title": "Map the Thermodynamic Loops", "handout": "GLAB 524.3.1 - Map the Thermodynamic Loops", "file": "524-3-1-B_LoopMap.html", "set": "B", "items": [{"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 2. Read the site design condition sheet in the tool before you draw a single line. Copy onto your fluid loop worksheet: the hall IT load, the chilled water (CHW) supply and return design temperatures, the design flow, the condenser water supply and return temperatures, the outdoor wet-bulb temperature and the cold aisle set point. If your configuration has no chilled water row, record that fact in words. On a direct expansion plant there is no chilled water loop at all, and that is a finding rather than an omission."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 5. Circle handover 1 — the place where heat leaves the air and enters another fluid — and write the component name beside the circle. Air is on one side of it and something else is on the other. Write the full name, not an abbreviation."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 8. Mark handover 2 if your configuration has one, and name the component. Inside a chiller, list the four stages of the refrigeration cycle in order on your chart: evaporator, compressor, condenser, expansion device. Heat enters the refrigerant at the evaporator and leaves it at the condenser; the compressor raises it to a temperature at which it can be rejected, and the expansion device drops it back down. Record below the component you named as handover 2, and the four stages in the order you charted them."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 10. Count the loop-to-loop handovers on your chart and write the number in a box. Count only the places where heat moves from one circulating loop into another circulating loop. Rejection to the atmosphere at the end of the chain is a terminal sink, not a handover — the atmosphere does not come back round. Three loops means two handovers. One air loop plus a refrigerant circuit means one."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 11. Calculate delta T for the loop your configuration actually has. The formula is: delta T = return temperature minus supply temperature. Worked example from the module: chilled water leaving the chiller at 7.0 degrees C and coming back at 12.0 degrees C gives a delta T of 5.0 K, which is a healthy loop. The same water coming back at 9.0 degrees C gives 2.0 K, which is low delta T and needs investigating. Apply the same arithmetic to your own sheet, using the design supply and return figures your own design condition sheet gives you. On a direct expansion plant there is no chilled water, so you take delta T across the air side of the coil, using the on-coil and off-coil figures instead. Write the value and the unit on your chart."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 12. Write down what half the design delta T would be as a number, and what return temperature would produce it on your own configuration. Having the actual number in front of you makes the next step a reading rather than an opinion."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 13. Identify, in writing, which single component you would ask about first if delta T were half its design value, and why. Low delta T means the water went round the loop without picking up much heat. That is a distribution problem, not a capacity problem. Support your answer from the chart you have just drawn — any component you can justify from your own loop is a good answer at this stage."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 14. If your configuration has a water-side economiser, decide which path is carrying the load and show the arithmetic. Take the outdoor wet-bulb, the cooling tower approach and the plate heat exchanger approach from your design condition sheet. The tower can produce condenser water at the wet-bulb plus the tower approach, and across the plate heat exchanger that gives chilled water at that figure plus the exchanger approach. Compare the result with the chilled water set point and state which path can carry the load. Draw both possible paths, not just the one you memorised."}, {"s": "Part 1: Charting the heat journey", "k": "image", "p": "Step 16. Photograph or scan your marked-up chart for submission. Check before you do that your name, every arrowhead, the handover count, and the delta T value with its unit are all legible."}, {"s": "Part 2: Reflection", "k": "text", "p": "A direct expansion configuration has one loop-to-loop handover and a chilled water configuration with a tower has two. The outdoor condenser coil on a direct expansion plant clearly transfers heat from refrigerant into air, so why is it not counted as a handover? Answer in terms of what a loop is."}, {"s": "Part 2: Reflection", "k": "text", "p": "A cooling tower rejects heat by evaporating water, so its performance is limited by the outdoor wet-bulb temperature rather than the dry-bulb. Describe, stage by stage down your chart, what happens to condenser water temperature, chilled water supply temperature and finally rack inlet temperature on a humid afternoon when the wet-bulb is high."}, {"s": "Part 2: Reflection", "k": "text", "p": "Faced with a hot spot, the instinct is to lower the set point and start more CRAH units. Explain, using the delta T you calculated, why that response usually makes low delta T worse rather than better, and what it costs."}, {"s": "Part 2: Reflection", "k": "text", "p": "Write one sentence that distinguishes a CRAH from a CRAC. Then state what changes in your fault report — specifically, which components an engineer will ask you about — depending on which of the two you are describing."}]};</script>
+<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+     Collects every handout question and its response inside this lab tool and
+     exports ONE print-to-PDF submission sheet for Canvas grading.
+     Self-contained. No external libraries. Safe to re-inject (idempotent).
+
+     v2.0 — WCAG 2.1 AA pass (label association, headings, alt text, contrast,
+     status announcement, authored focus); image downscale before storage with a
+     visible error if the quota still throws; Save-as-PDF filename set from the
+     learner name; print pagination and running header; duplicate learner-name
+     rows stripped from the harvested simulator record.
+     ========================================================================= -->
+<style id="lqStyle">
+  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
+  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+  #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#9db6c9;font-weight:700}
+  #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
+    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+  #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
+  #lqCard .lqq{margin-bottom:16px}
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+    cursor:pointer}
+  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+    margin-right:6px;font-weight:700}
+  #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
+    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
+  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+  #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
+  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard .lqimgwrap{margin-top:7px}
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+    border-radius:5px;display:block;margin-top:8px}
+  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+
+  /* authored focus — the simulators author none, so this is the only visible ring.
+     Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
+     in the simulator above as much as in the submission panel. */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+  @media print{ :focus-visible{outline:none!important} }
+
+  /* error banner for a storage failure the learner must know about */
+  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr b{color:#fff}
+
+  /* screen-reader-only live region */
+  .lqvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* ---- the assembled submission sheet ---- */
+  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
+  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
+  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+    padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
+  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
+    font-size:12px;color:#a8c0d3;line-height:1.9}
+
+  #lqPrint{display:none}
+  #lqPrint .lqpage{width:100%;border-collapse:collapse}
+
+  /* ---- print: only the sheet ---- */
+  @media print{
+    body.lq-print{background:#fff!important;color:#000!important;
+      overflow:visible!important;height:auto!important}
+    body.lq-print>*{display:none!important}
+    body.lq-print>#lqPrint{display:block!important}
+
+    /* Everything harvested from the simulator arrives in the dark console palette:
+       near-white text that would print invisibly, on backgrounds the browser drops
+       by default. Flatten the whole print container to ink on paper first, then
+       re-assert the few greys that carry meaning. */
+    body.lq-print #lqPrint,body.lq-print #lqPrint *{
+      color:#000!important;background-color:transparent!important;background-image:none!important;
+      box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
+
+    /* running header — a thead repeats on every page in every engine that paginates */
+    body.lq-print #lqPrint thead.lqrhead{display:table-header-group}
+    body.lq-print #lqPrint td.lqrh{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      font-size:8pt;color:#444!important;border-bottom:.5pt solid #999!important;
+      padding:0 0 3pt;text-align:left}
+    body.lq-print #lqPrint td.lqrh .r{float:right}
+    body.lq-print #lqPrint td.lqbody{padding:6pt 0 0}
+
+    body.lq-print #lqPrint .lqsheet{background:#fff;border:0;padding:0;margin:0;color:#000}
+    body.lq-print #lqPrint h1{color:#000}
+    body.lq-print #lqPrint h1,body.lq-print #lqPrint h2{border-bottom-color:#999!important}
+    body.lq-print #lqPrint h2{color:#000;border-bottom:1px solid #999;
+      page-break-after:avoid;break-after:avoid}
+    body.lq-print #lqPrint .lqmeta,body.lq-print #lqPrint .lqrow .k,
+    body.lq-print #lqPrint .lqa .q{color:#444!important}
+    body.lq-print #lqPrint .lqa .q .qn{color:#000!important}
+    body.lq-print #lqPrint .lqrow,body.lq-print #lqPrint .lqa{border-bottom:1px solid #ddd!important}
+    body.lq-print #lqPrint .lqa,body.lq-print #lqPrint .lqrow,
+    body.lq-print #lqPrint .lqsign,body.lq-print #lqPrint .lqgap{
+      page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint .lqa .a.blank{color:#000;font-style:italic}
+    body.lq-print #lqPrint .lqgap,body.lq-print #lqPrint .lqgap.ok{
+      background:#fff!important;border:1pt solid #666!important;color:#000!important}
+    body.lq-print #lqPrint .lqsign{color:#000;border-top:1px solid #999}
+    body.lq-print #lqPrint .noprint{display:none!important}
+    body.lq-print #lqPrint button{display:none!important}
+    /* harvested simulator tables keep their column headers across pages */
+    body.lq-print #lqPrint thead{display:table-header-group}
+    body.lq-print #lqPrint tr{page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint p,body.lq-print #lqPrint .a{orphans:3;widows:3}
+    @page{margin:16mm 14mm 14mm}
+  }
+</style>
+<script id="lqScript">
+(function(){
+  if(window.__lqLoaded) return; window.__lqLoaded=true;
+
+  var esc=function(s){return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
+
+  var KEY="uci2227:"+LQ.file;
+  var store={}, storageBroken=false;
+  try{ store=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ store={}; }
+
+  /* ---------- cross-lab storage budget ----------
+     Every lab in the module is served from one origin, so all 43 share a single
+     ~5 MB localStorage budget. Seventeen image questions at ~325 KB apiece is 5.4 MB
+     — a learner working through the whole module on one browser profile would run out
+     near the end. Images belonging to OTHER labs are evicted when room is needed,
+     oldest and already-exported first. Text answers are never evicted: they are tiny,
+     and they are the part a learner cannot reproduce. An evicted image is already
+     inside the submission PDF that lab produced. */
+  function otherLabKeys(){
+    var out=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0&&k!==KEY) out.push(k);
+      }
+    }catch(e){}
+    return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
+  }
+  function evictOtherImages(target){
+    /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
+    var recs=[];
+    otherLabKeys().forEach(function(k){
+      var raw,obj;
+      try{ raw=localStorage.getItem(k)||"{}"; obj=JSON.parse(raw); }catch(e){ return; }
+      var imgBytes=0;
+      for(var f in obj) if(/_img$/.test(f)) imgBytes+=String(obj[f]).length;
+      if(imgBytes>0) recs.push({k:k,obj:obj,bytes:imgBytes,ts:obj._ts||0,done:obj._done?1:0});
+    });
+    recs.sort(function(a,b){ return (b.done-a.done)||(a.ts-b.ts); });
+    var freed=0;
+    for(var i=0;i<recs.length&&freed<target;i++){
+      var r=recs[i];
+      for(var f in r.obj) if(/_img$/.test(f)) delete r.obj[f];
+      r.obj._evicted=true;
+      try{ localStorage.setItem(r.k,JSON.stringify(r.obj)); freed+=r.bytes; }catch(e){}
+    }
+    return freed;
+  }
+
+  function save(){
+    store._ts=Date.now();
+    var payload;
+    try{ payload=JSON.stringify(store); }catch(e){ return false; }
+    try{
+      localStorage.setItem(KEY,payload);
+      if(storageBroken){ storageBroken=false; showStoreErr(null); }
+      return true;
+    }catch(e){
+      /* make room from other labs, then try once more */
+      if(evictOtherImages(payload.length+200000)>0){
+        try{
+          localStorage.setItem(KEY,payload);
+          if(storageBroken){ storageBroken=false; showStoreErr(null); }
+          return true;
+        }catch(e2){}
+      }
+      storageBroken=true;
+      showStoreErr(e);
+      return false;
+    }
+  }
+  function showStoreErr(e){
+    var b=document.getElementById("lqStoreErr");
+    if(!b) return;
+    if(!e){ b.style.display="none"; return; }
+    b.style.display="block";
+    b.innerHTML='<b>Your work is no longer being saved in this browser.</b><br>'
+      +'Storage is full or switched off — usually private browsing, or a great many images '
+      +'attached across the labs on this machine. Everything on screen is intact and the '
+      +'submission PDF will still build correctly — but <b>do not refresh or close this tab</b>. '
+      +'Press <b>Build submission PDF</b> now and save the file. '
+      +'Then press <b>Clear my responses</b> to free the space up for the next lab.';
+    if(b.scrollIntoView) b.scrollIntoView({block:"nearest"});
+  }
+
+  function announce(msg){
+    var s=document.getElementById("lqStatus");
+    if(s){ s.textContent=""; setTimeout(function(){ s.textContent=msg; },30); }
+  }
+
+  /* ---------- detect the set letter the tool is running ---------- */
+  function setLetter(){
+    try{ if(typeof SETLETTER!=="undefined"&&SETLETTER) return SETLETTER; }catch(e){}
+    var tag=document.getElementById("setTag");
+    if(tag&&tag.textContent){
+      var m=tag.textContent.match(/set\s+([A-H])/i); if(m) return m[1].toUpperCase();
+    }
+    var m2=(LQ.file||"").match(/524-\d-\d-([A-H])_/); if(m2) return m2[1];
+    return LQ.set||"—";
+  }
+
+  /* ---------- downscale an image before it goes anywhere near storage ----------
+     A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
+     about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
+     capture under 400 KB, which is still far more detail than the PDF can show. */
+  var MAXPX=1600, JPEGQ=0.82;
+  function downscale(file,cb){
+    var rd=new FileReader();
+    rd.onerror=function(){ cb(null,"The browser could not read that file."); };
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ cb(null,"That file does not look like an image the browser can open."); };
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(rd.result,null); return; }
+          var sc=Math.min(1,MAXPX/Math.max(w,h));
+          if(sc>=1&&rd.result.length<600000){ cb(rd.result,null); return; }
+          var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+          var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+          var x=c.getContext("2d");
+          x.fillStyle="#fff"; x.fillRect(0,0,cw,ch);
+          x.drawImage(img,0,0,cw,ch);
+          cb(c.toDataURL("image/jpeg",JPEGQ),null);
+        }catch(err){ cb(rd.result,null); }
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+
+  /* ---------- build the card ---------- */
+  var host=document.querySelector("main .wrap")||document.querySelector("main")||document.body;
+  var card=document.createElement("section");
+  card.id="lqCard";
+  card.setAttribute("aria-labelledby","lqCardTitle");
+
+  var qs=LQ.items, secs=[], cur=null;
+  qs.forEach(function(it,i){
+    if(!cur||cur.name!==it.s){ cur={name:it.s,list:[]}; secs.push(cur); }
+    cur.list.push({i:i,it:it});
+  });
+
+  var html=""
+   +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
+   +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
+   +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
+   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<div id="lqStoreErr" role="alert"></div>'
+   +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
+   +'<div class="lqid">'
+   +'<div class="lqfld" style="flex:1 1 260px"><label for="lqName">Your name</label>'
+     +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
+     +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
+     +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
+   +'</div>';
+
+  secs.forEach(function(sec,si){
+    html+='<h3 class="lqsec" id="lqSec'+si+'">'+esc(sec.name||"Questions")+'</h3>';
+    sec.list.forEach(function(o){
+      var id="lqQ"+o.i, n=o.i+1;
+      html+='<div class="lqq">';
+      if(o.it.k==="image"){
+        html+='<p class="lqp"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</p>'
+             +'<div class="lqimgwrap">'
+             +'<label class="lqfilelbl" for="'+id+'_f">Attach your image for question '+n+'</label>'
+             +'<input type="file" accept="image/*" id="'+id+'_f">'
+             +'<p class="lqnote" style="margin:5px 0 0">A photo or screenshot. It is resized and '
+             +'embedded in the PDF you hand in.</p>'
+             +'<img id="'+id+'_img" alt="Your attached image for question '+n+'" style="display:none">'
+             +'<label class="lqfilelbl" for="'+id+'" style="margin-top:8px">Caption or note for question '+n+'</label>'
+             +'<textarea id="'+id+'" rows="2" placeholder="Add any caption or note that goes with the image.">'
+             +esc(store[id]||"")+'</textarea></div>';
+      }else{
+        html+='<label class="lqp" for="'+id+'"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</label>'
+             +'<textarea id="'+id+'" rows="3" placeholder="Type your answer here.">'+esc(store[id]||"")+'</textarea>';
+      }
+      html+='</div>';
+    });
+  });
+
+  html+='<div class="lqbtns">'
+    +'<button type="button" class="lqprimary" id="lqBuild">Build submission PDF</button>'
+    +'<button type="button" id="lqPreview">Preview without printing</button>'
+    +'<button type="button" id="lqClear">Clear my responses</button>'
+    +'<span class="lqnote">The PDF carries every question, your responses and the simulator record. One file, one upload.</span>'
+    +'</div><div id="lqOut" role="region" aria-label="Submission sheet preview"></div>';
+
+  card.innerHTML=html;
+  host.appendChild(card);
+
+  /* ---------- wiring ---------- */
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
+    var el=document.getElementById(id);
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+  });
+  qs.forEach(function(it,i){
+    var id="lqQ"+i, ta=document.getElementById(id);
+    if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
+    var f=document.getElementById(id+"_f");
+    if(f) f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      announce("Processing your image for question "+(i+1)+".");
+      downscale(file,function(dataUrl,err){
+        if(err){ announce(err); alert(err); return; }
+        var img=document.getElementById(id+"_img");
+        img.src=dataUrl; img.style.display="block";
+        store[id+"_img"]=dataUrl;
+        var okSave=save();
+        announce("Image attached to question "+(i+1)+
+          (okSave?"." : ", but it could not be saved in this browser. Build your PDF now."));
+      });
+    };
+    if(store[id+"_img"]){
+      var im0=document.getElementById(id+"_img");
+      if(im0){ im0.src=store[id+"_img"]; im0.style.display="block"; }
+    }
+  });
+
+  /* an image of this lab was evicted to make room for another lab on the shared
+     origin, and this lab had not yet been exported — say so plainly */
+  if(store._evicted&&!store._done){
+    var eb=document.getElementById("lqStoreErr");
+    eb.style.display="block";
+    eb.innerHTML='<b>An image you attached is no longer stored.</b><br>'
+      +'This browser ran out of room across all the labs on this machine and dropped it. '
+      +'Your typed answers are all still here — only the image went. '
+      +'Attach it again before you build your submission PDF.';
+    delete store._evicted; save();
+  }
+
+  document.getElementById("lqClear").onclick=function(){
+    if(!confirm("Clear every response you have typed in this lab? This cannot be undone.")) return;
+    store={}; save();
+    qs.forEach(function(it,i){
+      var ta=document.getElementById("lqQ"+i); if(ta) ta.value="";
+      var im=document.getElementById("lqQ"+i+"_img"); if(im){ im.removeAttribute("src"); im.style.display="none"; }
+      var fi=document.getElementById("lqQ"+i+"_f"); if(fi) fi.value="";
+    });
+    document.getElementById("lqOut").innerHTML="";
+    announce("All responses cleared.");
+  };
+
+  /* ---------- guard the simulator's Restart button ----------
+     Restart wipes the simulator record but not the responses typed here, which
+     would leave a submission whose prose describes a record that no longer exists.
+     A capture-phase listener runs ahead of the tool's own onclick, so one confirm
+     covers every variant of the handler. */
+  (function(){
+    var rb=document.getElementById("btnRestart")||document.getElementById("btnReset");
+    if(!rb||card.contains(rb)) return;
+    rb.addEventListener("click",function(ev){
+      if(rb.dataset.lqOk==="1"){ rb.dataset.lqOk=""; return; }
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      var ok=confirm(
+        "Restart the scenario?\n\n"+
+        "Everything you recorded in the simulator — readings, marks, logs, the "+
+        "submission sheet it built — is wiped and the run starts again.\n\n"+
+        "The answers you typed in the submission panel lower down are KEPT. If they "+
+        "describe readings you are about to erase, build your submission PDF first.");
+      if(ok){ rb.dataset.lqOk="1"; rb.click(); }
+    },true);
+  })();
+
+  /* ---------- harvest the simulator's own record ---------- */
+  var REC_SEL=".sheet, .result.show";
+  function collect(){
+    var raw=[];
+    Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
+      if(card.contains(s)) return;
+      if(!s.textContent.replace(/\s/g,"")) return;
+      raw.push(s);
+    });
+    return raw.filter(function(s){
+      return !raw.some(function(o){ return o!==s && o.contains(s); });
+    });
+  }
+
+  /* the module already prints the learner name in its own Learner block, and every
+     simulator sheet prints it again — four of them twice. Strip it from the clone. */
+  var NAMEKEY=/^(your\s+)?(name|learner(\s+name)?)\s*:?\s*$/i;
+  function stripDuplicateName(root){
+    Array.prototype.forEach.call(root.querySelectorAll(".learnerline"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    var rows=root.querySelectorAll("div,tr,p");
+    Array.prototype.forEach.call(rows,function(r){
+      var first=r.firstElementChild;
+      if(!first||r.children.length>3) return;
+      if(NAMEKEY.test((first.textContent||"").trim())){
+        if(r.parentNode) r.parentNode.removeChild(r);
+      }
+    });
+  }
+
+  function toolRecord(){
+    var found=collect();
+    if(!found.length){
+      var btns=document.querySelectorAll("button");
+      var hit=null;
+      Array.prototype.forEach.call(btns,function(b){
+        if(card.contains(b)||hit) return;
+        var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+        if(/print/.test(t)) return;
+        if(/^build submission sheet$/.test(t)) hit=b;
+      });
+      if(!hit){
+        Array.prototype.forEach.call(btns,function(b){
+          if(card.contains(b)||hit) return;
+          var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+          if(/print/.test(t)) return;
+          if(/build .*sheet|submission sheet|submit .*(map|answer|sheet|round|log)|^submit$/.test(t)) hit=b;
+        });
+      }
+      if(hit){ try{ hit.click(); }catch(e){} }
+      found=collect();
+    }
+    if(!found.length) return null;
+    var wrap=document.createElement("div");
+    found.forEach(function(s){
+      var c=s.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      });
+      stripDuplicateName(c);
+      wrap.appendChild(c);
+    });
+    return wrap.innerHTML;
+  }
+
+  /* ---------- assemble the one sheet ---------- */
+  function build(){
+    var name=document.getElementById("lqName").value.trim();
+    var coh=document.getElementById("lqCohort").value.trim();
+    var dt=document.getElementById("lqDate").value.trim();
+    var gaps=[];
+    if(!name) gaps.push("Your name");
+    if(!coh)  gaps.push("Cohort / section");
+
+    var h=''
+     +'<div class="lqsheet">'
+     +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
+     +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
+       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+     +'<h2>Learner</h2>'
+     +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Built</span><span class="v">'
+       +esc(new Date().toLocaleString())+'</span></div>';
+
+    var rec=LQ.nosim?null:toolRecord();
+    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
+    else if(!LQ.nosim){
+      gaps.push("The simulator record — work through the lab tool above and press its own "
+               +"“Build submission sheet” button before you build this PDF");
+    }else{
+      h+='<h2>Assessed on the floor</h2>'
+        +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
+        +'Observed and signed off by the instructor against the handout. '
+        +'The instructor signature below records that sign-off.</span></div>';
+    }
+
+    var curSec=null;
+    qs.forEach(function(it,i){
+      if(it.s!==curSec){ curSec=it.s; h+='<h2>'+esc(curSec||"Questions")+'</h2>'; }
+      var ta=document.getElementById("lqQ"+i);
+      var a=ta?ta.value.trim():"";
+      var im=store["lqQ"+i+"_img"];
+      if(!a&&!im) gaps.push("Q"+(i+1));
+      h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
+      if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
+      h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
+    });
+
+    if(gaps.length){
+      h+='<div class="lqgap"><b>Not yet filled in ('+gaps.length+'):</b> '+esc(gaps.join(", "))
+        +'.<br>This is a completeness check, not a grade. Fill them in and build again, '
+        +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
+    }else{
+      h+='<div class="lqgap ok">'
+        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+    }
+
+    h+='<div class="lqsign">Learner signature: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'Instructor verification: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
+
+    document.getElementById("lqOut").innerHTML=h;
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
+    return h;
+  }
+
+  document.getElementById("lqPreview").onclick=function(){
+    build();
+    var o=document.getElementById("lqOut");
+    if(o&&o.scrollIntoView) o.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* ---------- the one PDF ---------- */
+  function safeName(s){
+    return String(s||"").normalize?String(s||"").normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+      :String(s||"").replace(/[^\w\s-]/g,"").trim();
+  }
+  function fileTitle(){
+    var n=safeName(document.getElementById("lqName").value).split(/\s+/).filter(Boolean);
+    var last=n.length>1?n[n.length-1]:(n[0]||"Learner");
+    var first=n.length>1?n.slice(0,-1).join("_"):"";
+    var who=first?(last+"_"+first):last;
+    return who+"_"+String(LQ.lab||"").replace(/[^\d.]/g,"");
+  }
+
+  document.getElementById("lqBuild").onclick=function(){
+    var h=build();
+    /* this lab's images are now inside a PDF the learner holds, so they become the
+       first thing evicted when another lab needs room on the shared origin */
+    store._done=true; save();
+
+    var old=document.getElementById("lqPrint"); if(old) old.parentNode.removeChild(old);
+
+    /* The sheet goes inside a one-cell table whose thead repeats on every printed
+       page, so pages 2+ still carry the learner name, the lab and the set. */
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+      +esc(document.getElementById("lqName").value.trim()||"Name not entered")
+      +' · '+esc(LQ.title);
+    var pr=document.createElement("div"); pr.id="lqPrint";
+    pr.innerHTML='<table class="lqpage"><thead class="lqrhead"><tr><td class="lqrh">'
+      +runHead+'</td></tr></thead><tbody><tr><td class="lqbody">'+h+'</td></tr></tbody></table>';
+    document.body.appendChild(pr);
+
+    /* the browser suggests document.title as the Save-as-PDF filename */
+    var prevTitle=document.title;
+    document.title=fileTitle();
+    document.body.classList.add("lq-print");
+
+    var restored=false;
+    var done=function(){
+      if(restored) return; restored=true;
+      document.body.classList.remove("lq-print");
+      document.title=prevTitle;
+      var a=document.getElementById("lqPrint"); if(a&&a.parentNode) a.parentNode.removeChild(a);
+      window.removeEventListener("afterprint",done);
+      if(mq&&mq.removeListener) mq.removeListener(mqHandler);
+    };
+    var mq=window.matchMedia?window.matchMedia("print"):null;
+    var mqHandler=function(m){ if(!m.matches) done(); };
+    if(mq&&mq.addListener) mq.addListener(mqHandler);
+    window.addEventListener("afterprint",done);
+
+    setTimeout(function(){
+      window.print();
+      /* generous fallback: mobile print sheets are asynchronous, and tearing the
+         container out too early yields a blank PDF */
+      setTimeout(done,60000);
+    },80);
+  };
+})();
+</script>
+<!-- ===== end submission module ============================================= -->
+
+</body>
+</html>

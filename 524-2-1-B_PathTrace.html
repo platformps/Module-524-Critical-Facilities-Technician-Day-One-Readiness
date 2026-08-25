@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>524.2.1 — UCI 2227 — Lab 2.1 Power Path Tracing (Training Simulator)</title>
+<style>
+  :root{
+    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
+    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:7px 13px}
+  button:hover{background:#1b3044;border-color:#2d4d68}
+  button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  button.primary:hover{background:#0a8bd8}
+  button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input[type=text],input[type=number],textarea{
+    font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:7px 9px}
+  textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
+  h1,h2,h3{margin:0;font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex:0 0 auto}
+  .brand{font-weight:700;letter-spacing:.4px;font-size:14px}
+  .brand span{color:var(--blue)}
+  .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
+  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+
+  main{flex:1;overflow:auto;padding:18px}
+  .wrap{max-width:1500px;margin:0 auto}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;margin-bottom:4px}
+  .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
+
+  /* ---------- console ---------- */
+  .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
+    border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+  .tile .name{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tile .val{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1.15;margin-top:5px}
+  .tile .unit{font-size:14px;color:var(--dim);font-weight:400;margin-left:3px}
+  .tile .band{font-size:11px;color:var(--faint);margin-top:5px;font-family:var(--mono)}
+  .tile.alarm{border-color:var(--stop);background:#2a1512}
+  .tile.alarm .val{color:var(--stop)}
+  .tile.caution{border-color:#5c4c2e}
+  .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
+  .chartbox h3{font-size:13px;margin-bottom:2px}
+  .chartbox .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
+  canvas{display:block;width:100%;height:auto}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .stepchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+  .stepchip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+
+  /* ---------- alarms ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+    font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+  th:hover{color:var(--blue)}
+  td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
+  tr.ack{opacity:.42}
+  .sev{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .sev.critical{background:#4a1f1a;color:#ff8f7d}
+  .sev.high{background:#4a3418;color:#ffc069}
+  .sev.medium{background:#1c3a4f;color:#7fc4ea}
+  .sev.low{background:#22303a;color:#8ba6bd}
+  .tick{display:inline-block;width:15px;height:15px;border:1px solid var(--line);border-radius:3px;
+    background:var(--panel2);cursor:pointer;vertical-align:-3px}
+  .tick.on{background:var(--blue);border-color:var(--blue)}
+  .flt{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .flt .chip{font-size:11px;padding:5px 11px;border-radius:20px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--dim);cursor:pointer}
+  .flt .chip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
+
+  .note{font-size:12px;color:var(--dim);line-height:1.55}
+  .hidden{display:none !important}
+
+  /* ---------- submission ---------- */
+  .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
+  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
+  .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
+  .result.show{display:block;background:var(--panel2);border:1px solid var(--line)}
+  .result h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin:15px 0 6px}
+  .result .kvr{display:flex;justify-content:space-between;gap:12px;padding:5px 0;
+    border-bottom:1px solid #1a2c3c;font-size:12px}
+  .result .kvr span:first-child{color:var(--faint)}
+  .result .kvr span:last-child{font-family:var(--mono);text-align:right}
+  .result .kvr.wide span:last-child{font-family:var(--sans);text-align:left;max-width:64%}
+  .result .todo{margin-top:13px;padding:10px 12px;border:1px solid #5c4c2e;border-radius:6px;
+    background:#2b2310;font-size:12.5px;line-height:1.5}
+  .result .todo ul{margin:6px 0 0;padding-left:19px}
+  .result .close{margin-top:13px;font-size:12.5px;color:var(--dim);line-height:1.5}
+  @media print{
+    body{background:#fff;color:#000;overflow:visible}
+    header,.toolbar,.noprint{display:none !important}
+    main{overflow:visible}
+  }
+
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);margin-bottom:8px}
+  .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+
+  /* ---------- added for Lab 2.1: single-line diagram workstation ---------- */
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:14px;align-items:start}
+  @media (max-width:1180px){.cols{grid-template-columns:minmax(0,1fr)}}
+  .msgbar{border:1px solid var(--line);background:var(--panel2);border-radius:8px;
+    padding:10px 13px;margin-bottom:12px;font-size:13px;line-height:1.5;min-height:41px}
+  .msgbar.ok{border-color:#1d5b41;background:#12261c}
+  .msgbar.warn{border-color:#5c4c2e;background:#2b2310}
+  .msgbar.stop{border-color:#6d3129;background:#2a1512}
+  .msgbar b{color:var(--ice)}
+  svg.sld{display:block;width:100%;height:auto;background:#0c1a26;border-radius:7px;
+    border:1px solid #17293a;user-select:none}
+  svg.lgsvg{display:block;width:74px;height:46px;background:#0c1a26;border-radius:5px;
+    border:1px solid #17293a;flex:0 0 auto}
+  .sld .wire{stroke:#4d6a80;stroke-width:2;fill:none;stroke-linecap:round}
+  .sld .sym{fill:none;stroke:#9db9ce;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .sld .symfill{fill:#0c1a26;stroke:#9db9ce;stroke-width:2}
+  .sld .bus{stroke:#9db9ce;stroke-width:5;fill:none;stroke-linecap:round}
+  .sld .busmv{stroke-width:7}
+  .sld .open{stroke:var(--warn)}
+  .sld .dot{fill:#4d6a80;stroke:none}
+  .sld .glyph{fill:#9db9ce;font:700 15px var(--mono);text-anchor:middle;dominant-baseline:middle}
+  .sld .tag{fill:#8ea9c0;font:600 11px var(--mono)}
+  .sld .tagrack{fill:#6f8ca4;font:600 9px var(--mono);text-anchor:middle}
+  .sld .tblock{fill:#5c7a92;font:400 10px var(--mono)}
+  .sld .hit{fill:transparent;cursor:pointer}
+  .sld g.nd:hover .sym,.sld g.nd:hover .bus,.sld g.nd:hover .symfill{stroke:var(--ice)}
+  .sld g.nd.on .sym,.sld g.nd.on .bus,.sld g.nd.on .symfill{stroke:var(--blue)}
+  .sld g.nd.on .glyph{fill:var(--blue)}
+  .sld g.nd.on .tag{fill:var(--ice)}
+  .sld g.nd.head .sym,.sld g.nd.head .bus,.sld g.nd.head .symfill{stroke:var(--ok)}
+  .sld .route{stroke:var(--blue);stroke-width:7;opacity:.26;fill:none;
+    stroke-linecap:round;stroke-linejoin:round}
+  .lgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-top:10px}
+  @media (max-width:900px){.lgrid{grid-template-columns:1fr}}
+  .lgrow{display:flex;gap:11px;align-items:flex-start}
+  .lgrow .lgtxt{font-size:12px;color:var(--dim);line-height:1.45}
+  .lgrow .lgtxt b{color:var(--ink);display:block;font-size:12px;margin-bottom:2px}
+  .wsheet td{font-size:12.5px;padding:6px 8px}
+  .wsheet th{padding:7px 8px}
+  .wsheet input.vin{width:96px;padding:5px 7px;font-family:var(--mono)}
+  .stack{display:flex;flex-direction:column;gap:14px}
+  .qbox{border:1px solid var(--line);border-radius:8px;background:var(--panel2);
+    padding:11px 13px;margin-bottom:10px}
+  .qbox .qq{font-size:12.5px;line-height:1.45;margin-bottom:9px}
+  .qbox .qq b{color:var(--ice);font-family:var(--mono)}
+  .opts{display:flex;flex-direction:column;gap:6px}
+  .opt{font-size:12px;text-align:left;padding:6px 10px;font-family:var(--mono)}
+  .opt.sel{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .radios{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .pill{font-size:12px;padding:6px 13px;border-radius:20px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--dim);cursor:pointer}
+  .pill.sel{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .assign{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--ice);margin:4px 0 2px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">SINGLE-LINE DIAGRAM WORKSTATION</div>
+    <div class="sysname">524.2.1 &middot; UCI 2227 · Lab 2.1 · objective M2.1 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="spacer"></div>
+    <div id="statusBadge" class="badge">Ready</div>
+    <div>
+      <div class="clocklbl">Site time</div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <button id="btnLegend">Legend</button>
+    <button id="btnTrace" class="primary">Trace mode</button>
+    <button id="btnUndo">Undo step</button>
+    <button id="btnClear">Clear trace</button>
+    <button id="btnQuiz">Upstream quiz</button>
+    <span class="spacer"></span>
+    <span class="counter" id="elapsed">T+00:00</span>
+    <button id="btnRestart">Restart</button>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <section id="pathView"></section>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SET = 1;   /* fixed for this file */
+/* ============================================================
+   UCI 2227 — Lab 2.1 · Power Path Tracing
+   Standalone training console. Offline, no libraries, no network.
+   Telemetry model and chart code are identical to the other lab tools.
+   ============================================================ */
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=mulberry32(1);
+function noise(amp){return (rnd()*2-1)*amp;}
+function fmtClock(mins){
+  const base=3*60+14; // scenarios run from 03:14 site time
+  const total=base+mins;
+  const h=Math.floor(total/60)%24, m=Math.floor(total%60), s=Math.floor((mins%1)*60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function fmtElapsed(mins){
+  return "T+"+String(Math.floor(mins)).padStart(2,"0")+":"+String(Math.floor((mins%1)*60)).padStart(2,"0");
+}
+function drawChart(cv,cfg){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth, H=cfg.height||150;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+"px";
+  const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0);
+  x.clearRect(0,0,W,H);
+  const pad={l:46,r:10,t:10,b:20};
+  const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+  const {min,max}=cfg;
+  const sy=v=>pad.t+ph-((v-min)/(max-min))*ph;
+  const sx=i=>pad.l+(i/Math.max(1,cfg.xmax))*pw;
+
+  // alarm band shading
+  if(cfg.band){
+    x.fillStyle="rgba(232,96,76,.10)";
+    if(cfg.band.hi<max) x.fillRect(pad.l,pad.t,pw,sy(cfg.band.hi)-pad.t);
+    if(cfg.band.lo>min) x.fillRect(pad.l,sy(cfg.band.lo),pw,pad.t+ph-sy(cfg.band.lo));
+  }
+  // grid + y labels
+  x.strokeStyle="#1d3346"; x.lineWidth=1; x.font="10px "+getComputedStyle(document.body).fontFamily;
+  x.fillStyle="#5c7a92"; x.textAlign="right"; x.textBaseline="middle";
+  for(let i=0;i<=4;i++){
+    const v=min+(max-min)*i/4, yy=sy(v);
+    x.beginPath(); x.moveTo(pad.l,yy); x.lineTo(W-pad.r,yy); x.stroke();
+    x.fillText(cfg.fmt?cfg.fmt(v):v.toFixed(1),pad.l-6,yy);
+  }
+  // step markers
+  if(cfg.steps) cfg.steps.forEach(s=>{
+    if(s>cfg.xmax) return;
+    x.strokeStyle="#25415a"; x.setLineDash([3,3]);
+    x.beginPath(); x.moveTo(sx(s),pad.t); x.lineTo(sx(s),pad.t+ph); x.stroke(); x.setLineDash([]);
+  });
+  // series
+  (cfg.series||[]).forEach(se=>{
+    if(!se.data.length) return;
+    x.strokeStyle=se.color; x.lineWidth=se.width||2; x.beginPath();
+    se.data.forEach((v,i)=>{ const px=sx(i*(cfg.xstep||1)), py=sy(clamp(v,min,max));
+      i?x.lineTo(px,py):x.moveTo(px,py); });
+    x.stroke();
+    // last point dot
+    const li=se.data.length-1;
+    x.fillStyle=se.color; x.beginPath();
+    x.arc(sx(li*(cfg.xstep||1)),sy(clamp(se.data[li],min,max)),2.6,0,7); x.fill();
+  });
+  // x label
+  x.fillStyle="#5c7a92"; x.textAlign="center"; x.textBaseline="top";
+  x.fillText(cfg.xlabel||"minutes",pad.l+pw/2,H-13);
+}
+function tile(name,val,unit,band,cls){
+  return `<div class="tile ${cls||''}"><div class="name">${name}</div>
+    <div class="val">${val}<span class="unit">${unit||''}</span></div>
+    <div class="band">${band||''}</div></div>`;
+}
+
+/* ---------- this lab ---------- */
+const LAB={lab:"Lab 2.1",obj:"M2.1",title:"Power Path Tracing",duration:75};
+
+const SETUPS=[
+  {id:"P1", target:"R-107", atsA:"n", atsB:"n",
+   cond:"Normal. Both utility feeds live, both generators in standby, both transfer switches on their normal source, bus tie open."},
+  {id:"P2", target:"R-114", atsA:"n", atsB:"n",
+   cond:"Normal. Both utility feeds live, both generators in standby, both transfer switches on their normal source, bus tie open."},
+  {id:"P3", target:"R-110", atsA:"e", atsB:"e",
+   cond:"Utility supply lost at the service entrance. GEN-1 running and carrying the load through the paralleling switchboard. GEN-2 out for scheduled maintenance and off the board. Both transfer switches have moved to the emergency source. Bus tie still open."}
+];
+
+const RNG_KEY=(0x9E3779B1^Math.imul(SET+1,2654435761))>>>0;
+function stamp(){
+  const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());
+}
+function kvr(k,v,wide){ return '<div class="kvr'+(wide?" wide":"")+'"><span>'+k+'</span><span>'+v+'</span></div>'; }
+
+const S={learner:"",t:0,timer:null,
+  trace:true,legendSeen:false,legendOpen:false,
+  path:[],volts:{},tieAns:null,quiz:[],lastMsg:null};
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const esc=s=>String(s===undefined||s===null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let V=SETUPS[SET];
+
+/* ---------- topology model ----------
+   Every node carries its symbol geometry. Node designations stay hidden on the
+   drawing until the learner has traced through them.                       */
+const NODES=[
+  {id:"UTIL", lab:"Utility service entrance", kind:"source", type:"Incoming utility supply", x:510, y:96,  hw:56, hh:60, lx:34, ly:-6},
+  {id:"MTR",  lab:"Utility metering set",     kind:"meter",  type:"Metering current transformer (CT) and potential transformer (PT) set", x:510, y:118, hw:52, hh:20, lx:80, ly:-16},
+  {id:"MB-A", lab:"MSB-A main breaker",       kind:"cb",     type:"Circuit breaker, closed", x:300, y:160, hw:16, hh:16, lx:20, ly:4},
+  {id:"MB-B", lab:"MSB-B main breaker",       kind:"cb",     type:"Circuit breaker, closed", x:720, y:160, hw:16, hh:16, lx:20, ly:4},
+  {id:"MSB-A",lab:"MSB-A 13.8 kV switchgear", kind:"busmv",  type:"Medium voltage switchgear bus", bx0:150, bx1:460, x:305, y:196, lx:-155, ly:-14},
+  {id:"MSB-B",lab:"MSB-B 13.8 kV switchgear", kind:"busmv",  type:"Medium voltage switchgear bus", bx0:600, bx1:880, x:740, y:196, lx:-140, ly:-14},
+  {id:"CB-A3",lab:"CB-A3 spare feeder (open)", kind:"cbopen", type:"Circuit breaker, drawn open", x:176, y:212, hw:16, hh:16, lx:22, ly:4},
+  {id:"TX-C", lab:"TX-C spare transformer (unloaded)", kind:"xfmr", type:"Two-winding transformer", x:176, y:258, hw:20, hh:32, lx:22, ly:24},
+  {id:"TX-A", lab:"TX-A 13.8 kV / 480 V",     kind:"xfmr",   type:"Two-winding substation transformer", x:282, y:252, hw:20, hh:32, lx:22, ly:4},
+  {id:"TX-B", lab:"TX-B 13.8 kV / 480 V",     kind:"xfmr",   type:"Two-winding substation transformer", x:702, y:252, hw:20, hh:32, lx:22, ly:4},
+  {id:"GEN-1",lab:"GEN-1 diesel generator",   kind:"gen",    type:"Diesel generator", x:1090, y:62, hw:22, hh:22, lx:-26, ly:-30, anchor:"middle"},
+  {id:"GEN-2",lab:"GEN-2 diesel generator",   kind:"gen",    type:"Diesel generator", x:1215, y:62, hw:22, hh:22, lx:-26, ly:-30, anchor:"middle"},
+  {id:"PSB",  lab:"Paralleling switchboard",  kind:"bus",    type:"480 V switchboard bus", bx0:1040, bx1:1265, x:1152, y:140, lx:-108, ly:-14},
+  {id:"ATS-A",lab:"ATS-A automatic transfer switch", kind:"ats", type:"Automatic transfer switch (ATS)", x:292, y:337, hw:48, hh:23, lx:-54, ly:4, anchor:"end"},
+  {id:"ATS-B",lab:"ATS-B automatic transfer switch", kind:"ats", type:"Automatic transfer switch (ATS)", x:712, y:337, hw:48, hh:23, lx:52, ly:4},
+  {id:"SWBD-A",lab:"SWBD-A 480 V switchboard",kind:"bus",    type:"480 V switchboard bus", bx0:150, bx1:520, x:335, y:408, lx:-185, ly:-14},
+  {id:"SWBD-B",lab:"SWBD-B 480 V switchboard",kind:"bus",    type:"480 V switchboard bus", bx0:660, bx1:1030, x:845, y:408, lx:35, ly:-14},
+  {id:"TIE",  lab:"Bus tie breaker (normally open)", kind:"tie", type:"Bus tie, drawn open", x:590, y:400, hw:44, hh:26, lx:-30, ly:34, anchor:"middle"},
+  {id:"UPS-A",lab:"UPS-A",  kind:"ups", type:"Uninterruptible power supply (UPS)", x:250, y:476, hw:44, hh:26, lx:-50, ly:4, anchor:"end"},
+  {id:"UPS-B",lab:"UPS-B",  kind:"ups", type:"Uninterruptible power supply (UPS)", x:700, y:476, hw:44, hh:26, lx:-52, ly:-38, anchor:"middle"},
+  {id:"SBP-A",lab:"UPS-A static bypass", kind:"ssw", type:"Static bypass switch", x:330, y:476, hw:16, hh:16, lx:-14, ly:-24, anchor:"middle"},
+  {id:"SBP-B",lab:"UPS-B static bypass", kind:"ssw", type:"Static bypass switch", x:780, y:476, hw:16, hh:16, lx:-14, ly:-24, anchor:"middle"},
+  {id:"MBP-A",lab:"UPS-A maintenance bypass (open)", kind:"knife", type:"Maintenance bypass, drawn open", x:400, y:476, hw:16, hh:20, lx:14, ly:-16},
+  {id:"MBP-B",lab:"UPS-B maintenance bypass (open)", kind:"knife", type:"Maintenance bypass, drawn open", x:850, y:476, hw:16, hh:20, lx:14, ly:-16},
+  {id:"PDU-1",lab:"PDU-1 480 V / 415 V", kind:"pdu", type:"Power distribution unit (PDU) with 480 V / 415 V transformer", x:230, y:580, hw:44, hh:30, lx:-48, ly:4, anchor:"end"},
+  {id:"PDU-2",lab:"PDU-2 480 V / 415 V", kind:"pdu", type:"Power distribution unit (PDU) with 480 V / 415 V transformer", x:370, y:580, hw:44, hh:30, lx:48, ly:4},
+  {id:"PDU-3",lab:"PDU-3 480 V / 415 V", kind:"pdu", type:"Power distribution unit (PDU) with 480 V / 415 V transformer", x:680, y:580, hw:44, hh:30, lx:-48, ly:4, anchor:"end"},
+  {id:"PDU-4",lab:"PDU-4 480 V / 415 V", kind:"pdu", type:"Power distribution unit (PDU) with 480 V / 415 V transformer", x:820, y:580, hw:44, hh:30, lx:48, ly:4},
+  {id:"RPP-1",lab:"RPP-1", kind:"rpp", type:"Remote power panel (RPP)", x:230, y:660, hw:32, hh:16, lx:-84, ly:4},
+  {id:"RPP-2",lab:"RPP-2", kind:"rpp", type:"Remote power panel (RPP)", x:370, y:660, hw:32, hh:16, lx:36, ly:4},
+  {id:"RPP-3",lab:"RPP-3", kind:"rpp", type:"Remote power panel (RPP)", x:680, y:660, hw:32, hh:16, lx:-84, ly:4},
+  {id:"RPP-4",lab:"RPP-4", kind:"rpp", type:"Remote power panel (RPP)", x:820, y:660, hw:32, hh:16, lx:36, ly:4}
+];
+/* rack positions R-101 … R-116, four under each remote power panel */
+const RACKG=[{p:"RPP-1",cx:230,n:101},{p:"RPP-2",cx:370,n:105},{p:"RPP-3",cx:680,n:109},{p:"RPP-4",cx:820,n:113}];
+RACKG.forEach(g=>{
+  [-51,-17,17,51].forEach((off,k)=>{
+    NODES.push({id:"R-"+(g.n+k), lab:"R-"+(g.n+k), kind:"rack", type:"Rack position",
+      x:g.cx+off, y:714, hw:15, hh:15, always:true});
+  });
+});
+const NX={}; NODES.forEach(n=>{NX[n.id]=n;});
+
+const EDGES=[
+  ["UTIL","MTR"],["MTR","MB-A"],["MTR","MB-B"],
+  ["MB-A","MSB-A"],["MB-B","MSB-B"],
+  ["MSB-A","TX-A"],["MSB-B","TX-B"],
+  ["MSB-A","CB-A3"],["CB-A3","TX-C"],
+  ["TX-A","ATS-A"],["TX-B","ATS-B"],
+  ["GEN-1","PSB"],["GEN-2","PSB"],["PSB","ATS-A"],["PSB","ATS-B"],
+  ["ATS-A","SWBD-A"],["ATS-B","SWBD-B"],
+  ["SWBD-A","TIE"],["TIE","SWBD-B"],
+  ["SWBD-A","UPS-A"],["SWBD-A","SBP-A"],["SWBD-A","MBP-A"],
+  ["SWBD-B","UPS-B"],["SWBD-B","SBP-B"],["SWBD-B","MBP-B"],
+  ["UPS-A","PDU-1"],["UPS-A","PDU-2"],["SBP-A","PDU-1"],["SBP-A","PDU-2"],
+  ["MBP-A","PDU-1"],["MBP-A","PDU-2"],
+  ["UPS-B","PDU-3"],["UPS-B","PDU-4"],["SBP-B","PDU-3"],["SBP-B","PDU-4"],
+  ["MBP-B","PDU-3"],["MBP-B","PDU-4"],
+  ["PDU-1","RPP-1"],["PDU-2","RPP-2"],["PDU-3","RPP-3"],["PDU-4","RPP-4"]
+];
+RACKG.forEach(g=>{ for(let k=0;k<4;k++) EDGES.push([g.p,"R-"+(g.n+k)]); });
+const ADJ={};
+NODES.forEach(n=>{ADJ[n.id]=[];});
+EDGES.forEach(e=>{ ADJ[e[0]].push(e[1]); ADJ[e[1]].push(e[0]); });
+
+const SOURCES=["UTIL","GEN-1","GEN-2"];
+const lbl=id=>NX[id]?NX[id].lab:id;
+
+/* ---------- symbol library ---------- */
+function symSource(x,y){
+  return `<circle class="sym" cx="${x}" cy="${y}" r="17"/>`+
+         `<path class="sym" d="M${x-9} ${y+7} L${x} ${y-9} L${x+9} ${y+7} Z"/>`;
+}
+function symGen(x,y){
+  return `<circle class="sym" cx="${x}" cy="${y}" r="20"/><text class="glyph" x="${x}" y="${y+1}">G</text>`;
+}
+function symMeter(x,y){
+  return `<circle class="sym" cx="${x}" cy="${y-22}" r="11"/>`+
+         `<path class="wire" d="M${x} ${y} H${x+30}"/>`+
+         `<circle class="sym" cx="${x+39}" cy="${y}" r="9"/><circle class="sym" cx="${x+53}" cy="${y}" r="9"/>`+
+         `<path class="sym" d="M${x+62} ${y} H${x+74} M${x+74} ${y-8} V${y+8} M${x+78} ${y-5} V${y+5} M${x+82} ${y-2} V${y+2}"/>`+
+         `<circle class="dot" cx="${x}" cy="${y}" r="3"/>`;
+}
+function symCB(x,y){
+  return `<rect class="symfill" x="${x-11}" y="${y-11}" width="22" height="22" rx="2"/>`;
+}
+function symCBopen(x,y){
+  return `<rect class="symfill open" x="${x-11}" y="${y-11}" width="22" height="22" rx="2"/>`+
+         `<path class="sym open" d="M${x} ${y+9} L${x+8} ${y-7}"/>`;
+}
+function symXfmr(x,y){
+  return `<circle class="sym" cx="${x}" cy="${y-7}" r="13"/><circle class="sym" cx="${x}" cy="${y+7}" r="13"/>`;
+}
+function symBus(n){
+  const mv=n.kind==="busmv";
+  return `<path class="bus ${mv?'busmv':''}" d="M${n.bx0} ${n.y} H${n.bx1}"/>`;
+}
+function symATS(x,y,pos){
+  const arm = pos==="e" ? `M${x} ${y+12} L${x+22} ${y-8}` : `M${x} ${y+12} L${x-22} ${y-8}`;
+  return `<rect class="symfill" x="${x-46}" y="${y-21}" width="92" height="42" rx="3"/>`+
+         `<circle class="sym" cx="${x-22}" cy="${y-11}" r="3"/><circle class="sym" cx="${x+22}" cy="${y-11}" r="3"/>`+
+         `<path class="sym" d="${arm}"/><circle class="dot" cx="${x}" cy="${y+12}" r="3"/>`;
+}
+function symUPS(x,y){
+  return `<rect class="symfill" x="${x-42}" y="${y-24}" width="84" height="48" rx="3"/>`+
+         `<path class="sym" d="M${x-30} ${y+6} q6 -18 12 0 q6 18 12 0"/>`+
+         `<path class="sym" d="M${x+4} ${y-6} H${x+30} M${x+4} ${y+4} H${x+12} M${x+18} ${y+4} H${x+30}"/>`;
+}
+function symSSW(x,y){
+  return `<rect class="symfill" x="${x-13}" y="${y-13}" width="26" height="26" rx="2"/>`+
+         `<path class="sym" d="M${x-8} ${y+8} L${x+8} ${y-8} M${x+8} ${y-8} L${x+1} ${y-7} M${x+8} ${y-8} L${x+7} ${y-1}"/>`;
+}
+function symKnife(x,y){
+  return `<circle class="sym open" cx="${x}" cy="${y-14}" r="3"/>`+
+         `<path class="sym open" d="M${x} ${y-14} L${x+15} ${y+4}"/>`+
+         `<circle class="sym open" cx="${x}" cy="${y+14}" r="3"/>`;
+}
+function symTie(x,y){
+  return `<circle class="sym open" cx="${x-34}" cy="${y+8}" r="3.5"/>`+
+         `<path class="sym open" d="M${x-34} ${y+8} L${x+2} ${y-9}"/>`+
+         `<circle class="sym open" cx="${x+34}" cy="${y+8}" r="3.5"/>`;
+}
+function symPDU(x,y){
+  return `<rect class="symfill" x="${x-42}" y="${y-28}" width="84" height="56" rx="3" stroke-dasharray="5 4"/>`+
+         `<circle class="sym" cx="${x}" cy="${y-10}" r="11"/><circle class="sym" cx="${x}" cy="${y+8}" r="11"/>`;
+}
+function symRPP(x,y){
+  return `<rect class="symfill" x="${x-30}" y="${y-14}" width="60" height="28" rx="2"/>`+
+         `<path class="sym" d="M${x-14} ${y-9} V${y+9} M${x} ${y-9} V${y+9} M${x+14} ${y-9} V${y+9}"/>`;
+}
+function symRack(x,y){
+  return `<rect class="symfill" x="${x-14}" y="${y-14}" width="28" height="28" rx="2"/>`+
+         `<path class="sym" d="M${x-9} ${y-5} H${x+9} M${x-9} ${y+1} H${x+9} M${x-9} ${y+7} H${x+9}"/>`;
+}
+function symbolFor(n){
+  switch(n.kind){
+    case "source": return symSource(n.x,n.y-35)+`<path class="wire" d="M${n.x} ${n.y-18} V${n.y+18}"/>`;
+    case "meter":  return symMeter(n.x,n.y);
+    case "cb":     return symCB(n.x,n.y);
+    case "cbopen": return symCBopen(n.x,n.y);
+    case "xfmr":   return symXfmr(n.x,n.y);
+    case "busmv":
+    case "bus":    return symBus(n);
+    case "gen":    return symGen(n.x,n.y);
+    case "ats":    return symATS(n.x,n.y,(n.id==="ATS-A"?V.atsA:V.atsB));
+    case "ups":    return symUPS(n.x,n.y);
+    case "ssw":    return symSSW(n.x,n.y);
+    case "knife":  return symKnife(n.x,n.y);
+    case "tie":    return symTie(n.x,n.y);
+    case "pdu":    return symPDU(n.x,n.y);
+    case "rpp":    return symRPP(n.x,n.y);
+    case "rack":   return symRack(n.x,n.y);
+  }
+  return "";
+}
+
+/* ---------- fixed conductors ---------- */
+const WIRES=[
+  "M510 61 V85","M510 107 V134",
+  "M300 134 H720","M300 134 V149","M720 134 V149",
+  "M300 171 V196","M720 171 V196",
+  "M282 196 V232","M282 272 V316",
+  "M702 196 V232","M702 272 V316",
+  "M176 196 V201","M176 223 V238","M176 278 V292","M168 292 H184",
+  "M1090 82 V140","M1215 82 V140",
+  "M1152 140 V298",
+  "M1152 298 H710","M694 298 H318","M318 298 V316","M738 298 V316",
+  "M292 358 V408","M712 358 V408",
+  "M520 408 H556","M624 408 H660",
+  "M250 408 V452","M250 500 V524",
+  "M330 408 V463","M330 489 V524",
+  "M400 408 V462","M400 490 V524",
+  "M208 524 H400","M230 524 V552","M370 524 V552",
+  "M700 408 V452","M700 500 V524",
+  "M780 408 V463","M780 489 V524",
+  "M850 408 V462","M850 490 V524",
+  "M658 524 H850","M680 524 V552","M820 524 V552",
+  "M230 608 V646","M370 608 V646","M680 608 V646","M820 608 V646",
+  "M230 674 V688","M370 674 V688","M680 674 V688","M820 674 V688"
+];
+RACKG.forEach(g=>{
+  WIRES.push(`M${g.cx-51} 688 H${g.cx+51}`);
+  [-51,-17,17,51].forEach(off=>WIRES.push(`M${g.cx+off} 688 V700`));
+});
+const DOTS=[[510,118],[510,134],[738,298],[230,688],[370,688],[680,688],[820,688]];
+
+/* ---------- route highlight ---------- */
+function anchorOf(id){
+  const n=NX[id];
+  if(n.kind==="busmv"||n.kind==="bus") return null; // handled by span
+  return [n.x,n.y];
+}
+function routePath(){
+  // orthogonal ribbon through the traced nodes, drawn behind the symbols
+  const pts=[];
+  S.path.forEach(id=>{
+    const n=NX[id];
+    if(n.kind==="bus"||n.kind==="busmv"){
+      pts.push([clamp(pts.length?pts[pts.length-1][0]:n.x,n.bx0+8,n.bx1-8),n.y]);
+    } else pts.push([n.x,n.y]);
+  });
+  if(pts.length<2) return "";
+  let d="M"+pts[0][0]+" "+pts[0][1];
+  for(let i=1;i<pts.length;i++){
+    const a=pts[i-1], b=pts[i];
+    const my=(a[1]+b[1])/2;
+    if(a[0]===b[0]) d+=" L"+b[0]+" "+b[1];
+    else d+=" L"+a[0]+" "+my+" L"+b[0]+" "+my+" L"+b[0]+" "+b[1];
+  }
+  return d;
+}
+
+/* ---------- diagram ---------- */
+function buildSLD(){
+  const wires=WIRES.map(d=>`<path class="wire" d="${d}"/>`).join("")+
+    `<path class="wire" d="M710 298 Q702 283 694 298"/>`+
+    DOTS.map(p=>`<circle class="dot" cx="${p[0]}" cy="${p[1]}" r="3.2"/>`).join("");
+  const route=S.path.length>1?`<path class="route" d="${routePath()}"/>`:"";
+  const head=S.path.length?S.path[S.path.length-1]:null;
+  const nodes=NODES.map(n=>{
+    const on=S.path.indexOf(n.id)>=0;
+    const cls="nd"+(on?" on":"")+(on&&n.id===head?" head":"");
+    let hit;
+    if(n.kind==="bus"||n.kind==="busmv")
+      hit=`<rect class="hit" x="${n.bx0}" y="${n.y-11}" width="${n.bx1-n.bx0}" height="22"/>`;
+    else if(n.kind==="source")
+      hit=`<rect class="hit" x="${n.x-n.hw}" y="${n.y-n.hh}" width="${n.hw*2}" height="${n.hh*2}"/>`;
+    else
+      hit=`<rect class="hit" x="${n.x-n.hw}" y="${n.y-n.hh}" width="${n.hw*2}" height="${n.hh*2}"/>`;
+    let tag="";
+    if(n.kind==="rack")
+      tag=`<text class="tagrack" x="${n.x}" y="${n.y+26}">${n.lab}</text>`;
+    else if(on)
+      tag=`<text class="tag" x="${n.x+(n.lx||18)}" y="${n.y+(n.ly||4)}"${n.anchor?` text-anchor="${n.anchor}"`:""}>${n.lab}</text>`;
+    return `<g class="${cls}" data-id="${n.id}">${symbolFor(n)}${tag}${hit}</g>`;
+  }).join("");
+  const tb=`<g>
+    <rect x="960" y="596" width="325" height="146" rx="4" fill="none" stroke="#17293a" stroke-width="1.5"/>
+    <path d="M960 626 H1285" stroke="#17293a" stroke-width="1.5"/>
+    <text class="tblock" x="974" y="618">SINGLE-LINE DIAGRAM — CRITICAL POWER</text>
+    <text class="tblock" x="974" y="648">SHEET E-101   REV C   SCALE: NONE</text>
+    <text class="tblock" x="974" y="668">UNLABELLED TRAINING PRINT</text>
+    <text class="tblock" x="974" y="688">ISSUE: TRAINING</text>
+    <text class="tblock" x="974" y="712">ONE LINE SHOWN = THREE PHASES</text>
+    <text class="tblock" x="974" y="732">NOT FOR CONSTRUCTION OR SWITCHING</text>
+  </g>`;
+  return `<svg class="sld" id="sld" viewBox="0 0 1300 760" xmlns="http://www.w3.org/2000/svg">
+    ${wires}${route}${nodes}${tb}</svg>`;
+}
+
+/* ---------- legend ---------- */
+const LEGEND=[
+  [symSource(37,23),"Incoming utility supply","The service entrance. Everything the site owns starts here."],
+  [symGen(37,23),"Diesel generator","A circle marked G. The standby source."],
+  [symMeter(20,26),"Metering CT and PT set","Current transformer and potential transformer feeding the utility meter. It measures; it does not switch."],
+  [symXfmr(37,23),"Two-winding transformer","Two interlocking circles. The voltage changes here and nowhere else."],
+  [`<path class="bus busmv" d="M8 23 H66"/>`,"Medium voltage bus","A heavy line. Switchgear bus at 13.8 kV."],
+  [`<path class="bus" d="M8 23 H66"/>`,"Low voltage bus","A lighter line. Switchboard bus at 480 V."],
+  [symCB(37,23),"Circuit breaker, closed","A square on the conductor, with the line running through it."],
+  [symCBopen(37,23),"Circuit breaker, open","The contact is drawn swung clear. Nothing below it is energised."],
+  [`<g transform="translate(37,23) scale(0.42) translate(-37,-23)">${symATS(37,23,"n")}</g>`,"Automatic transfer switch (ATS)","Two source terminals at the top and one arm. The arm shows which source it is sitting on."],
+  [`<g transform="translate(37,23) scale(0.5) translate(-37,-23)">${symUPS(37,23)}</g>`,"Uninterruptible power supply (UPS)","Rectifier and inverter in one box, drawn with the alternating and direct current marks."],
+  [symSSW(37,23),"Static bypass","A solid-state switch inside the UPS. It carries the load only if the inverter drops out."],
+  [symKnife(37,23),"Maintenance bypass, open","A manual route around the UPS, drawn open. It is not a delivery path today."],
+  [`<g transform="translate(37,23) scale(0.5) translate(-37,-23)">${symPDU(37,23)}</g>`,"Power distribution unit (PDU)","A dashed enclosure with a transformer inside: 480 V in, 415 V out, 240 V line to neutral."],
+  [`<g transform="translate(37,23) scale(0.62) translate(-37,-23)">${symRPP(37,23)}</g>`,"Remote power panel (RPP)","A panelboard out on the floor, feeding the racks near it."],
+  [symRack(37,23),"Rack position","One cabinet position. These are the only things labelled on this print."],
+  [`<g transform="translate(37,23) scale(0.62) translate(-37,-23)">${symTie(37,15)}</g>`,"Normally open bus tie","It joins the A and B boards, and it is drawn open. It joins nothing until somebody closes it."]
+];
+function legendHTML(){
+  return `<div class="name">Legend sheet — read this before you trace</div>
+    <p style="color:var(--dim);font-size:12.5px;line-height:1.5;margin:8px 0 0">
+    The drawing is unlabelled on purpose. Every designation on it is recoverable from the symbols,
+    the voltage levels and the position in the chain. Work out what a thing is before you click it.</p>
+    <div class="lgrid">`+
+    LEGEND.map(r=>`<div class="lgrow">
+      <svg class="sld lgsvg" viewBox="0 0 74 46" xmlns="http://www.w3.org/2000/svg">${r[0]}</svg>
+      <div class="lgtxt"><b>${r[1]}</b>${r[2]}</div></div>`).join("")+
+    `</div>`;
+}
+
+/* ---------- messaging ---------- */
+function say(kind,html){
+  S.lastMsg={kind,html};
+  const m=$("msg");
+  if(m){ m.className="msgbar "+(kind||""); m.innerHTML=html; }
+}
+
+/* ---------- trace ---------- */
+function clickNode(id){
+  if(!S.legendSeen){
+    openLegend(true);
+    say("stop","<b>Open the legend sheet first.</b> The symbols on this print are not labelled, and guessing them costs about ten minutes and a restart. It is open now — read it, then trace.");
+    return;
+  }
+  if(!S.trace){
+    const n=NX[id];
+    say("","Inspect mode. That symbol reads as: <b>"+n.type+"</b>. Turn <b>Trace mode</b> on to add it to your path.");
+    return;
+  }
+  const n=NX[id];
+  if(S.path.length===0){
+    if(SOURCES.indexOf(id)<0){
+      say("stop","Start at a source. The only places power enters this drawing are the utility service entrance and the generators.");
+      return;
+    }
+    S.path.push(id); S.volts[0]="";
+    say("ok","Step 1: <b>"+n.lab+"</b>. Now work down the drawing, one adjacent device at a time.");
+    afterPathChange(); return;
+  }
+  const head=S.path[S.path.length-1];
+  if(id===head){ say("warn","You are already standing on that one."); return; }
+  if(S.path.indexOf(id)>=0){
+    say("stop","That device is already on your path. A delivery path does not double back.");
+    return;
+  }
+  if(ADJ[head].indexOf(id)<0){
+    say("stop","<b>That is not connected to your current point.</b> You are at <b>"+lbl(head)+"</b>. Follow the conductor on the drawing — the next device is the one the line actually runs to.");
+    return;
+  }
+  S.path.push(id); S.volts[S.path.length-1]="";
+  if(id===V.target){
+    say("ok","<b>"+n.lab+"</b> reached. That is the assigned rack. Fill in the voltage column, answer the tie question, then run the <b>Upstream quiz</b>.");
+  } else {
+    say("ok","Step "+S.path.length+": <b>"+n.lab+"</b>.");
+  }
+  afterPathChange();
+}
+function afterPathChange(){
+  S.quiz=[];
+  $("sldWrap").innerHTML=buildSLD();
+  renderWorksheet(); renderQuiz();
+  const pr=$("pathResult"); if(pr) pr.className="result";
+  const done=S.path.length&&S.path[S.path.length-1]===V.target;
+  setStatus(done?"Path complete":"Tracing",done?"run":"");
+}
+function undoStep(){
+  if(!S.path.length){ say("warn","There is nothing to undo."); return; }
+  const gone=S.path.pop();
+  delete S.volts[S.path.length];
+  say("","Removed <b>"+lbl(gone)+"</b>. You are back at <b>"+(S.path.length?lbl(S.path[S.path.length-1]):"the start")+"</b>.");
+  afterPathChange();
+}
+function clearTrace(){
+  S.path=[]; S.volts={}; S.quiz=[]; S.tieAns=null;
+  say("","Trace cleared. Start again at a source.");
+  afterPathChange();
+  const r=$("pathResult"); if(r) r.className="result";
+}
+
+/* ---------- worksheet ---------- */
+function renderWorksheet(){
+  const el=$("wsheet");
+  if(!el) return;
+  if(!S.path.length){
+    el.innerHTML=`<p style="color:var(--faint);font-size:12.5px;line-height:1.5;margin:0">
+      Nothing traced yet. The worksheet fills itself in the order you click, and you type the voltage
+      at the outgoing terminals of each device.</p>`;
+    return;
+  }
+  el.innerHTML=`<table class="wsheet"><thead><tr>
+      <th style="cursor:default;width:34px">#</th>
+      <th style="cursor:default">Component</th>
+      <th style="cursor:default;width:120px">Voltage at outgoing terminals</th>
+    </tr></thead><tbody>`+
+    S.path.map((id,i)=>{
+      const n=NX[id];
+      const val=S.volts[i]||"";
+      return `<tr>
+        <td class="mono">${i+1}</td>
+        <td><span class="mono">${n.lab}</span><br>
+            <span style="color:var(--faint);font-size:11px">${n.type}</span></td>
+        <td><input class="vin" data-i="${i}" value="${val}" placeholder="volts"></td>
+      </tr>`;
+    }).join("")+`</tbody></table>
+    <div class="hint">Write line-to-line volts. If you write a line-to-neutral value instead, say which one you mean when you hand the sheet over.</div>`;
+  el.oninput=e=>{
+    const t=e.target;
+    if(t&&t.classList.contains("vin")) S.volts[+t.dataset.i]=t.value;
+  };
+}
+
+/* ---------- upstream quiz ---------- */
+function buildQuiz(){
+  if(!S.path.length||S.path[S.path.length-1]!==V.target){
+    say("warn","Finish the trace first. The quiz asks about points on <b>your</b> completed path, so it needs a path that reaches "+V.target+".");
+    return;
+  }
+  if(S.path.length<4){ say("warn","That path is too short to ask three questions about."); return; }
+  const qr=mulberry32((RNG_KEY^(S.path.length*13+41))>>>0);
+  const idx=[];
+  let a=-1;
+  for(let i=1;i<S.path.length;i++){ if(NX[S.path[i-1]].kind==="xfmr"){a=i;break;} }
+  if(a<0) for(let i=1;i<S.path.length;i++){ if(NX[S.path[i-1]].kind==="pdu"){a=i;break;} }
+  if(a>0) idx.push(a);
+  let b=-1;
+  for(let i=1;i<S.path.length;i++){ if(ADJ[S.path[i]].indexOf("TIE")>=0){b=i;break;} }
+  if(b>0&&idx.indexOf(b)<0) idx.push(b);
+  let guard=0;
+  while(idx.length<3&&guard++<200){
+    const r=1+Math.floor(qr()*(S.path.length-1));
+    if(idx.indexOf(r)<0) idx.push(r);
+  }
+  idx.sort((p,q)=>p-q);
+  S.quiz=idx.slice(0,3).map(i=>{
+    const qn=S.path[i], prev=S.path[i-1];
+    let pool=ADJ[qn].filter(x=>x!==prev);
+    const extra=NODES.map(n=>n.id).filter(x=>x!==prev&&x!==qn&&pool.indexOf(x)<0);
+    pool=pool.concat(shuf(extra,qr).slice(0,6));
+    const opts=shuf(pool,qr).slice(0,3).concat([prev]);
+    return {node:qn,opts:shuf(opts,qr),ans:null};
+  });
+  say("ok","Three questions built from your own path. Your instructor will ask you the same kind of question at the bench, out loud.");
+  renderQuiz();
+}
+function shuf(arr,r){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function renderQuiz(){
+  const el=$("quizBox");
+  if(!el) return;
+  if(!S.quiz.length){
+    el.innerHTML=`<p style="color:var(--faint);font-size:12.5px;line-height:1.5;margin:0">
+      Complete the trace to ${V.target}, then press <b>Upstream quiz</b> on the toolbar. Three points on your
+      own path, one question each: what is immediately upstream of this?</p>`;
+    return;
+  }
+  el.innerHTML=S.quiz.map((q,qi)=>`
+    <div class="qbox">
+      <div class="qq">Q${qi+1} — what is <b>immediately upstream</b> of <b>${lbl(q.node)}</b>?</div>
+      <div class="opts">${q.opts.map(o=>
+        `<button class="opt ${q.ans===o?'sel':''}" data-q="${qi}" data-o="${o}">${lbl(o)}</button>`).join("")}</div>
+    </div>`).join("");
+  el.onclick=e=>{
+    const b=e.target.closest(".opt"); if(!b) return;
+    S.quiz[+b.dataset.q].ans=b.dataset.o;
+    renderQuiz();
+  };
+}
+
+/* ---------- submission sheet ---------- */
+function buildSheet(){
+  const r=$("pathResult"), b=[];
+  b.push(`<h3 style="font-size:15px">${LAB.lab} — ${LAB.title}</h3>
+    <div class="sub" style="margin:2px 0 11px">Submission sheet</div>`);
+  b.push(kvr("Name",esc(S.learner)||"—")+
+         kvr("Completed",stamp())+kvr("Time on task",fmtElapsed(S.t))+
+         kvr("Assigned rack",V.target)+kvr("Plant status",esc(V.cond),true));
+
+  b.push(`<h4>Traced sequence, in the order traced</h4>`+
+    (S.path.length
+      ? `<table><thead><tr><th style="cursor:default;width:34px">#</th>
+           <th style="cursor:default">Component</th>
+           <th style="cursor:default;width:130px">Voltage entered</th></tr></thead><tbody>`+
+        S.path.map((id,i)=>`<tr><td class="mono">${i+1}</td>
+          <td><span class="mono">${NX[id].lab}</span><br>
+              <span style="color:var(--faint);font-size:11px">${NX[id].type}</span></td>
+          <td class="mono">${esc((S.volts[i]||"").trim())||"—"}</td></tr>`).join("")+
+        `</tbody></table>`
+      : `<div class="note">Nothing traced.</div>`));
+
+  b.push(`<h4>Open-tie check</h4>`+
+    kvr("Confirmation given",
+        S.tieAns===null?"not answered"
+        :S.tieAns==="yes"?"my path does not depend on the normally open tie"
+        :"my path crosses the tie",true)+
+    kvr("Bus tie on the traced path",S.path.indexOf("TIE")>=0?"yes, at step "+(S.path.indexOf("TIE")+1):"no"));
+
+  b.push(`<h4>Upstream questions</h4>`+
+    (S.quiz.length
+      ? S.quiz.map((q,i)=>kvr("Q"+(i+1)+" — immediately upstream of "+lbl(q.node),
+          q.ans?lbl(q.ans):"not answered",true)).join("")
+      : `<div class="note">Not attempted.</div>`));
+
+  const miss=[];
+  if(!S.learner) miss.push("your name");
+  if(!S.path.length) miss.push("the traced sequence");
+  else if(S.path.some((id,i)=>!(S.volts[i]||"").trim()))
+    miss.push("the voltage at every stage of your sequence");
+  if(S.tieAns===null) miss.push("the open-tie confirmation");
+  if(!S.quiz.length) miss.push("the three upstream questions");
+  else if(S.quiz.some(q=>!q.ans)) miss.push("an answer to every upstream question");
+  if(miss.length) b.push(`<div class="todo"><b>Blank fields on this sheet:</b>
+    <ul>${miss.map(m=>`<li>${m}</li>`).join("")}</ul></div>`);
+
+  b.push(`<div class="close">Check every field before printing. Hand this sheet to your instructor with your
+    worksheet.</div>
+    <div class="row noprint" style="margin-top:11px">
+      <button onclick="window.print()">Print submission sheet</button></div>`);
+
+  r.className="result show";
+  r.innerHTML=b.join("");
+  setStatus("Sheet built","run");
+}
+
+/* ---------- view ---------- */
+function renderView(){
+  const el=$("pathView");
+  el.innerHTML=`
+    <div class="cols">
+      <div>
+        <div class="msgbar" id="msg">Read the plant status, open the <b>Legend</b>, then trace from the live source down to the assigned rack.</div>
+        <div class="chartbox">
+          <h3>Single-line diagram — sheet E-101, unlabelled training print</h3>
+          <div class="sub">One line drawn stands for all three phases. Designations appear only on the devices you have traced through. Rack positions are labelled because they are labelled on the floor.</div>
+          <div id="sldWrap"></div>
+        </div>
+        <div class="tile hidden" id="legendPanel" style="margin-top:14px"></div>
+      </div>
+      <div class="stack">
+        <div class="tile">
+          <div class="name">Plant status — read this first</div>
+          <div class="hint" style="margin-top:6px;color:var(--ink);font-size:12.5px">${V.cond}</div>
+        </div>
+        <div class="tile">
+          <div class="name">Your assignment</div>
+          <div class="assign">Trace to ${V.target}</div>
+          <div class="hint" style="margin-top:6px">Click each component in delivery order, starting at a source. The tool will refuse anything that is not connected to where you are standing.</div>
+        </div>
+        <div class="tile">
+          <div class="name">Component list worksheet</div>
+          <div id="wsheet" style="margin-top:9px"></div>
+        </div>
+        <div class="tile">
+          <div class="name">Open-tie check</div>
+          <div class="hint" style="margin-top:6px">The tie between the A and B switchboards is normally open. Confirm one of these before you submit.</div>
+          <div class="radios" id="tieRadios">
+            <div class="pill" data-a="yes">My path does not depend on the normally open tie</div>
+            <div class="pill" data-a="no">My path crosses the tie</div>
+          </div>
+        </div>
+        <div class="tile">
+          <div class="name">Upstream quiz</div>
+          <div id="quizBox" style="margin-top:9px"></div>
+        </div>
+        <div class="submit" style="margin-top:0">
+          <h3>Submission sheet</h3>
+          <div class="sub">Builds a printable record of your traced sequence, the voltages you entered, your tie confirmation and your three answers. Read it before you print it.</div>
+          <div class="fld noprint" style="margin-bottom:12px"><label>Your name</label>
+            <input type="text" id="learnerName" style="width:260px" autocomplete="off"></div>
+          <button class="primary noprint" id="btnSubmit">Build submission sheet</button>
+          <div class="result" id="pathResult"></div>
+        </div>
+      </div>
+    </div>`;
+  $("sldWrap").innerHTML=buildSLD();
+  $("legendPanel").innerHTML=legendHTML();
+  $("sldWrap").onclick=e=>{
+    const g=e.target.closest("g.nd"); if(!g) return;
+    clickNode(g.dataset.id);
+  };
+  $("tieRadios").onclick=e=>{
+    const p=e.target.closest(".pill"); if(!p) return;
+    S.tieAns=p.dataset.a;
+    [...$("tieRadios").children].forEach(c=>c.classList.toggle("sel",c.dataset.a===S.tieAns));
+  };
+  $("learnerName").value=S.learner;
+  $("learnerName").addEventListener("input",e=>{S.learner=e.target.value.trim();});
+  $("btnSubmit").onclick=buildSheet;
+  renderWorksheet(); renderQuiz();
+}
+function openLegend(force){
+  S.legendOpen=force?true:!S.legendOpen;
+  S.legendSeen=S.legendSeen||S.legendOpen;
+  $("legendPanel").classList.toggle("hidden",!S.legendOpen);
+  $("btnLegend").classList.toggle("primary",S.legendOpen);
+  if(S.legendOpen&&!force) say("","Legend open. Match every symbol on the print to a row here before you commit to a route.");
+}
+function setStatus(text,cls){
+  $("statusBadge").textContent=text;
+  $("statusBadge").className="badge "+(cls||"");
+}
+
+/* ---------- clock ---------- */
+function render(){
+  $("clock").textContent=fmtClock(S.t);
+  $("elapsed").textContent=fmtElapsed(S.t);
+}
+function startClock(){
+  stopClock();
+  S.timer=setInterval(()=>{ S.t=Math.min(LAB.duration,S.t+1/60); render(); },1000);
+}
+function stopClock(){ if(S.timer){clearInterval(S.timer); S.timer=null;} }
+
+function resetRun(){
+  rnd=mulberry32(RNG_KEY);
+  S.t=0; S.path=[]; S.volts={}; S.quiz=[]; S.tieAns=null;
+  S.trace=true; S.legendSeen=false; S.legendOpen=false;
+  renderView(); render();
+  $("btnTrace").classList.add("primary");
+  $("btnLegend").classList.remove("primary");
+  setStatus("Ready","");
+}
+
+/* ---------- wiring ---------- */
+$("btnLegend").onclick=()=>openLegend(false);
+$("btnTrace").onclick=()=>{
+  S.trace=!S.trace;
+  $("btnTrace").classList.toggle("primary",S.trace);
+  say("",S.trace?"Trace mode on. Clicks build the path."
+                :"Trace mode off. Clicks now just read the symbol back to you.");
+  setStatus(S.trace?(S.path.length&&S.path[S.path.length-1]===V.target?"Path complete":"Tracing"):"Reading",
+            S.trace&&S.path.length&&S.path[S.path.length-1]===V.target?"run":"");
+};
+$("btnUndo").onclick=undoStep;
+$("btnClear").onclick=clearTrace;
+$("btnQuiz").onclick=buildQuiz;
+$("btnRestart").onclick=()=>{resetRun();startClock();};
+window.addEventListener("resize",render);
+document.addEventListener("keydown",e=>{
+  if(e.key==="Backspace"&&!$("toolbar").classList.contains("hidden")
+     &&e.target.tagName!=="TEXTAREA"&&e.target.tagName!=="INPUT"){
+    e.preventDefault(); undoStep();
+  }
+});
+
+/* ---------- boot ---------- */
+$("setTag").textContent="Set "+"ABCDEFGH".charAt(SET);
+resetRun(); startClock();
+
+</script>
+<!-- LQ_SUBMISSION_MODULE -->
+<script id="lqData">var LQ={"lab": "524.2.1", "title": "Power Path Tracing", "handout": "GLAB 524.2.1 - Power Path Tracing", "file": "524-2-1-B_PathTrace.html", "set": "B", "items": [{"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 1. Collect your drawing packet, legend sheet, component list worksheet and two highlighters. Open the 524.2.1 file your instructor gives you — it opens straight into the lab. Record the rack you have been assigned. Everything you write from here relates to that one rack."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 2. Read the legend block before you mark anything on the drawing. Work through every symbol on the sheet and say to yourself what each one is. Pay particular attention to the difference between a breaker drawn closed and a breaker drawn open, and to the difference between a two-winding transformer symbol and a UPS symbol. Learners who skip this step lose ten minutes later on. List below any symbol that appears on your drawing but is not covered by the legend, then raise your hand."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 3. Read the plant condition statement at the top of the drawing before you trace. It tells you whether the utility feeds are live, whether the generators are running or in standby, which source each transfer switch is sitting on, and whether the bus tie is open. Copy that condition statement into your worksheet in your own words. If you trace without reading it, you will trace the wrong plant."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 4. Find the start of your path and mark it. On a normal utility supply that is the utility service entrance at the top of the drawing; if the plant condition says the utility supply has been lost, your path starts at the running generator instead. Write the voltage at that starting point next to it, taken from the drawing and not from memory. On the utility route, note also what sits immediately below the service entrance — the utility metering set, a CT (current transformer) and PT (potential transformer) arrangement that measures but does not switch."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 6. Mark every transformer you pass and record the voltage on both sides of it. Voltage changes at a transformer and nowhere else. On a utility path, if you cannot say where the medium voltage becomes 480 V, you do not yet understand the drawing well enough to work on it. On a path fed from a running generator there is no substation transformer and no medium voltage at all — record that explicitly rather than leaving the column blank."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 7. Find where the generator connects to the system and mark it. Identify which transfer switch it feeds, and mark which side of that transfer switch is the normal source and which is the emergency source. Note whether the switch is currently sitting on normal or on emergency. If there is more than one generator, note whether both are on the board or whether one is out of service."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 10. Continue through the PDU to the RPP and on to your assigned rack position. Record the voltage on both sides of the PDU. The PDU contains a transformer, so this is the last place on your path where the voltage changes — the second such place on a utility path, and the only one on a path fed from a generator. Note both the line-to-line and the line-to-neutral value if the drawing gives them."}, {"s": "Part 1: Tracing the delivery path", "k": "image", "p": "Step 11. Highlight the complete path in one colour, from the service entrance to the rack, in one continuous line. Then highlight in your second colour every device you considered and rejected, and write one or two words beside each saying why you rejected it. The rejections are as much a part of the answer as the path."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 12. Complete the component list worksheet. One line per node, in delivery order, with the device type and the voltage at that stage. Count the nodes and write the total at the foot of the list. A finished worksheet reads as a sequence a stranger could follow with a finger on the drawing."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 13. Identify every normally open device on the drawing, whether or not you went near it. State below whether your path crossed the bus tie at any point, and confirm in writing that your path does not depend on any normally open device being closed. Answer this honestly. A path that only works if somebody closes the tie is not a path, it is a request, and the person who has to approve it is asleep."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 14. Look for the dead end. Somewhere on this drawing there is at least one route that appears to head towards the racks and does not deliver. Find it, mark it, and record below which device stops it."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 16. Answer the three upstream questions in the lab tool. They ask about points on your own completed path: what is immediately upstream of this node. Record your three answers below, then walk your trace out loud to your instructor. They will choose points at random and ask you what is upstream. Answer from the path, not from the drawing. Then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Voltage changes at a transformer and nowhere else. List every point on your path where the voltage changed, give the value before and after, and explain what would go wrong if a technician assumed the rack voltage was the same as the switchboard voltage."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain, in your own words, why a path that depends on somebody closing a normally open bus tie is not a valid answer to the question “what feeds this rack?”. Say what a normally open device is actually there to do."}, {"s": "Part 2: Reflection", "k": "text", "p": "Something is dead at the rack you traced. Walk your path backwards and state the first three things you would look at, in that order, and why that order and not another."}, {"s": "Part 2: Reflection", "k": "text", "p": "You rejected at least one route while tracing. Describe one rejected route, say exactly which device stopped it, and say what on the drawing would have had to be different for that route to have been the right answer."}]};</script>
+<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+     Collects every handout question and its response inside this lab tool and
+     exports ONE print-to-PDF submission sheet for Canvas grading.
+     Self-contained. No external libraries. Safe to re-inject (idempotent).
+
+     v2.0 — WCAG 2.1 AA pass (label association, headings, alt text, contrast,
+     status announcement, authored focus); image downscale before storage with a
+     visible error if the quota still throws; Save-as-PDF filename set from the
+     learner name; print pagination and running header; duplicate learner-name
+     rows stripped from the harvested simulator record.
+     ========================================================================= -->
+<style id="lqStyle">
+  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
+  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+  #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#9db6c9;font-weight:700}
+  #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
+    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+  #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
+  #lqCard .lqq{margin-bottom:16px}
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+    cursor:pointer}
+  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+    margin-right:6px;font-weight:700}
+  #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
+    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
+  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+  #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
+  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard .lqimgwrap{margin-top:7px}
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+    border-radius:5px;display:block;margin-top:8px}
+  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+
+  /* authored focus — the simulators author none, so this is the only visible ring.
+     Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
+     in the simulator above as much as in the submission panel. */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+  @media print{ :focus-visible{outline:none!important} }
+
+  /* error banner for a storage failure the learner must know about */
+  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr b{color:#fff}
+
+  /* screen-reader-only live region */
+  .lqvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* ---- the assembled submission sheet ---- */
+  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
+  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
+  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+    padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
+  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
+    font-size:12px;color:#a8c0d3;line-height:1.9}
+
+  #lqPrint{display:none}
+  #lqPrint .lqpage{width:100%;border-collapse:collapse}
+
+  /* ---- print: only the sheet ---- */
+  @media print{
+    body.lq-print{background:#fff!important;color:#000!important;
+      overflow:visible!important;height:auto!important}
+    body.lq-print>*{display:none!important}
+    body.lq-print>#lqPrint{display:block!important}
+
+    /* Everything harvested from the simulator arrives in the dark console palette:
+       near-white text that would print invisibly, on backgrounds the browser drops
+       by default. Flatten the whole print container to ink on paper first, then
+       re-assert the few greys that carry meaning. */
+    body.lq-print #lqPrint,body.lq-print #lqPrint *{
+      color:#000!important;background-color:transparent!important;background-image:none!important;
+      box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
+
+    /* running header — a thead repeats on every page in every engine that paginates */
+    body.lq-print #lqPrint thead.lqrhead{display:table-header-group}
+    body.lq-print #lqPrint td.lqrh{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      font-size:8pt;color:#444!important;border-bottom:.5pt solid #999!important;
+      padding:0 0 3pt;text-align:left}
+    body.lq-print #lqPrint td.lqrh .r{float:right}
+    body.lq-print #lqPrint td.lqbody{padding:6pt 0 0}
+
+    body.lq-print #lqPrint .lqsheet{background:#fff;border:0;padding:0;margin:0;color:#000}
+    body.lq-print #lqPrint h1{color:#000}
+    body.lq-print #lqPrint h1,body.lq-print #lqPrint h2{border-bottom-color:#999!important}
+    body.lq-print #lqPrint h2{color:#000;border-bottom:1px solid #999;
+      page-break-after:avoid;break-after:avoid}
+    body.lq-print #lqPrint .lqmeta,body.lq-print #lqPrint .lqrow .k,
+    body.lq-print #lqPrint .lqa .q{color:#444!important}
+    body.lq-print #lqPrint .lqa .q .qn{color:#000!important}
+    body.lq-print #lqPrint .lqrow,body.lq-print #lqPrint .lqa{border-bottom:1px solid #ddd!important}
+    body.lq-print #lqPrint .lqa,body.lq-print #lqPrint .lqrow,
+    body.lq-print #lqPrint .lqsign,body.lq-print #lqPrint .lqgap{
+      page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint .lqa .a.blank{color:#000;font-style:italic}
+    body.lq-print #lqPrint .lqgap,body.lq-print #lqPrint .lqgap.ok{
+      background:#fff!important;border:1pt solid #666!important;color:#000!important}
+    body.lq-print #lqPrint .lqsign{color:#000;border-top:1px solid #999}
+    body.lq-print #lqPrint .noprint{display:none!important}
+    body.lq-print #lqPrint button{display:none!important}
+    /* harvested simulator tables keep their column headers across pages */
+    body.lq-print #lqPrint thead{display:table-header-group}
+    body.lq-print #lqPrint tr{page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint p,body.lq-print #lqPrint .a{orphans:3;widows:3}
+    @page{margin:16mm 14mm 14mm}
+  }
+</style>
+<script id="lqScript">
+(function(){
+  if(window.__lqLoaded) return; window.__lqLoaded=true;
+
+  var esc=function(s){return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
+
+  var KEY="uci2227:"+LQ.file;
+  var store={}, storageBroken=false;
+  try{ store=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ store={}; }
+
+  /* ---------- cross-lab storage budget ----------
+     Every lab in the module is served from one origin, so all 43 share a single
+     ~5 MB localStorage budget. Seventeen image questions at ~325 KB apiece is 5.4 MB
+     — a learner working through the whole module on one browser profile would run out
+     near the end. Images belonging to OTHER labs are evicted when room is needed,
+     oldest and already-exported first. Text answers are never evicted: they are tiny,
+     and they are the part a learner cannot reproduce. An evicted image is already
+     inside the submission PDF that lab produced. */
+  function otherLabKeys(){
+    var out=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0&&k!==KEY) out.push(k);
+      }
+    }catch(e){}
+    return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
+  }
+  function evictOtherImages(target){
+    /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
+    var recs=[];
+    otherLabKeys().forEach(function(k){
+      var raw,obj;
+      try{ raw=localStorage.getItem(k)||"{}"; obj=JSON.parse(raw); }catch(e){ return; }
+      var imgBytes=0;
+      for(var f in obj) if(/_img$/.test(f)) imgBytes+=String(obj[f]).length;
+      if(imgBytes>0) recs.push({k:k,obj:obj,bytes:imgBytes,ts:obj._ts||0,done:obj._done?1:0});
+    });
+    recs.sort(function(a,b){ return (b.done-a.done)||(a.ts-b.ts); });
+    var freed=0;
+    for(var i=0;i<recs.length&&freed<target;i++){
+      var r=recs[i];
+      for(var f in r.obj) if(/_img$/.test(f)) delete r.obj[f];
+      r.obj._evicted=true;
+      try{ localStorage.setItem(r.k,JSON.stringify(r.obj)); freed+=r.bytes; }catch(e){}
+    }
+    return freed;
+  }
+
+  function save(){
+    store._ts=Date.now();
+    var payload;
+    try{ payload=JSON.stringify(store); }catch(e){ return false; }
+    try{
+      localStorage.setItem(KEY,payload);
+      if(storageBroken){ storageBroken=false; showStoreErr(null); }
+      return true;
+    }catch(e){
+      /* make room from other labs, then try once more */
+      if(evictOtherImages(payload.length+200000)>0){
+        try{
+          localStorage.setItem(KEY,payload);
+          if(storageBroken){ storageBroken=false; showStoreErr(null); }
+          return true;
+        }catch(e2){}
+      }
+      storageBroken=true;
+      showStoreErr(e);
+      return false;
+    }
+  }
+  function showStoreErr(e){
+    var b=document.getElementById("lqStoreErr");
+    if(!b) return;
+    if(!e){ b.style.display="none"; return; }
+    b.style.display="block";
+    b.innerHTML='<b>Your work is no longer being saved in this browser.</b><br>'
+      +'Storage is full or switched off — usually private browsing, or a great many images '
+      +'attached across the labs on this machine. Everything on screen is intact and the '
+      +'submission PDF will still build correctly — but <b>do not refresh or close this tab</b>. '
+      +'Press <b>Build submission PDF</b> now and save the file. '
+      +'Then press <b>Clear my responses</b> to free the space up for the next lab.';
+    if(b.scrollIntoView) b.scrollIntoView({block:"nearest"});
+  }
+
+  function announce(msg){
+    var s=document.getElementById("lqStatus");
+    if(s){ s.textContent=""; setTimeout(function(){ s.textContent=msg; },30); }
+  }
+
+  /* ---------- detect the set letter the tool is running ---------- */
+  function setLetter(){
+    try{ if(typeof SETLETTER!=="undefined"&&SETLETTER) return SETLETTER; }catch(e){}
+    var tag=document.getElementById("setTag");
+    if(tag&&tag.textContent){
+      var m=tag.textContent.match(/set\s+([A-H])/i); if(m) return m[1].toUpperCase();
+    }
+    var m2=(LQ.file||"").match(/524-\d-\d-([A-H])_/); if(m2) return m2[1];
+    return LQ.set||"—";
+  }
+
+  /* ---------- downscale an image before it goes anywhere near storage ----------
+     A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
+     about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
+     capture under 400 KB, which is still far more detail than the PDF can show. */
+  var MAXPX=1600, JPEGQ=0.82;
+  function downscale(file,cb){
+    var rd=new FileReader();
+    rd.onerror=function(){ cb(null,"The browser could not read that file."); };
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ cb(null,"That file does not look like an image the browser can open."); };
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(rd.result,null); return; }
+          var sc=Math.min(1,MAXPX/Math.max(w,h));
+          if(sc>=1&&rd.result.length<600000){ cb(rd.result,null); return; }
+          var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+          var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+          var x=c.getContext("2d");
+          x.fillStyle="#fff"; x.fillRect(0,0,cw,ch);
+          x.drawImage(img,0,0,cw,ch);
+          cb(c.toDataURL("image/jpeg",JPEGQ),null);
+        }catch(err){ cb(rd.result,null); }
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+
+  /* ---------- build the card ---------- */
+  var host=document.querySelector("main .wrap")||document.querySelector("main")||document.body;
+  var card=document.createElement("section");
+  card.id="lqCard";
+  card.setAttribute("aria-labelledby","lqCardTitle");
+
+  var qs=LQ.items, secs=[], cur=null;
+  qs.forEach(function(it,i){
+    if(!cur||cur.name!==it.s){ cur={name:it.s,list:[]}; secs.push(cur); }
+    cur.list.push({i:i,it:it});
+  });
+
+  var html=""
+   +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
+   +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
+   +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
+   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<div id="lqStoreErr" role="alert"></div>'
+   +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
+   +'<div class="lqid">'
+   +'<div class="lqfld" style="flex:1 1 260px"><label for="lqName">Your name</label>'
+     +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
+     +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
+     +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
+   +'</div>';
+
+  secs.forEach(function(sec,si){
+    html+='<h3 class="lqsec" id="lqSec'+si+'">'+esc(sec.name||"Questions")+'</h3>';
+    sec.list.forEach(function(o){
+      var id="lqQ"+o.i, n=o.i+1;
+      html+='<div class="lqq">';
+      if(o.it.k==="image"){
+        html+='<p class="lqp"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</p>'
+             +'<div class="lqimgwrap">'
+             +'<label class="lqfilelbl" for="'+id+'_f">Attach your image for question '+n+'</label>'
+             +'<input type="file" accept="image/*" id="'+id+'_f">'
+             +'<p class="lqnote" style="margin:5px 0 0">A photo or screenshot. It is resized and '
+             +'embedded in the PDF you hand in.</p>'
+             +'<img id="'+id+'_img" alt="Your attached image for question '+n+'" style="display:none">'
+             +'<label class="lqfilelbl" for="'+id+'" style="margin-top:8px">Caption or note for question '+n+'</label>'
+             +'<textarea id="'+id+'" rows="2" placeholder="Add any caption or note that goes with the image.">'
+             +esc(store[id]||"")+'</textarea></div>';
+      }else{
+        html+='<label class="lqp" for="'+id+'"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</label>'
+             +'<textarea id="'+id+'" rows="3" placeholder="Type your answer here.">'+esc(store[id]||"")+'</textarea>';
+      }
+      html+='</div>';
+    });
+  });
+
+  html+='<div class="lqbtns">'
+    +'<button type="button" class="lqprimary" id="lqBuild">Build submission PDF</button>'
+    +'<button type="button" id="lqPreview">Preview without printing</button>'
+    +'<button type="button" id="lqClear">Clear my responses</button>'
+    +'<span class="lqnote">The PDF carries every question, your responses and the simulator record. One file, one upload.</span>'
+    +'</div><div id="lqOut" role="region" aria-label="Submission sheet preview"></div>';
+
+  card.innerHTML=html;
+  host.appendChild(card);
+
+  /* ---------- wiring ---------- */
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
+    var el=document.getElementById(id);
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+  });
+  qs.forEach(function(it,i){
+    var id="lqQ"+i, ta=document.getElementById(id);
+    if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
+    var f=document.getElementById(id+"_f");
+    if(f) f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      announce("Processing your image for question "+(i+1)+".");
+      downscale(file,function(dataUrl,err){
+        if(err){ announce(err); alert(err); return; }
+        var img=document.getElementById(id+"_img");
+        img.src=dataUrl; img.style.display="block";
+        store[id+"_img"]=dataUrl;
+        var okSave=save();
+        announce("Image attached to question "+(i+1)+
+          (okSave?"." : ", but it could not be saved in this browser. Build your PDF now."));
+      });
+    };
+    if(store[id+"_img"]){
+      var im0=document.getElementById(id+"_img");
+      if(im0){ im0.src=store[id+"_img"]; im0.style.display="block"; }
+    }
+  });
+
+  /* an image of this lab was evicted to make room for another lab on the shared
+     origin, and this lab had not yet been exported — say so plainly */
+  if(store._evicted&&!store._done){
+    var eb=document.getElementById("lqStoreErr");
+    eb.style.display="block";
+    eb.innerHTML='<b>An image you attached is no longer stored.</b><br>'
+      +'This browser ran out of room across all the labs on this machine and dropped it. '
+      +'Your typed answers are all still here — only the image went. '
+      +'Attach it again before you build your submission PDF.';
+    delete store._evicted; save();
+  }
+
+  document.getElementById("lqClear").onclick=function(){
+    if(!confirm("Clear every response you have typed in this lab? This cannot be undone.")) return;
+    store={}; save();
+    qs.forEach(function(it,i){
+      var ta=document.getElementById("lqQ"+i); if(ta) ta.value="";
+      var im=document.getElementById("lqQ"+i+"_img"); if(im){ im.removeAttribute("src"); im.style.display="none"; }
+      var fi=document.getElementById("lqQ"+i+"_f"); if(fi) fi.value="";
+    });
+    document.getElementById("lqOut").innerHTML="";
+    announce("All responses cleared.");
+  };
+
+  /* ---------- guard the simulator's Restart button ----------
+     Restart wipes the simulator record but not the responses typed here, which
+     would leave a submission whose prose describes a record that no longer exists.
+     A capture-phase listener runs ahead of the tool's own onclick, so one confirm
+     covers every variant of the handler. */
+  (function(){
+    var rb=document.getElementById("btnRestart")||document.getElementById("btnReset");
+    if(!rb||card.contains(rb)) return;
+    rb.addEventListener("click",function(ev){
+      if(rb.dataset.lqOk==="1"){ rb.dataset.lqOk=""; return; }
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      var ok=confirm(
+        "Restart the scenario?\n\n"+
+        "Everything you recorded in the simulator — readings, marks, logs, the "+
+        "submission sheet it built — is wiped and the run starts again.\n\n"+
+        "The answers you typed in the submission panel lower down are KEPT. If they "+
+        "describe readings you are about to erase, build your submission PDF first.");
+      if(ok){ rb.dataset.lqOk="1"; rb.click(); }
+    },true);
+  })();
+
+  /* ---------- harvest the simulator's own record ---------- */
+  var REC_SEL=".sheet, .result.show";
+  function collect(){
+    var raw=[];
+    Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
+      if(card.contains(s)) return;
+      if(!s.textContent.replace(/\s/g,"")) return;
+      raw.push(s);
+    });
+    return raw.filter(function(s){
+      return !raw.some(function(o){ return o!==s && o.contains(s); });
+    });
+  }
+
+  /* the module already prints the learner name in its own Learner block, and every
+     simulator sheet prints it again — four of them twice. Strip it from the clone. */
+  var NAMEKEY=/^(your\s+)?(name|learner(\s+name)?)\s*:?\s*$/i;
+  function stripDuplicateName(root){
+    Array.prototype.forEach.call(root.querySelectorAll(".learnerline"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    var rows=root.querySelectorAll("div,tr,p");
+    Array.prototype.forEach.call(rows,function(r){
+      var first=r.firstElementChild;
+      if(!first||r.children.length>3) return;
+      if(NAMEKEY.test((first.textContent||"").trim())){
+        if(r.parentNode) r.parentNode.removeChild(r);
+      }
+    });
+  }
+
+  function toolRecord(){
+    var found=collect();
+    if(!found.length){
+      var btns=document.querySelectorAll("button");
+      var hit=null;
+      Array.prototype.forEach.call(btns,function(b){
+        if(card.contains(b)||hit) return;
+        var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+        if(/print/.test(t)) return;
+        if(/^build submission sheet$/.test(t)) hit=b;
+      });
+      if(!hit){
+        Array.prototype.forEach.call(btns,function(b){
+          if(card.contains(b)||hit) return;
+          var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+          if(/print/.test(t)) return;
+          if(/build .*sheet|submission sheet|submit .*(map|answer|sheet|round|log)|^submit$/.test(t)) hit=b;
+        });
+      }
+      if(hit){ try{ hit.click(); }catch(e){} }
+      found=collect();
+    }
+    if(!found.length) return null;
+    var wrap=document.createElement("div");
+    found.forEach(function(s){
+      var c=s.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      });
+      stripDuplicateName(c);
+      wrap.appendChild(c);
+    });
+    return wrap.innerHTML;
+  }
+
+  /* ---------- assemble the one sheet ---------- */
+  function build(){
+    var name=document.getElementById("lqName").value.trim();
+    var coh=document.getElementById("lqCohort").value.trim();
+    var dt=document.getElementById("lqDate").value.trim();
+    var gaps=[];
+    if(!name) gaps.push("Your name");
+    if(!coh)  gaps.push("Cohort / section");
+
+    var h=''
+     +'<div class="lqsheet">'
+     +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
+     +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
+       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+     +'<h2>Learner</h2>'
+     +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Built</span><span class="v">'
+       +esc(new Date().toLocaleString())+'</span></div>';
+
+    var rec=LQ.nosim?null:toolRecord();
+    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
+    else if(!LQ.nosim){
+      gaps.push("The simulator record — work through the lab tool above and press its own "
+               +"“Build submission sheet” button before you build this PDF");
+    }else{
+      h+='<h2>Assessed on the floor</h2>'
+        +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
+        +'Observed and signed off by the instructor against the handout. '
+        +'The instructor signature below records that sign-off.</span></div>';
+    }
+
+    var curSec=null;
+    qs.forEach(function(it,i){
+      if(it.s!==curSec){ curSec=it.s; h+='<h2>'+esc(curSec||"Questions")+'</h2>'; }
+      var ta=document.getElementById("lqQ"+i);
+      var a=ta?ta.value.trim():"";
+      var im=store["lqQ"+i+"_img"];
+      if(!a&&!im) gaps.push("Q"+(i+1));
+      h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
+      if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
+      h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
+    });
+
+    if(gaps.length){
+      h+='<div class="lqgap"><b>Not yet filled in ('+gaps.length+'):</b> '+esc(gaps.join(", "))
+        +'.<br>This is a completeness check, not a grade. Fill them in and build again, '
+        +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
+    }else{
+      h+='<div class="lqgap ok">'
+        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+    }
+
+    h+='<div class="lqsign">Learner signature: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'Instructor verification: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
+
+    document.getElementById("lqOut").innerHTML=h;
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
+    return h;
+  }
+
+  document.getElementById("lqPreview").onclick=function(){
+    build();
+    var o=document.getElementById("lqOut");
+    if(o&&o.scrollIntoView) o.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* ---------- the one PDF ---------- */
+  function safeName(s){
+    return String(s||"").normalize?String(s||"").normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+      :String(s||"").replace(/[^\w\s-]/g,"").trim();
+  }
+  function fileTitle(){
+    var n=safeName(document.getElementById("lqName").value).split(/\s+/).filter(Boolean);
+    var last=n.length>1?n[n.length-1]:(n[0]||"Learner");
+    var first=n.length>1?n.slice(0,-1).join("_"):"";
+    var who=first?(last+"_"+first):last;
+    return who+"_"+String(LQ.lab||"").replace(/[^\d.]/g,"");
+  }
+
+  document.getElementById("lqBuild").onclick=function(){
+    var h=build();
+    /* this lab's images are now inside a PDF the learner holds, so they become the
+       first thing evicted when another lab needs room on the shared origin */
+    store._done=true; save();
+
+    var old=document.getElementById("lqPrint"); if(old) old.parentNode.removeChild(old);
+
+    /* The sheet goes inside a one-cell table whose thead repeats on every printed
+       page, so pages 2+ still carry the learner name, the lab and the set. */
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+      +esc(document.getElementById("lqName").value.trim()||"Name not entered")
+      +' · '+esc(LQ.title);
+    var pr=document.createElement("div"); pr.id="lqPrint";
+    pr.innerHTML='<table class="lqpage"><thead class="lqrhead"><tr><td class="lqrh">'
+      +runHead+'</td></tr></thead><tbody><tr><td class="lqbody">'+h+'</td></tr></tbody></table>';
+    document.body.appendChild(pr);
+
+    /* the browser suggests document.title as the Save-as-PDF filename */
+    var prevTitle=document.title;
+    document.title=fileTitle();
+    document.body.classList.add("lq-print");
+
+    var restored=false;
+    var done=function(){
+      if(restored) return; restored=true;
+      document.body.classList.remove("lq-print");
+      document.title=prevTitle;
+      var a=document.getElementById("lqPrint"); if(a&&a.parentNode) a.parentNode.removeChild(a);
+      window.removeEventListener("afterprint",done);
+      if(mq&&mq.removeListener) mq.removeListener(mqHandler);
+    };
+    var mq=window.matchMedia?window.matchMedia("print"):null;
+    var mqHandler=function(m){ if(!m.matches) done(); };
+    if(mq&&mq.addListener) mq.addListener(mqHandler);
+    window.addEventListener("afterprint",done);
+
+    setTimeout(function(){
+      window.print();
+      /* generous fallback: mobile print sheets are asynchronous, and tearing the
+         container out too early yields a blank PDF */
+      setTimeout(done,60000);
+    },80);
+  };
+})();
+</script>
+<!-- ===== end submission module ============================================= -->
+
+</body>
+</html>

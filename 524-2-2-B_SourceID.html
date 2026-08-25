@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>524.2.2 — UCI 2227 — Lab 2.2 Which Source Is Carrying the Load? (Training Simulator)</title>
+<style>
+  :root{
+    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
+    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:7px 13px}
+  button:hover{background:#1b3044;border-color:#2d4d68}
+  button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  button.primary:hover{background:#0a8bd8}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input[type=text],input[type=number],textarea{
+    font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:7px 9px}
+  textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
+  h1,h2,h3{margin:0;font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex:0 0 auto}
+  .brand{font-weight:700;letter-spacing:.4px;font-size:14px}
+  .brand span{color:var(--blue)}
+  .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
+  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+
+  main{flex:1;overflow:auto;padding:18px}
+  .wrap{max-width:1500px;margin:0 auto}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;margin-bottom:4px}
+  .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
+  .card ul{color:var(--dim);margin:0;padding-left:20px;line-height:1.7;font-size:13px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
+
+  /* ---------- console ---------- */
+  .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
+    border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+    font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
+  .note{font-size:12px;color:var(--dim);line-height:1.55}
+  .hidden{display:none !important}
+
+  /* ---------- submission ---------- */
+  .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
+  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
+  .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
+  .result.show{display:block;background:var(--panel2);border:1px solid var(--line)}
+  .missing{background:#2b2310;border:1px solid #5c4c2e;border-radius:7px;padding:11px;margin:12px 0;
+    font-size:12.5px;line-height:1.6}
+  .closing{margin-top:14px;font-size:12.5px;color:var(--dim);line-height:1.55}
+  @media print{
+    body{background:#fff;color:#000;overflow:visible}
+    header,.toolbar,.noprint{display:none !important}
+    main{overflow:visible}
+  }
+
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);margin-bottom:8px}
+  .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+
+  /* ---------- rendered front panels ---------- */
+  .setcard{background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:15px 17px;margin-bottom:16px}
+  .setcard h2{font-size:15px;margin-bottom:3px}
+  .setcard .sid{font-family:var(--mono);color:var(--blue);font-weight:700;margin-right:8px}
+  .setcard .ctx{font-size:12px;color:var(--faint);line-height:1.5;margin:4px 0 12px}
+  .pnls{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(310px,1fr))}
+  .pnl{background:#08121a;border:1px solid #24404f;border-radius:7px;overflow:hidden}
+  .pnl .ph{display:flex;align-items:center;gap:9px;padding:7px 11px;
+    background:#152a3a;border-bottom:1px solid #24404f}
+  .pnl .ph .pt{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.7px}
+  .pnl .ph .pk{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .pnl .pb{padding:10px 11px 11px}
+  .segs{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px}
+  .seg{background:#03080c;border:1px solid #1c3040;border-radius:4px;padding:5px 7px}
+  .seg .sl{font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .seg .sv{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:1.5px;
+    color:#66e0a4;margin-top:2px;text-shadow:0 0 8px rgba(102,224,164,.35)}
+  .seg .sv em{font-style:normal;font-size:9.5px;letter-spacing:0;color:var(--dim);margin-left:3px;text-shadow:none}
+  .seg .sv.txt{font-size:13px;letter-spacing:1px}
+  .seg.amber .sv{color:#f0b458;text-shadow:0 0 8px rgba(240,180,88,.35)}
+  .seg.red .sv{color:#ff8f7d;text-shadow:0 0 8px rgba(255,143,125,.35)}
+  .seg.dead .sv{color:#3d5566;text-shadow:none}
+  .lamps{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:5px;margin-top:9px}
+  .lamp{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:4px;
+    background:#0c1922;border:1px solid #1c3040;font-size:9.5px;letter-spacing:.7px;
+    text-transform:uppercase;font-weight:700;color:#4e6b7c}
+  .lamp i{width:9px;height:9px;border-radius:50%;flex:0 0 auto;background:#16252f;border:1px solid #2a4356}
+  .lamp.on{color:var(--ink);background:#111f2a}
+  .lamp.on.g i{background:#37c07a;border-color:#8ef0bf;box-shadow:0 0 8px rgba(55,192,122,.9)}
+  .lamp.on.a i{background:#e8a33d;border-color:#ffd79a;box-shadow:0 0 8px rgba(232,163,61,.9)}
+  .lamp.on.r i{background:#e8604c;border-color:#ffb0a1;box-shadow:0 0 8px rgba(232,96,76,.9)}
+  .lamp.on.b i{background:#33a6e8;border-color:#a8ddfa;box-shadow:0 0 8px rgba(51,166,232,.9)}
+  .mimwrap{margin-top:10px;border-top:1px solid #16283a;padding-top:9px}
+  .mim{display:flex;align-items:center;flex-wrap:wrap;margin-bottom:5px}
+  .mim .mlbl{font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);
+    font-weight:700;width:58px;flex:0 0 auto}
+  .mnode{font-family:var(--mono);font-size:9px;letter-spacing:.8px;padding:3px 6px;
+    border:1px solid #253c4c;border-radius:3px;background:#0c1922;color:#4e6b7c;white-space:nowrap}
+  .mnode.live{border-color:#2f7f5c;background:#0d2018;color:#9fe8c4}
+  .mlink{width:15px;height:2px;background:#1e3346;flex:0 0 auto}
+  .mlink.live{background:#37c07a;box-shadow:0 0 6px rgba(55,192,122,.6)}
+  .statline{font-family:var(--mono);font-size:11px;line-height:1.5;background:#03080c;
+    border:1px solid #1c3040;border-left:3px solid #2a4356;border-radius:4px;
+    padding:6px 9px;margin-top:9px;color:#9fb6c7}
+  .qa{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}
+  .qa .qhdr{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin-bottom:9px}
+  .qrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:11px;margin-bottom:11px}
+  .qa select,.qa input[type=number],.qa input[type=text]{width:100%}
+  .chk{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim);
+    cursor:pointer;padding:7px 9px;border:1px solid var(--line);border-radius:5px;background:var(--panel2)}
+  .navchips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:13px}
+  .navchips .nc{font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:4px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--dim);cursor:pointer}
+  .navchips .nc.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .navchips .nc.done{border-color:#2f7f5c}
+  .sheet table{font-size:12px}
+  .sheet td{vertical-align:top;line-height:1.5}
+  .sheet .sd{font-family:var(--mono);white-space:nowrap}
+  .prthdr{display:none}
+  @media print{
+    .prthdr{display:block;margin-bottom:14px}
+    .setcard,.pnl{border-color:#999;background:#fff;color:#000}
+    .seg .sv,.seg .sv em{color:#000;text-shadow:none}
+    .sheet .ctx,.note{color:#333}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">SWITCHGEAR <span>STATUS PANEL SETS</span></div>
+    <div class="sysname">524.2.2 &middot; UCI 2227 · Lab 2.2 · objective M2.2 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="spacer"></div>
+    <div id="statusBadge" class="badge">Ready</div>
+    <div>
+      <div class="clocklbl">Site time</div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <button id="btnAll" class="primary">Show all sets</button>
+    <button id="btnOne">One at a time</button>
+    <button id="btnSheet">Submission sheet</button>
+    <button id="btnRestart">Restart</button>
+    <span class="spacer"></span>
+    <span class="counter" id="posn">8 sets</span>
+    <span class="counter" id="elapsed">T+00:00</span>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <section id="setsView">
+        <div class="prthdr" id="prtHdr"></div>
+        <div class="navchips noprint hidden" id="navchips"></div>
+        <div id="setsArea"></div>
+        <div id="sheetArea" class="hidden"></div>
+        <div id="submitArea"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SET = 1;   /* fixed for this file */
+/* ============================================================
+   UCI 2227 — Lab 2.2 · Which Source Is Carrying the Load?
+   Standalone training console. Offline, no libraries, no network.
+   ============================================================ */
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=mulberry32(1);
+function noise(amp){return (rnd()*2-1)*amp;}
+function fmtClock(mins){
+  const base=3*60+14; // scenarios run from 03:14 site time
+  const total=base+mins;
+  const h=Math.floor(total/60)%24, m=Math.floor(total%60), s=Math.floor((mins%1)*60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function fmtElapsed(mins){
+  return "T+"+String(Math.floor(mins)).padStart(2,"0")+":"+String(Math.floor((mins%1)*60)).padStart(2,"0");
+}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ---------- this lab ---------- */
+const LAB={lab:"Lab 2.2",obj:"M2.2",title:"Which Source Is Carrying the Load?",duration:55};
+
+const SETLISTS=[
+  {id:"S1",order:["z4","z7","z2","z6","z1","z8","z3","z5"]},
+  {id:"S2",order:["z1","z8","z3","z4","z2","z5","z6","z7"]}
+];
+
+const RNG_KEY=(0x9E3779B1^Math.imul(SET+1,2654435761))>>>0;
+
+const ROLES=[
+  {id:"r1",t:"Detects earth faults on branch circuits and opens the affected subfeed without operator action."},
+  {id:"r2",t:"Transfers a whole downstream bus between two sources, normally utility and generator, with a short break in supply while it moves."},
+  {id:"r3",t:"Stores energy for extended outages and paces how quickly load is applied to a running engine."},
+  {id:"r4",t:"Steps distribution voltage down, divides it into branch circuits, and meters what each phase and each subfeed is drawing."},
+  {id:"r5",t:"Rides through a supply interruption and conditions the output — the only item here that can hold the load up with no source present at all."},
+  {id:"r6",t:"Synchronises two live sources so they can be paralleled and the load walked across with no break at all."},
+  {id:"r7",t:"Selects between two sources that are both already live, at the load end, within a few milliseconds — it can do nothing if a source is dead."}
+];
+const COMPS=[["ups","Uninterruptible power supply (UPS)"],["ats","Automatic transfer switch (ATS)"],
+             ["sts","Static transfer switch (STS)"],["pdu","Power distribution unit (PDU)"]];
+
+const PDU_FLA=225000/(Math.sqrt(3)*208);   // 624.5 A at 225 kVA, 208 V three-phase
+const PDU_PF=0.98;
+
+const S={learner:"",t:0,mode:"all",cur:0,sets:[],roleOpts:[],timer:null};
+const $=id=>document.getElementById(id);
+let V=SETLISTS[SET];
+
+/* ---------- panel drawing helpers ---------- */
+function mimHTML(rows){
+  return `<div class="mimwrap">`+rows.map(r=>
+    `<div class="mim"><span class="mlbl">${r.lbl}</span>`+r.seq.map(tk=>
+      Array.isArray(tk)
+        ? `<span class="mnode ${tk[1]?"live":""}">${tk[0]}</span>`
+        : `<span class="mlink ${tk?"live":""}"></span>`).join("")+`</div>`).join("")+`</div>`;
+}
+function panelHTML(p){
+  return `<div class="pnl">
+    <div class="ph"><span class="pt">${p.tag}</span><span class="pk">${p.kind}</span>
+      <span style="flex:1"></span><span class="pk">${p.sub||""}</span></div>
+    <div class="pb">
+      <div class="segs">${p.segs.map(s=>
+        `<div class="seg ${s[3]||""}"><div class="sl">${s[0]}</div>
+          <div class="sv ${s[4]?"txt":""}">${s[1]}${s[2]?`<em>${s[2]}</em>`:""}</div></div>`).join("")}</div>
+      ${p.lamps?`<div class="lamps">${p.lamps.map(l=>
+        `<div class="lamp ${l[1]?"on":""} ${l[2]||"g"}"><i></i><span>${l[0]}</span></div>`).join("")}</div>`:""}
+      ${p.mim?mimHTML(p.mim):""}
+      ${p.stat?`<div class="statline">${p.stat}</div>`:""}
+    </div></div>`;
+}
+function upsPanel(o){
+  const dead=v=>v===0?"dead":"";
+  const path=o.path;
+  let rows;
+  if(path==="battery") rows=[
+    {lbl:"Rectifier",seq:[["MAINS",0],0,["RECT",0],0,["DC BUS",1],1,["INVERTER",1],1,["OUTPUT",1]]},
+    {lbl:"Bypass",seq:[["BYPASS SUPPLY",0],0,["STATIC SW",0],0,["OUTPUT",1]]},
+    {lbl:"Battery",seq:[["BATTERY",1],1,["DC BUS",1]]}];
+  else if(path==="sbp") rows=[
+    {lbl:"Rectifier",seq:[["MAINS",1],1,["RECT",1],1,["DC BUS",1],0,["INVERTER",0],0,["OUTPUT",1]]},
+    {lbl:"Bypass",seq:[["BYPASS SUPPLY",1],1,["STATIC SW",1],1,["OUTPUT",1]]},
+    {lbl:"Battery",seq:[["BATTERY",1],0,["DC BUS",1]]}];
+  else if(path==="mbp") rows=[
+    {lbl:"Rectifier",seq:[["MAINS",1],1,["RECT",1],1,["DC BUS",1],1,["INVERTER",1],0,["Q2 OUT",0]]},
+    {lbl:"Wrap-around",seq:[["SUPPLY",1],1,["Q3 MAINT",1],1,["LOAD",1]]},
+    {lbl:"Battery",seq:[["BATTERY",1],0,["DC BUS",1]]}];
+  else rows=[
+    {lbl:"Rectifier",seq:[["MAINS",1],1,["RECT",1],1,["DC BUS",1],1,["INVERTER",1],1,["OUTPUT",1]]},
+    {lbl:"Bypass",seq:[["BYPASS SUPPLY",1],0,["STATIC SW",0],0,["OUTPUT",1]]},
+    {lbl:"Battery",seq:[["BATTERY",1],0,["DC BUS",1]]}];
+  return {kind:"UPS",tag:o.tag,sub:"500 kVA / 450 kW double conversion",
+    segs:[
+      ["Input volts",o.inV,"V",dead(o.inV)],
+      ["Input freq",o.inHz,"Hz",o.inHz==="0.0"?"dead":""],
+      ["Output volts",o.outV,"V",dead(o.outV)],
+      ["Output freq",o.outHz,"Hz",o.outHz==="0.0"?"dead":""],
+      ["Load",o.load,"%",o.load===0?"dead":""],
+      ["Battery volts",o.batV,"V",o.batCls||""],
+      ["Runtime left",o.rt,o.rt==="- - -"?"":"min",o.rtCls||""]
+    ],
+    lamps:[["Normal",o.l.normal,"g"],["On battery",o.l.batt,"a"],["Static bypass",o.l.sbp,"a"],
+      ["Maintenance bypass",o.l.mbp,"a"],["Fault",o.l.flt,"r"]],
+    mim:rows,stat:o.stat};
+}
+function atsPanel(o){
+  return {kind:"ATS",tag:o.tag,sub:"1600 A · 480 V · 3 pole",
+    segs:[
+      ["Source 1 volts",o.s1v,"V",o.s1v===0?"dead":""],
+      ["Source 1 freq",o.s1hz,"Hz",o.s1hz==="0.0"?"dead":""],
+      ["Source 2 volts",o.s2v,"V",o.s2v===0?"dead":""],
+      ["Source 2 freq",o.s2hz,"Hz",o.s2hz==="0.0"?"dead":""],
+      ["Position",o.pos===1?"SOURCE 1":"SOURCE 2","",o.pos===1?"":"amber",1],
+      ["Mode",o.mode,"",o.mode==="AUTO"?"":"amber",1],
+      ["Norm-to-emerg delay",o.d1,"",o.d1==="--:--"?"dead":""],
+      ["Retransfer delay",o.d2,"",o.d2==="--:--"?"dead":""]
+    ],
+    lamps:[["Source 1 available",o.s1a,"g"],["Source 2 available",o.s2a,"g"],
+      ["Position source 1",o.pos===1?1:0,"g"],["Position source 2",o.pos===2?1:0,"a"],
+      ["Not in auto",o.mode==="AUTO"?0:1,"a"],["Transfer inhibit",o.inh,"a"]],
+    mim:[
+      {lbl:"Source 1",seq:[["S1 UTILITY",o.s1a],o.pos===1?1:0,["CONTACTOR",o.pos===1?o.s1a:0],
+        o.pos===1?o.s1a:0,["LOAD BUS",o.pos===1?o.s1a:(o.pos===2?o.s2a:0)]]},
+      {lbl:"Source 2",seq:[["S2 GENERATOR",o.s2a],o.pos===2?1:0,["CONTACTOR",o.pos===2?o.s2a:0],
+        o.pos===2?o.s2a:0,["LOAD BUS",o.pos===2?o.s2a:(o.pos===1?o.s1a:0)]]}
+    ],
+    stat:o.stat};
+}
+function stsPanel(o){
+  return {kind:"STS",tag:o.tag,sub:"400 A · 208 V · load-end switch",
+    segs:[
+      ["Preferred source",o.pref,"","",1],
+      ["Source A volts",o.av,"V",o.av===0?"dead":""],
+      ["Source B volts",o.bv,"V",o.bv===0?"dead":""],
+      ["Present source",o.now,"",o.now===o.pref?"":"amber",1],
+      ["Transfer count",o.cnt,"",""],
+      ["Output volts",o.outv,"V"],
+      ["Load",o.load,"%"]
+    ],
+    lamps:[["Source A available",o.aa,"g"],["Source B available",o.ba,"g"],
+      ["On preferred",o.now===o.pref?1:0,"g"],["On alternate",o.now===o.pref?0:1,"a"],
+      ["Alarm",o.alm,"r"]],
+    mim:[
+      {lbl:"Source A",seq:[["A FEED",o.aa],o.now==="A"?1:0,["SCR A",o.now==="A"?1:0],o.now==="A"?1:0,["OUTPUT",1]]},
+      {lbl:"Source B",seq:[["B FEED",o.ba],o.now==="B"?1:0,["SCR B",o.now==="B"?1:0],o.now==="B"?1:0,["OUTPUT",1]]}
+    ],
+    stat:o.stat};
+}
+function genPanel(o){
+  return {kind:"GENERATOR",tag:o.tag,sub:"1,500 kW standby diesel",
+    segs:[
+      ["Engine speed",o.rpm,"rpm",o.rpm===0?"dead":""],
+      ["Output volts",o.v,"V",o.v===0?"dead":""],
+      ["Output freq",o.hz,"Hz",o.hz==="0.0"?"dead":""],
+      ["Real power",o.kw,"kW",o.kw===0?"dead":""],
+      ["Control mode",o.mode,"",o.mode==="AUTO"?"":"amber",1],
+      ["Run hours",o.hrs,"h"]
+    ],
+    lamps:[["Running",o.run,"g"],["Ready to load",o.rdy,"g"],["Breaker closed",o.brk,"g"],
+      ["Not in auto",o.mode==="AUTO"?0:1,"a"],["Fault",o.flt,"r"]],
+    mim:[{lbl:"Set output",seq:[["ENGINE",o.run],o.run,["ALTERNATOR",o.run],o.brk,["GEN BREAKER",o.brk],
+      o.brk,["S2 FEED",o.brk]]}],
+    stat:o.stat};
+}
+function pduPanel(tag,c,sf,note){
+  const avg=(c[0]+c[1]+c[2])/3;
+  const kw=Math.sqrt(3)*0.208*avg*PDU_PF;
+  const pc=i=>(c[i]/PDU_FLA*100).toFixed(1);
+  const hot=i=>c[i]===Math.max(c[0],c[1],c[2])&&(Math.max(c[0],c[1],c[2])-avg)/avg>0.10?"amber":"";
+  return {kind:"PDU",tag,sub:"225 kVA · 480 V in / 208 V out · rated "+PDU_FLA.toFixed(0)+" A per phase",
+    segs:[
+      ["Input volts","480","V"],
+      ["L1 current",c[0].toFixed(0),"A",hot(0)],
+      ["L2 current",c[1].toFixed(0),"A",hot(1)],
+      ["L3 current",c[2].toFixed(0),"A",hot(2)],
+      ["L1 load",pc(0),"%",hot(0)],
+      ["L2 load",pc(1),"%",hot(1)],
+      ["L3 load",pc(2),"%",hot(2)],
+      ["Output",kw.toFixed(1),"kW"]
+    ],
+    lamps:[["Subfeed 1 closed",sf[0],"g"],["Subfeed 2 closed",sf[1],"g"],
+      ["Subfeed 3 closed",sf[2],"g"],["Subfeed 4 closed",sf[3],"g"]],
+    mim:[{lbl:"Distribution",seq:[["MAIN IN",1],1,["TRANSFORMER",1],1,["PANEL BUS",1],1,["SUBFEEDS",1]]}],
+    stat:note};
+}
+
+/* ---------- the eight sets ---------- */
+function mkZ1(k){
+  const gv=Math.round(479+noise(3)), bv=Math.round(548+noise(2));
+  const load=[44,48][k], kw=[620,684][k], hrs=[1287,1344][k], rt=[12,10][k];
+  return {label:"ATS-5 · GEN-2 · UPS-4A",
+    ctx:"Hall D. The utility feed on this side failed twenty-two minutes ago and has not come back.",
+    panels:[
+      atsPanel({tag:"ATS-5",s1v:0,s1hz:"0.0",s2v:gv,s2hz:"60.0",s1a:0,s2a:1,pos:2,mode:"AUTO",inh:0,
+        d1:"--:--",d2:"05:00",stat:"ON EMERGENCY SOURCE · SOURCE 1 NOT AVAILABLE — WILL RETURN WHEN SOURCE 1 IS BACK IN TOLERANCE"}),
+      genPanel({tag:"GEN-2",rpm:1800,v:gv,hz:"60.0",kw:kw,mode:"AUTO",hrs:hrs,run:1,rdy:1,brk:1,flt:0,
+        stat:"ENGINE RUNNING · SET ON LOAD · FUEL DAY TANK NORMAL"}),
+      upsPanel({tag:"UPS-4A",inV:gv,inHz:"60.0",outV:480,outHz:"60.0",load:load,batV:bv,rt:String(rt),
+        l:{normal:1,batt:0,sbp:0,mbp:0,flt:0},path:"normal",
+        stat:"SYSTEM STATUS: NORMAL — INVERTER SUPPLYING LOAD · BATTERY RECHARGING"})],
+    inds:["GEN-2 running at 1,800 rpm with "+gv+" V and 60.0 Hz at its terminals, breaker closed",
+      "ATS-5 position reads SOURCE 2 with mode AUTO",
+      "ATS-5 SOURCE 1 AVAILABLE lamp unlit",
+      "UPS-4A NORMAL lamp lit with the battery recharging",
+      "ATS-5 retransfer delay set to 05:00 and not running"],
+    pduQ:null};
+}
+function mkZ2(k){
+  const iv=Math.round(479+noise(3)), bv=Math.round([498,494][k]+noise(2));
+  const load=[36,39][k], rt=[4,3][k], hrs=[1284,1341][k];
+  return {label:"ATS-7 · GEN-4 · UPS-6A",
+    ctx:"Hall C riser. This set was left by the previous shift after a fuel-system callout.",
+    panels:[
+      atsPanel({tag:"ATS-7",s1v:iv,s1hz:"60.0",s2v:0,s2hz:"0.0",s1a:1,s2a:0,pos:2,mode:"MANUAL",inh:1,
+        d1:"--:--",d2:"--:--",stat:"POSITION SOURCE 2 · MANUAL OPERATION — AUTOMATIC TRANSFER INHIBITED"}),
+      genPanel({tag:"GEN-4",rpm:0,v:0,hz:"0.0",kw:0,mode:"MANUAL",hrs:hrs,run:0,rdy:0,brk:0,flt:0,
+        stat:"ENGINE STOPPED · CONTROL SWITCH NOT IN AUTO — SET WILL NOT START ON DEMAND"}),
+      upsPanel({tag:"UPS-6A",inV:0,inHz:"0.0",outV:480,outHz:"60.0",load:load,batV:bv,rt:String(rt),
+        batCls:"red",rtCls:"red",l:{normal:0,batt:1,sbp:0,mbp:0,flt:0},path:"battery",
+        stat:"SYSTEM STATUS: ON BATTERY — INPUT FAILURE · LOW RUNTIME WARNING"})],
+    inds:["ATS-7 position reads SOURCE 2",
+      "ATS-7 mode reads MANUAL with transfer inhibit lit",
+      "GEN-4 engine speed 0 rpm and terminal volts 0 V",
+      "UPS-6A ON BATTERY lamp lit, input 0 V, "+rt+" minutes runtime left",
+      "ATS-7 SOURCE 1 AVAILABLE lamp lit"],
+    pduQ:null};
+}
+function mkZ3(k){
+  const iv=Math.round(480+noise(3)), bv=Math.round(549+noise(2));
+  const load=[57,61][k], rt=[9,8][k];
+  const cA=[[372,296,318],[301,368,325]][k], cB=[[98,92,96],[104,97,101]][k];
+  return {label:"UPS-8A · PDU-8A and PDU-8B",
+    ctx:"Hall D rack rows 4 to 7. A deployment team moved a run of power cords last night. The 2N pair is supposed to be able to lose either side without dropping anything.",
+    panels:[
+      upsPanel({tag:"UPS-8A",inV:iv,inHz:"60.0",outV:480,outHz:"60.0",load:load,batV:bv,rt:String(rt),
+        l:{normal:1,batt:0,sbp:0,mbp:0,flt:0},path:"normal",
+        stat:"SYSTEM STATUS: NORMAL — INVERTER SUPPLYING LOAD · BATTERY ON FLOAT CHARGE"}),
+      pduPanel("PDU-8A",cA,[1,1,1,1],"A SIDE OF 2N PAIR"),
+      pduPanel("PDU-8B",cB,[1,1,0,0],"B SIDE OF 2N PAIR")],
+    inds:["UPS-8A NORMAL lamp lit with input present at "+iv+" V and the inverter in circuit",
+      "PDU-8A L1, L2 and L3 currents",
+      "PDU-8A output in kilowatts",
+      "PDU-8B carrying far less than PDU-8A",
+      "UPS-8A load "+load+"%"],
+    pduQ:{tag:"PDU-8A",A:cA,B:cB}};
+}
+function mkZ4(k){
+  const iv=Math.round(480+noise(3)), bv=Math.round(546+noise(2));
+  const load=[41,37][k], rt=[11,13][k];
+  const cA=[[148,152,145],[133,139,136]][k], cB=[[151,146,149],[138,134,137]][k];
+  return {label:"ATS-1 · UPS-1A · PDU-2A and PDU-2B",
+    ctx:"A-side string, Hall A. Routine walkround, nothing in alarm on the building management system.",
+    panels:[
+      atsPanel({tag:"ATS-1",s1v:iv,s1hz:"60.0",s2v:0,s2hz:"0.0",s1a:1,s2a:0,pos:1,mode:"AUTO",inh:0,
+        d1:"00:03",d2:"05:00",stat:"SOURCE 1 IN TOLERANCE · SOURCE 2 NOT AVAILABLE — SET AT REST"}),
+      upsPanel({tag:"UPS-1A",inV:iv,inHz:"60.0",outV:480,outHz:"60.0",load:load,batV:bv,rt:String(rt),
+        l:{normal:1,batt:0,sbp:0,mbp:0,flt:0},path:"normal",
+        stat:"SYSTEM STATUS: NORMAL — INVERTER SUPPLYING LOAD · BATTERY ON FLOAT CHARGE"}),
+      pduPanel("PDU-2A",cA,[1,1,1,0],"A SIDE OF 2N PAIR"),
+      pduPanel("PDU-2B",cB,[1,1,0,1],"B SIDE OF 2N PAIR")],
+    inds:["ATS-1 position reads SOURCE 1",
+      "ATS-1 mode reads AUTO",
+      "UPS-1A NORMAL lamp lit, input present at "+iv+" V, rectifier and inverter path live",
+      "UPS-1A battery volts "+bv+" V",
+      "PDU-2A output in kilowatts"],
+    pduQ:{tag:"PDU-2A",A:cA,B:cB}};
+}
+function mkZ5(k){
+  const iv=Math.round(480+noise(3)), bv=Math.round(550+noise(2));
+  const q=[["Q1 CLOSED · Q2 OPEN · Q3 CLOSED"],["Q1 CLOSED · Q2 OPEN · Q3 CLOSED"]][k][0];
+  return {label:"ATS-3 · UPS-2A",
+    ctx:"Hall C. A battery replacement is booked for this module and the electrical contractor is on site.",
+    panels:[
+      atsPanel({tag:"ATS-3",s1v:iv,s1hz:"60.0",s2v:0,s2hz:"0.0",s1a:1,s2a:0,pos:1,mode:"AUTO",inh:0,
+        d1:"00:03",d2:"05:00",stat:"SOURCE 1 IN TOLERANCE · SET AT REST"}),
+      upsPanel({tag:"UPS-2A",inV:iv,inHz:"60.0",outV:0,outHz:"0.0",load:0,batV:bv,rt:"- - -",
+        rtCls:"dead",l:{normal:0,batt:0,sbp:0,mbp:1,flt:0},path:"mbp",
+        stat:"SYSTEM STATUS: MAINTENANCE BYPASS · "+q+" · LOAD OUTSIDE THE UNIT"})],
+    inds:["UPS-2A MAINTENANCE BYPASS lamp lit with Q3 closed and Q2 open",
+      "UPS-2A output volts 0 V",
+      "UPS-2A battery volts "+bv+" V on float",
+      "ATS-3 mode reads AUTO",
+      "UPS-2A load 0%"],
+    pduQ:null};
+}
+function mkZ6(k){
+  const av=Math.round([196,199][k]+noise(2)), bv=Math.round(208+noise(1));
+  const cnt=[14,31][k], load=[46,52][k];
+  const cA=[[206,171,188],[231,197,178]][k], cB=[[199,183,190],[204,196,201]][k];
+  return {label:"STS-3 · PDU-4A and PDU-4B",
+    ctx:"Hall A rack row 12. Both feeds into this switch come from utility by way of two different UPS strings.",
+    panels:[
+      stsPanel({tag:"STS-3",pref:"A",av:av,bv:bv,now:"B",cnt:cnt,outv:bv,load:load,aa:1,ba:1,alm:1,
+        stat:"PREFERRED SOURCE A OUT OF TOLERANCE — LOAD TRANSFERRED TO SOURCE B AND HELD"}),
+      pduPanel("PDU-4A",cA,[1,1,1,1],"A SIDE OF 2N PAIR"),
+      pduPanel("PDU-4B",cB,[1,1,1,0],"B SIDE OF 2N PAIR")],
+    inds:["STS-3 present source reads B with the preferred-source alarm lit",
+      "STS-3 transfer counter reads "+cnt,
+      "STS-3 preferred source selector set to A",
+      "PDU-4A per-phase currents",
+      "STS-3 SOURCE B AVAILABLE lamp lit"],
+    pduQ:{tag:"PDU-4A",A:cA,B:cB}};
+}
+function mkZ7(k){
+  const bv=Math.round([512,506][k]+noise(2));
+  const load=[38,42][k], rt=[7,6][k], d=[["00:04","05:00"],["00:06","05:00"]][k];
+  return {label:"ATS-2 · UPS-3A",
+    ctx:"Hall B, B-side string. The utility feed went away about ninety seconds ago and the standby set has not picked up yet.",
+    panels:[
+      atsPanel({tag:"ATS-2",s1v:0,s1hz:"0.0",s2v:0,s2hz:"0.0",s1a:0,s2a:0,pos:1,mode:"AUTO",inh:0,
+        d1:d[0],d2:d[1],stat:"SOURCE 1 OUT OF TOLERANCE · ENGINE START SIGNAL SENT · TRANSFER DELAY RUNNING"}),
+      upsPanel({tag:"UPS-3A",inV:0,inHz:"0.0",outV:480,outHz:"60.0",load:load,batV:bv,rt:String(rt),
+        batCls:"amber",rtCls:"amber",l:{normal:0,batt:1,sbp:0,mbp:0,flt:0},path:"battery",
+        stat:"SYSTEM STATUS: ON BATTERY — INPUT FAILURE · LOAD ON STORED ENERGY"})],
+    inds:["ATS-2 position reads SOURCE 1",
+      "ATS-2 normal-to-emergency delay counting down",
+      "UPS-3A ON BATTERY lamp lit with input 0 V and battery volts falling",
+      "UPS-3A output steady at 480 V, 60.0 Hz",
+      "UPS-3A load "+load+"%"],
+    pduQ:null};
+}
+function mkZ8(k){
+  const iv=Math.round(481+noise(3)), bv=Math.round(547+noise(2));
+  const load=[43,39][k], ohz=[["59.9"],["60.1"]][k][0];
+  return {label:"ATS-4 · UPS-5A",
+    ctx:"Hall B, A-side string. Overnight walkround of the A-side modules.",
+    panels:[
+      atsPanel({tag:"ATS-4",s1v:iv,s1hz:ohz,s2v:0,s2hz:"0.0",s1a:1,s2a:0,pos:1,mode:"AUTO",inh:0,
+        d1:"00:03",d2:"05:00",stat:"SOURCE 1 IN TOLERANCE · SET AT REST"}),
+      upsPanel({tag:"UPS-5A",inV:iv,inHz:ohz,outV:iv,outHz:ohz,load:load,batV:bv,rt:"- - -",
+        rtCls:"dead",l:{normal:1,batt:0,sbp:1,mbp:0,flt:0},path:"sbp",
+        stat:"SYSTEM STATUS: NORMAL — LOAD SUPPORTED · STATIC BYPASS CLOSED · INVERTER OUT OF CIRCUIT"})],
+    inds:["UPS-5A system status line reads NORMAL, load supported",
+      "UPS-5A STATIC BYPASS lamp lit with the inverter path dark",
+      "UPS-5A load "+load+"%",
+      "ATS-4 position reads SOURCE 1",
+      "UPS-5A battery volts "+bv+" V"],
+    pduQ:null};
+}
+const FACTORY={z1:mkZ1,z2:mkZ2,z3:mkZ3,z4:mkZ4,z5:mkZ5,z6:mkZ6,z7:mkZ7,z8:mkZ8};
+function buildSets(){
+  const k=SET;
+  return V.order.map((code,i)=>{
+    const s=FACTORY[code](k);
+    s.n=i+1; s.pid="P"+(i+1);
+    s.inds=shuffled(s.inds);
+    return s;
+  });
+}
+function shuffled(a){
+  const b=a.slice();
+  for(let i=b.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=b[i];b[i]=b[j];b[j]=t;}
+  return b;
+}
+
+/* ---------- view ---------- */
+function setCardHTML(s,i){
+  const opts=s.inds.map((t,j)=>`<option value="${j}">${t}</option>`).join("");
+  const pduQ=s.pduQ?`
+    <div class="qrow">
+      <div class="fld"><label>5a · Phase imbalance on ${s.pduQ.tag} — highest phase against the average, per cent</label>
+        <input type="number" step="0.1" id="q${i}_imb" placeholder="e.g. 4.8"></div>
+      <div class="fld"><label>5b · Is either side of the 2N pair above 50% of its 225 kVA rating?</label>
+        <select id="q${i}_50"><option value="">— choose —</option>
+          <option value="no">No — either side could take the whole load on its own</option>
+          <option value="yes">Yes — one side is already above half its rating</option></select></div>
+    </div>`:"";
+  return `<div class="setcard" id="card${i}" data-i="${i}">
+    <h2><span class="sid">${s.pid}</span>${s.label}</h2>
+    <div class="ctx">${s.ctx}</div>
+    <div class="pnls">${s.panels.map(panelHTML).join("")}</div>
+    <div class="qa">
+      <div class="qhdr">Set ${s.pid} — your reading</div>
+      <div class="qrow">
+        <div class="fld"><label>1 · Where is the load being carried from?</label>
+          <select id="q${i}_src"><option value="">— choose —</option>
+            <option value="utility">Utility</option>
+            <option value="battery">Battery</option>
+            <option value="generator">Generator</option></select></div>
+        <div class="fld"><label>2 · Which indicator told you that?</label>
+          <select id="q${i}_ind"><option value="">— choose —</option>${opts}</select></div>
+      </div>
+      <div class="fld" style="margin-bottom:11px">
+        <label>3 · What do the other indicators on this set not tell you?</label>
+        <textarea id="q${i}_not" rows="2" placeholder="Type your answer here."></textarea>
+      </div>
+      <div class="qrow">
+        <label class="chk"><input type="checkbox" id="q${i}_esc">
+          4 · Flag this set for escalation</label>
+        <div class="fld"><label>Reason for the flag</label>
+          <input type="text" id="q${i}_why" placeholder="Why you are flagging it"></div>
+      </div>
+      ${pduQ}
+    </div>
+  </div>`;
+}
+function rolesHTML(){
+  const opts=S.roleOpts.map(r=>`<option value="${r.id}">${r.t}</option>`).join("");
+  const one=(id,lbl)=>`<div class="fld" style="margin-bottom:11px"><label>${lbl}</label>
+    <select id="role_${id}" style="width:100%"><option value="">— choose —</option>${opts}</select></div>`;
+  return `<div class="submit noprint">
+    <h3>Component functional roles</h3>
+    <div class="sub">One role each, and no two components may be given the same role.</div>
+    ${COMPS.map(c=>one(c[0],c[1])).join("")}
+  </div>
+  <div class="submit noprint">
+    <h3>Your submission</h3>
+    <div class="sub">Builds a printable record of everything you have entered across the eight sets. Question 3 is read by your instructor when the group reviews the lab — it is the question that matters most, so write it in full.</div>
+    <div class="fld" style="margin-bottom:12px"><label>Your name</label>
+      <input type="text" id="learnerName" style="width:280px" autocomplete="off"></div>
+    <button class="primary" id="btnSubmit">Build submission sheet</button>
+  </div>`;
+}
+function renderSets(){
+  $("setsArea").innerHTML=S.sets.map((s,i)=>setCardHTML(s,i)).join("");
+  $("submitArea").innerHTML=rolesHTML();
+  $("navchips").innerHTML=S.sets.map((s,i)=>
+    `<div class="nc ${i===S.cur?"on":""}" data-i="${i}">${s.pid}</div>`).join("")+
+    `<span style="width:10px"></span><button id="btnPrev">Previous set</button><button id="btnNext">Next set</button>`;
+  $("navchips").onclick=e=>{
+    const c=e.target.closest(".nc"); if(!c)return;
+    S.cur=+c.dataset.i; applyMode();
+  };
+  $("btnPrev").onclick=()=>{S.cur=(S.cur+S.sets.length-1)%S.sets.length;applyMode();};
+  $("btnNext").onclick=()=>{S.cur=(S.cur+1)%S.sets.length;applyMode();};
+  $("learnerName").value=S.learner;
+  $("learnerName").addEventListener("input",e=>{
+    S.learner=e.target.value.trim();
+    $("prtHdr").innerHTML=`<h2>UCI 2227 — ${LAB.lab} · ${LAB.title}</h2>
+      <div class="ctx">${esc(S.learner||"—")}</div>`;
+  });
+  $("btnSubmit").onclick=()=>setMode("sheet");
+  $("prtHdr").innerHTML=`<h2>UCI 2227 — ${LAB.lab} · ${LAB.title}</h2>
+    <div class="ctx">${esc(S.learner||"—")}</div>`;
+}
+function setMode(m){ S.mode=m; applyMode(); }
+function applyMode(){
+  const one=S.mode==="one", sheet=S.mode==="sheet";
+  $("navchips").classList.toggle("hidden",!one);
+  $("setsArea").classList.toggle("hidden",sheet);
+  $("sheetArea").classList.toggle("hidden",!sheet);
+  $("submitArea").classList.toggle("hidden",sheet);
+  S.sets.forEach((s,i)=>{
+    const c=$("card"+i); if(!c)return;
+    c.classList.toggle("hidden",one&&i!==S.cur);
+  });
+  if(one){
+    [...$("navchips").querySelectorAll(".nc")].forEach(c=>{
+      c.classList.toggle("on",+c.dataset.i===S.cur);
+      c.classList.toggle("done",!!val("q"+c.dataset.i+"_src"));
+    });
+  }
+  if(sheet) buildSheet();
+  $("btnAll").className=S.mode==="all"?"primary":"";
+  $("btnOne").className=one?"primary":"";
+  $("btnSheet").className=sheet?"primary":"";
+  $("posn").textContent=one?("Set "+(S.cur+1)+" of "+S.sets.length):(S.sets.length+" sets");
+}
+function val(id){const e=$(id);return e?e.value:"";}
+function chk(id){const e=$(id);return !!(e&&e.checked);}
+
+/* ---------- submission sheet ---------- */
+function buildSheet(){
+  const missing=[];
+  if(!S.learner) missing.push("Your name");
+  const rows=S.sets.map((s,i)=>{
+    const src=val("q"+i+"_src"), ind=val("q"+i+"_ind"), txt=val("q"+i+"_not").trim();
+    const imb=s.pduQ?val("q"+i+"_imb"):"", fifty=s.pduQ?val("q"+i+"_50"):"";
+    const why=val("q"+i+"_why").trim();
+    const gaps=[];
+    if(!src) gaps.push("source");
+    if(ind==="") gaps.push("deciding indicator");
+    if(!txt) gaps.push("question 3");
+    if(s.pduQ&&imb==="") gaps.push("imbalance figure");
+    if(s.pduQ&&!fifty) gaps.push("50% check");
+    if(chk("q"+i+"_esc")&&!why) gaps.push("reason for the escalation flag");
+    if(gaps.length) missing.push(s.pid+": "+gaps.join(", "));
+    return `<tr>
+      <td class="sd">${s.pid}</td>
+      <td>${esc(s.label)}</td>
+      <td class="sd">${src?esc(src.toUpperCase()):"—"}</td>
+      <td>${ind!==""?esc(s.inds[+ind]):"—"}</td>
+      <td>${txt?esc(txt):"—"}</td>
+      <td class="sd">${s.pduQ?((imb===""?"—":esc(imb)+"%")+" · "+(fifty?esc(fifty):"—")):"n/a"}</td>
+      <td>${chk("q"+i+"_esc")?("FLAGGED"+(why?" — "+esc(why):"")):"—"}</td></tr>`;
+  }).join("");
+  const role=id=>{
+    const v=val("role_"+id); if(!v)return "—";
+    const r=ROLES.filter(x=>x.id===v)[0]; return r?esc(r.t):"—";
+  };
+  COMPS.forEach(c=>{ if(!val("role_"+c[0])) missing.push("Functional role for the "+c[1]); });
+  const now=new Date();
+  $("sheetArea").innerHTML=`<div class="setcard sheet result show" style="margin-top:0">
+    <h2>${LAB.lab} — ${LAB.title}</h2>
+    <div class="ctx">UCI 2227 · objective ${LAB.obj} · submission sheet<br>
+      Name ${esc(S.learner||"________________")} ·
+      completed ${now.toLocaleDateString()} ${now.toLocaleTimeString()} · time at console ${fmtElapsed(S.t)}</div>
+    <table>
+      <thead><tr><th>Set</th><th>Panels</th>
+        <th>Source called</th><th>Deciding indicator</th>
+        <th>What the other indicators do not tell me</th>
+        <th>Imbalance / 50% check</th><th>Escalation</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:14px" class="ctx">
+      <b>UPS role:</b> ${role("ups")}<br>
+      <b>ATS role:</b> ${role("ats")}<br>
+      <b>STS role:</b> ${role("sts")}<br>
+      <b>PDU role:</b> ${role("pdu")}
+    </div>
+    ${missing.length?`<div class="missing"><b>Not yet filled in:</b><br>`+
+      missing.map(m=>"· "+esc(m)).join("<br>")+
+      `<br><br>This is a completeness check only. Go back and fill these in, or hand the sheet in as it stands and explain the gaps to your instructor.</div>`:""}
+    <div class="closing">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
+    <div style="margin-top:14px" class="noprint"><button id="btnPrint">Print submission sheet</button></div>
+    <div class="ctx" style="margin-top:12px">Learner signature ________________________ &nbsp;&nbsp;
+      Date ________________</div>
+  </div>`;
+  $("btnPrint").onclick=()=>window.print();
+}
+
+/* ---------- clock ---------- */
+function render(){ $("clock").textContent=fmtClock(S.t); $("elapsed").textContent=fmtElapsed(S.t); }
+function startClock(){
+  if(S.timer) clearInterval(S.timer);
+  S.timer=setInterval(()=>{ S.t+=1/60; render(); },1000);
+  render();
+}
+function resetRun(){
+  rnd=mulberry32(RNG_KEY);
+  S.t=0; S.cur=0;
+  S.sets=buildSets();
+  S.roleOpts=shuffled(ROLES);
+  renderSets(); setMode("all"); startClock();
+  $("statusBadge").textContent="Reading"; $("statusBadge").className="badge";
+}
+
+/* ---------- wiring ---------- */
+$("btnAll").onclick=()=>setMode("all");
+$("btnOne").onclick=()=>setMode("one");
+$("btnSheet").onclick=()=>setMode("sheet");
+$("btnRestart").onclick=resetRun;
+document.addEventListener("keydown",e=>{
+  if(S.mode==="one"&&!$("setsView").classList.contains("hidden")
+     &&e.target.tagName!=="TEXTAREA"&&e.target.tagName!=="INPUT"&&e.target.tagName!=="SELECT"){
+    if(e.key==="ArrowRight"){S.cur=(S.cur+1)%S.sets.length;applyMode();}
+    if(e.key==="ArrowLeft"){S.cur=(S.cur+S.sets.length-1)%S.sets.length;applyMode();}
+  }
+});
+
+/* ---------- boot ---------- */
+$("setTag").textContent="Set "+"ABCDEFGH".charAt(SET);
+resetRun();
+</script>
+<!-- LQ_SUBMISSION_MODULE -->
+<script id="lqData">var LQ={"lab": "524.2.2", "title": "Which Source Is Carrying the Load?", "handout": "GLAB 524.2.2 - Which Source Is Carrying the Load?", "file": "524-2-2-B_SourceID.html", "set": "B", "items": [{"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 1. Collect the status packet, the component checklist, the equipment specification index and the component functional diagnosis sheet. Open the 524.2.2 file your instructor gives you — it opens straight into the lab. Check that your packet has eight sets before you start."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 2. Before you look at any set, write one sentence for each of the four component types on the component checklist: what a UPS does, what an ATS does, what an STS does, what a PDU does. Do this from your own head, not from the glossary. If two of your sentences could be swapped without either becoming wrong, one of them is not specific enough. Rewrite it."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 4. For each set, record on your diagnosis sheet whether the load is on utility, on battery or on generator. One of those three, for every set. Where a set has more than one piece of equipment in it, be clear about which piece of equipment you are answering for."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 5. For each set, state which specific indicator told you. Name it precisely: not “the UPS”, but “the ON BATTERY lamp lit with input volts at zero”. A general impression is not an indicator."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 6. For each set, state what the other indicators do NOT tell you. This is the step that separates memorising indicators from understanding them. For example: the ATS position tells you which source is selected; it does not tell you that source is healthy. Write one sentence of that shape for every set. If you can write that sentence, you have the objective."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 7. Find the set where the UPS is on static bypass. Flag it and mark it as an escalation on your diagnosis sheet. Write in one sentence why it is an escalation, in terms a shift lead would act on. Note also what the runtime field on that unit is showing, and what that tells you."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 8. Do not confuse static bypass with maintenance bypass. Where a unit is on maintenance bypass the load sits on the external wrap-around and the UPS output reads 0 V. Record which set that is and state whether it is an escalation or a planned condition, and why."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 9. Work every PDU set. For each PDU, take the three per-phase currents, calculate the mean, and express the greatest deviation from that mean as a percentage of the mean. That is your phase imbalance figure. Record it for each PDU."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 10. For each PDU, divide the mean phase current by the full-load current from the specification index to get the percentage of rating. Flag any side of a 2N pair that exceeds 50%. A 2N pair is two complete independent systems, and the promise of 2N is that either side can carry the whole load alone. If one side is already above half its rating, that promise has gone, whatever the label on the door says."}, {"s": "Part 1: Reading the eight sets", "k": "image", "p": "Step 11. Go to the MIR rack and read the physical UPS and rack PDU displays. Find on the metal the same fields you have been reading on paper: input volts, output volts, load percentage, the lamp cluster, the per-phase currents. Note any field that appears on the physical panel but not in the packet, and any that appears in the packet but not on the metal."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 12. Complete the component functional diagnosis sheet: one line per set, eight lines, each with the live source, the deciding indicator, what the other indicators do not tell you, and any escalation. Then read your own eight lines back and check that no two sets have been given the same reasoning. If two lines read identically, you have pattern-matched rather than diagnosed one of them."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 13. Identify the two sets you found hardest and be ready to say why in the group review. The review works the ambiguous sets on the screen together, and it is worth more if you have already committed to an answer. Record the two set numbers below and, for each, the one indicator that made it hard to call. Then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose a transfer switch showed position SOURCE 2, the generator source, while the generator itself read 0 rpm and 0 V in manual. Explain what the transfer switch position actually measures, why it can be correct and useless at the same time, and what the load would really be running on."}, {"s": "Part 2: Reflection", "k": "text", "p": "A UPS front panel reads NORMAL and the load is up, and the static bypass indicator is lit. Explain the difference between the load being supported and the load being protected, and say what would happen at the next supply disturbance. Say why nothing on the data hall floor would look any different."}, {"s": "Part 2: Reflection", "k": "text", "p": "Two sets can both have the load on utility and get there by different routes — one through the inverter, one through an external wrap-around with the unit isolated. Explain how you would tell them apart, and why only one of them is a finding."}, {"s": "Part 2: Reflection", "k": "text", "p": "If you found one side of a 2N pair above 50% of its rating, state what would happen if the other side of that pair failed, and write the one sentence you would put in the shift log so an engineer could act on it without calling you."}]};</script>
+<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+     Collects every handout question and its response inside this lab tool and
+     exports ONE print-to-PDF submission sheet for Canvas grading.
+     Self-contained. No external libraries. Safe to re-inject (idempotent).
+
+     v2.0 — WCAG 2.1 AA pass (label association, headings, alt text, contrast,
+     status announcement, authored focus); image downscale before storage with a
+     visible error if the quota still throws; Save-as-PDF filename set from the
+     learner name; print pagination and running header; duplicate learner-name
+     rows stripped from the harvested simulator record.
+     ========================================================================= -->
+<style id="lqStyle">
+  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
+  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+  #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#9db6c9;font-weight:700}
+  #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
+    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+  #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
+  #lqCard .lqq{margin-bottom:16px}
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+    cursor:pointer}
+  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+    margin-right:6px;font-weight:700}
+  #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
+    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
+  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+  #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
+  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard .lqimgwrap{margin-top:7px}
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+    border-radius:5px;display:block;margin-top:8px}
+  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+
+  /* authored focus — the simulators author none, so this is the only visible ring.
+     Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
+     in the simulator above as much as in the submission panel. */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+  @media print{ :focus-visible{outline:none!important} }
+
+  /* error banner for a storage failure the learner must know about */
+  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr b{color:#fff}
+
+  /* screen-reader-only live region */
+  .lqvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* ---- the assembled submission sheet ---- */
+  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
+  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
+  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+    padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
+  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
+    font-size:12px;color:#a8c0d3;line-height:1.9}
+
+  #lqPrint{display:none}
+  #lqPrint .lqpage{width:100%;border-collapse:collapse}
+
+  /* ---- print: only the sheet ---- */
+  @media print{
+    body.lq-print{background:#fff!important;color:#000!important;
+      overflow:visible!important;height:auto!important}
+    body.lq-print>*{display:none!important}
+    body.lq-print>#lqPrint{display:block!important}
+
+    /* Everything harvested from the simulator arrives in the dark console palette:
+       near-white text that would print invisibly, on backgrounds the browser drops
+       by default. Flatten the whole print container to ink on paper first, then
+       re-assert the few greys that carry meaning. */
+    body.lq-print #lqPrint,body.lq-print #lqPrint *{
+      color:#000!important;background-color:transparent!important;background-image:none!important;
+      box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
+
+    /* running header — a thead repeats on every page in every engine that paginates */
+    body.lq-print #lqPrint thead.lqrhead{display:table-header-group}
+    body.lq-print #lqPrint td.lqrh{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      font-size:8pt;color:#444!important;border-bottom:.5pt solid #999!important;
+      padding:0 0 3pt;text-align:left}
+    body.lq-print #lqPrint td.lqrh .r{float:right}
+    body.lq-print #lqPrint td.lqbody{padding:6pt 0 0}
+
+    body.lq-print #lqPrint .lqsheet{background:#fff;border:0;padding:0;margin:0;color:#000}
+    body.lq-print #lqPrint h1{color:#000}
+    body.lq-print #lqPrint h1,body.lq-print #lqPrint h2{border-bottom-color:#999!important}
+    body.lq-print #lqPrint h2{color:#000;border-bottom:1px solid #999;
+      page-break-after:avoid;break-after:avoid}
+    body.lq-print #lqPrint .lqmeta,body.lq-print #lqPrint .lqrow .k,
+    body.lq-print #lqPrint .lqa .q{color:#444!important}
+    body.lq-print #lqPrint .lqa .q .qn{color:#000!important}
+    body.lq-print #lqPrint .lqrow,body.lq-print #lqPrint .lqa{border-bottom:1px solid #ddd!important}
+    body.lq-print #lqPrint .lqa,body.lq-print #lqPrint .lqrow,
+    body.lq-print #lqPrint .lqsign,body.lq-print #lqPrint .lqgap{
+      page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint .lqa .a.blank{color:#000;font-style:italic}
+    body.lq-print #lqPrint .lqgap,body.lq-print #lqPrint .lqgap.ok{
+      background:#fff!important;border:1pt solid #666!important;color:#000!important}
+    body.lq-print #lqPrint .lqsign{color:#000;border-top:1px solid #999}
+    body.lq-print #lqPrint .noprint{display:none!important}
+    body.lq-print #lqPrint button{display:none!important}
+    /* harvested simulator tables keep their column headers across pages */
+    body.lq-print #lqPrint thead{display:table-header-group}
+    body.lq-print #lqPrint tr{page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint p,body.lq-print #lqPrint .a{orphans:3;widows:3}
+    @page{margin:16mm 14mm 14mm}
+  }
+</style>
+<script id="lqScript">
+(function(){
+  if(window.__lqLoaded) return; window.__lqLoaded=true;
+
+  var esc=function(s){return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
+
+  var KEY="uci2227:"+LQ.file;
+  var store={}, storageBroken=false;
+  try{ store=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ store={}; }
+
+  /* ---------- cross-lab storage budget ----------
+     Every lab in the module is served from one origin, so all 43 share a single
+     ~5 MB localStorage budget. Seventeen image questions at ~325 KB apiece is 5.4 MB
+     — a learner working through the whole module on one browser profile would run out
+     near the end. Images belonging to OTHER labs are evicted when room is needed,
+     oldest and already-exported first. Text answers are never evicted: they are tiny,
+     and they are the part a learner cannot reproduce. An evicted image is already
+     inside the submission PDF that lab produced. */
+  function otherLabKeys(){
+    var out=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0&&k!==KEY) out.push(k);
+      }
+    }catch(e){}
+    return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
+  }
+  function evictOtherImages(target){
+    /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
+    var recs=[];
+    otherLabKeys().forEach(function(k){
+      var raw,obj;
+      try{ raw=localStorage.getItem(k)||"{}"; obj=JSON.parse(raw); }catch(e){ return; }
+      var imgBytes=0;
+      for(var f in obj) if(/_img$/.test(f)) imgBytes+=String(obj[f]).length;
+      if(imgBytes>0) recs.push({k:k,obj:obj,bytes:imgBytes,ts:obj._ts||0,done:obj._done?1:0});
+    });
+    recs.sort(function(a,b){ return (b.done-a.done)||(a.ts-b.ts); });
+    var freed=0;
+    for(var i=0;i<recs.length&&freed<target;i++){
+      var r=recs[i];
+      for(var f in r.obj) if(/_img$/.test(f)) delete r.obj[f];
+      r.obj._evicted=true;
+      try{ localStorage.setItem(r.k,JSON.stringify(r.obj)); freed+=r.bytes; }catch(e){}
+    }
+    return freed;
+  }
+
+  function save(){
+    store._ts=Date.now();
+    var payload;
+    try{ payload=JSON.stringify(store); }catch(e){ return false; }
+    try{
+      localStorage.setItem(KEY,payload);
+      if(storageBroken){ storageBroken=false; showStoreErr(null); }
+      return true;
+    }catch(e){
+      /* make room from other labs, then try once more */
+      if(evictOtherImages(payload.length+200000)>0){
+        try{
+          localStorage.setItem(KEY,payload);
+          if(storageBroken){ storageBroken=false; showStoreErr(null); }
+          return true;
+        }catch(e2){}
+      }
+      storageBroken=true;
+      showStoreErr(e);
+      return false;
+    }
+  }
+  function showStoreErr(e){
+    var b=document.getElementById("lqStoreErr");
+    if(!b) return;
+    if(!e){ b.style.display="none"; return; }
+    b.style.display="block";
+    b.innerHTML='<b>Your work is no longer being saved in this browser.</b><br>'
+      +'Storage is full or switched off — usually private browsing, or a great many images '
+      +'attached across the labs on this machine. Everything on screen is intact and the '
+      +'submission PDF will still build correctly — but <b>do not refresh or close this tab</b>. '
+      +'Press <b>Build submission PDF</b> now and save the file. '
+      +'Then press <b>Clear my responses</b> to free the space up for the next lab.';
+    if(b.scrollIntoView) b.scrollIntoView({block:"nearest"});
+  }
+
+  function announce(msg){
+    var s=document.getElementById("lqStatus");
+    if(s){ s.textContent=""; setTimeout(function(){ s.textContent=msg; },30); }
+  }
+
+  /* ---------- detect the set letter the tool is running ---------- */
+  function setLetter(){
+    try{ if(typeof SETLETTER!=="undefined"&&SETLETTER) return SETLETTER; }catch(e){}
+    var tag=document.getElementById("setTag");
+    if(tag&&tag.textContent){
+      var m=tag.textContent.match(/set\s+([A-H])/i); if(m) return m[1].toUpperCase();
+    }
+    var m2=(LQ.file||"").match(/524-\d-\d-([A-H])_/); if(m2) return m2[1];
+    return LQ.set||"—";
+  }
+
+  /* ---------- downscale an image before it goes anywhere near storage ----------
+     A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
+     about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
+     capture under 400 KB, which is still far more detail than the PDF can show. */
+  var MAXPX=1600, JPEGQ=0.82;
+  function downscale(file,cb){
+    var rd=new FileReader();
+    rd.onerror=function(){ cb(null,"The browser could not read that file."); };
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ cb(null,"That file does not look like an image the browser can open."); };
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(rd.result,null); return; }
+          var sc=Math.min(1,MAXPX/Math.max(w,h));
+          if(sc>=1&&rd.result.length<600000){ cb(rd.result,null); return; }
+          var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+          var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+          var x=c.getContext("2d");
+          x.fillStyle="#fff"; x.fillRect(0,0,cw,ch);
+          x.drawImage(img,0,0,cw,ch);
+          cb(c.toDataURL("image/jpeg",JPEGQ),null);
+        }catch(err){ cb(rd.result,null); }
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+
+  /* ---------- build the card ---------- */
+  var host=document.querySelector("main .wrap")||document.querySelector("main")||document.body;
+  var card=document.createElement("section");
+  card.id="lqCard";
+  card.setAttribute("aria-labelledby","lqCardTitle");
+
+  var qs=LQ.items, secs=[], cur=null;
+  qs.forEach(function(it,i){
+    if(!cur||cur.name!==it.s){ cur={name:it.s,list:[]}; secs.push(cur); }
+    cur.list.push({i:i,it:it});
+  });
+
+  var html=""
+   +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
+   +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
+   +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
+   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<div id="lqStoreErr" role="alert"></div>'
+   +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
+   +'<div class="lqid">'
+   +'<div class="lqfld" style="flex:1 1 260px"><label for="lqName">Your name</label>'
+     +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
+     +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
+     +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
+   +'</div>';
+
+  secs.forEach(function(sec,si){
+    html+='<h3 class="lqsec" id="lqSec'+si+'">'+esc(sec.name||"Questions")+'</h3>';
+    sec.list.forEach(function(o){
+      var id="lqQ"+o.i, n=o.i+1;
+      html+='<div class="lqq">';
+      if(o.it.k==="image"){
+        html+='<p class="lqp"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</p>'
+             +'<div class="lqimgwrap">'
+             +'<label class="lqfilelbl" for="'+id+'_f">Attach your image for question '+n+'</label>'
+             +'<input type="file" accept="image/*" id="'+id+'_f">'
+             +'<p class="lqnote" style="margin:5px 0 0">A photo or screenshot. It is resized and '
+             +'embedded in the PDF you hand in.</p>'
+             +'<img id="'+id+'_img" alt="Your attached image for question '+n+'" style="display:none">'
+             +'<label class="lqfilelbl" for="'+id+'" style="margin-top:8px">Caption or note for question '+n+'</label>'
+             +'<textarea id="'+id+'" rows="2" placeholder="Add any caption or note that goes with the image.">'
+             +esc(store[id]||"")+'</textarea></div>';
+      }else{
+        html+='<label class="lqp" for="'+id+'"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</label>'
+             +'<textarea id="'+id+'" rows="3" placeholder="Type your answer here.">'+esc(store[id]||"")+'</textarea>';
+      }
+      html+='</div>';
+    });
+  });
+
+  html+='<div class="lqbtns">'
+    +'<button type="button" class="lqprimary" id="lqBuild">Build submission PDF</button>'
+    +'<button type="button" id="lqPreview">Preview without printing</button>'
+    +'<button type="button" id="lqClear">Clear my responses</button>'
+    +'<span class="lqnote">The PDF carries every question, your responses and the simulator record. One file, one upload.</span>'
+    +'</div><div id="lqOut" role="region" aria-label="Submission sheet preview"></div>';
+
+  card.innerHTML=html;
+  host.appendChild(card);
+
+  /* ---------- wiring ---------- */
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
+    var el=document.getElementById(id);
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+  });
+  qs.forEach(function(it,i){
+    var id="lqQ"+i, ta=document.getElementById(id);
+    if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
+    var f=document.getElementById(id+"_f");
+    if(f) f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      announce("Processing your image for question "+(i+1)+".");
+      downscale(file,function(dataUrl,err){
+        if(err){ announce(err); alert(err); return; }
+        var img=document.getElementById(id+"_img");
+        img.src=dataUrl; img.style.display="block";
+        store[id+"_img"]=dataUrl;
+        var okSave=save();
+        announce("Image attached to question "+(i+1)+
+          (okSave?"." : ", but it could not be saved in this browser. Build your PDF now."));
+      });
+    };
+    if(store[id+"_img"]){
+      var im0=document.getElementById(id+"_img");
+      if(im0){ im0.src=store[id+"_img"]; im0.style.display="block"; }
+    }
+  });
+
+  /* an image of this lab was evicted to make room for another lab on the shared
+     origin, and this lab had not yet been exported — say so plainly */
+  if(store._evicted&&!store._done){
+    var eb=document.getElementById("lqStoreErr");
+    eb.style.display="block";
+    eb.innerHTML='<b>An image you attached is no longer stored.</b><br>'
+      +'This browser ran out of room across all the labs on this machine and dropped it. '
+      +'Your typed answers are all still here — only the image went. '
+      +'Attach it again before you build your submission PDF.';
+    delete store._evicted; save();
+  }
+
+  document.getElementById("lqClear").onclick=function(){
+    if(!confirm("Clear every response you have typed in this lab? This cannot be undone.")) return;
+    store={}; save();
+    qs.forEach(function(it,i){
+      var ta=document.getElementById("lqQ"+i); if(ta) ta.value="";
+      var im=document.getElementById("lqQ"+i+"_img"); if(im){ im.removeAttribute("src"); im.style.display="none"; }
+      var fi=document.getElementById("lqQ"+i+"_f"); if(fi) fi.value="";
+    });
+    document.getElementById("lqOut").innerHTML="";
+    announce("All responses cleared.");
+  };
+
+  /* ---------- guard the simulator's Restart button ----------
+     Restart wipes the simulator record but not the responses typed here, which
+     would leave a submission whose prose describes a record that no longer exists.
+     A capture-phase listener runs ahead of the tool's own onclick, so one confirm
+     covers every variant of the handler. */
+  (function(){
+    var rb=document.getElementById("btnRestart")||document.getElementById("btnReset");
+    if(!rb||card.contains(rb)) return;
+    rb.addEventListener("click",function(ev){
+      if(rb.dataset.lqOk==="1"){ rb.dataset.lqOk=""; return; }
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      var ok=confirm(
+        "Restart the scenario?\n\n"+
+        "Everything you recorded in the simulator — readings, marks, logs, the "+
+        "submission sheet it built — is wiped and the run starts again.\n\n"+
+        "The answers you typed in the submission panel lower down are KEPT. If they "+
+        "describe readings you are about to erase, build your submission PDF first.");
+      if(ok){ rb.dataset.lqOk="1"; rb.click(); }
+    },true);
+  })();
+
+  /* ---------- harvest the simulator's own record ---------- */
+  var REC_SEL=".sheet, .result.show";
+  function collect(){
+    var raw=[];
+    Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
+      if(card.contains(s)) return;
+      if(!s.textContent.replace(/\s/g,"")) return;
+      raw.push(s);
+    });
+    return raw.filter(function(s){
+      return !raw.some(function(o){ return o!==s && o.contains(s); });
+    });
+  }
+
+  /* the module already prints the learner name in its own Learner block, and every
+     simulator sheet prints it again — four of them twice. Strip it from the clone. */
+  var NAMEKEY=/^(your\s+)?(name|learner(\s+name)?)\s*:?\s*$/i;
+  function stripDuplicateName(root){
+    Array.prototype.forEach.call(root.querySelectorAll(".learnerline"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    var rows=root.querySelectorAll("div,tr,p");
+    Array.prototype.forEach.call(rows,function(r){
+      var first=r.firstElementChild;
+      if(!first||r.children.length>3) return;
+      if(NAMEKEY.test((first.textContent||"").trim())){
+        if(r.parentNode) r.parentNode.removeChild(r);
+      }
+    });
+  }
+
+  function toolRecord(){
+    var found=collect();
+    if(!found.length){
+      var btns=document.querySelectorAll("button");
+      var hit=null;
+      Array.prototype.forEach.call(btns,function(b){
+        if(card.contains(b)||hit) return;
+        var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+        if(/print/.test(t)) return;
+        if(/^build submission sheet$/.test(t)) hit=b;
+      });
+      if(!hit){
+        Array.prototype.forEach.call(btns,function(b){
+          if(card.contains(b)||hit) return;
+          var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+          if(/print/.test(t)) return;
+          if(/build .*sheet|submission sheet|submit .*(map|answer|sheet|round|log)|^submit$/.test(t)) hit=b;
+        });
+      }
+      if(hit){ try{ hit.click(); }catch(e){} }
+      found=collect();
+    }
+    if(!found.length) return null;
+    var wrap=document.createElement("div");
+    found.forEach(function(s){
+      var c=s.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      });
+      stripDuplicateName(c);
+      wrap.appendChild(c);
+    });
+    return wrap.innerHTML;
+  }
+
+  /* ---------- assemble the one sheet ---------- */
+  function build(){
+    var name=document.getElementById("lqName").value.trim();
+    var coh=document.getElementById("lqCohort").value.trim();
+    var dt=document.getElementById("lqDate").value.trim();
+    var gaps=[];
+    if(!name) gaps.push("Your name");
+    if(!coh)  gaps.push("Cohort / section");
+
+    var h=''
+     +'<div class="lqsheet">'
+     +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
+     +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
+       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+     +'<h2>Learner</h2>'
+     +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Built</span><span class="v">'
+       +esc(new Date().toLocaleString())+'</span></div>';
+
+    var rec=LQ.nosim?null:toolRecord();
+    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
+    else if(!LQ.nosim){
+      gaps.push("The simulator record — work through the lab tool above and press its own "
+               +"“Build submission sheet” button before you build this PDF");
+    }else{
+      h+='<h2>Assessed on the floor</h2>'
+        +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
+        +'Observed and signed off by the instructor against the handout. '
+        +'The instructor signature below records that sign-off.</span></div>';
+    }
+
+    var curSec=null;
+    qs.forEach(function(it,i){
+      if(it.s!==curSec){ curSec=it.s; h+='<h2>'+esc(curSec||"Questions")+'</h2>'; }
+      var ta=document.getElementById("lqQ"+i);
+      var a=ta?ta.value.trim():"";
+      var im=store["lqQ"+i+"_img"];
+      if(!a&&!im) gaps.push("Q"+(i+1));
+      h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
+      if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
+      h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
+    });
+
+    if(gaps.length){
+      h+='<div class="lqgap"><b>Not yet filled in ('+gaps.length+'):</b> '+esc(gaps.join(", "))
+        +'.<br>This is a completeness check, not a grade. Fill them in and build again, '
+        +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
+    }else{
+      h+='<div class="lqgap ok">'
+        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+    }
+
+    h+='<div class="lqsign">Learner signature: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'Instructor verification: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
+
+    document.getElementById("lqOut").innerHTML=h;
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
+    return h;
+  }
+
+  document.getElementById("lqPreview").onclick=function(){
+    build();
+    var o=document.getElementById("lqOut");
+    if(o&&o.scrollIntoView) o.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* ---------- the one PDF ---------- */
+  function safeName(s){
+    return String(s||"").normalize?String(s||"").normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+      :String(s||"").replace(/[^\w\s-]/g,"").trim();
+  }
+  function fileTitle(){
+    var n=safeName(document.getElementById("lqName").value).split(/\s+/).filter(Boolean);
+    var last=n.length>1?n[n.length-1]:(n[0]||"Learner");
+    var first=n.length>1?n.slice(0,-1).join("_"):"";
+    var who=first?(last+"_"+first):last;
+    return who+"_"+String(LQ.lab||"").replace(/[^\d.]/g,"");
+  }
+
+  document.getElementById("lqBuild").onclick=function(){
+    var h=build();
+    /* this lab's images are now inside a PDF the learner holds, so they become the
+       first thing evicted when another lab needs room on the shared origin */
+    store._done=true; save();
+
+    var old=document.getElementById("lqPrint"); if(old) old.parentNode.removeChild(old);
+
+    /* The sheet goes inside a one-cell table whose thead repeats on every printed
+       page, so pages 2+ still carry the learner name, the lab and the set. */
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+      +esc(document.getElementById("lqName").value.trim()||"Name not entered")
+      +' · '+esc(LQ.title);
+    var pr=document.createElement("div"); pr.id="lqPrint";
+    pr.innerHTML='<table class="lqpage"><thead class="lqrhead"><tr><td class="lqrh">'
+      +runHead+'</td></tr></thead><tbody><tr><td class="lqbody">'+h+'</td></tr></tbody></table>';
+    document.body.appendChild(pr);
+
+    /* the browser suggests document.title as the Save-as-PDF filename */
+    var prevTitle=document.title;
+    document.title=fileTitle();
+    document.body.classList.add("lq-print");
+
+    var restored=false;
+    var done=function(){
+      if(restored) return; restored=true;
+      document.body.classList.remove("lq-print");
+      document.title=prevTitle;
+      var a=document.getElementById("lqPrint"); if(a&&a.parentNode) a.parentNode.removeChild(a);
+      window.removeEventListener("afterprint",done);
+      if(mq&&mq.removeListener) mq.removeListener(mqHandler);
+    };
+    var mq=window.matchMedia?window.matchMedia("print"):null;
+    var mqHandler=function(m){ if(!m.matches) done(); };
+    if(mq&&mq.addListener) mq.addListener(mqHandler);
+    window.addEventListener("afterprint",done);
+
+    setTimeout(function(){
+      window.print();
+      /* generous fallback: mobile print sheets are asynchronous, and tearing the
+         container out too early yields a blank PDF */
+      setTimeout(done,60000);
+    },80);
+  };
+})();
+</script>
+<!-- ===== end submission module ============================================= -->
+
+</body>
+</html>

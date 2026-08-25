@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>524.1.1 — UCI 2227 — Lab 1.1 Safety Zone Mapping (Training Simulator)</title>
+<style>
+  :root{
+    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
+    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:7px 13px}
+  button:hover{background:#1b3044;border-color:#2d4d68}
+  button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  button.primary:hover{background:#0a8bd8}
+  button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input[type=text],input[type=number],textarea{
+    font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:7px 9px}
+  textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
+  h1,h2,h3{margin:0;font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex:0 0 auto}
+  .brand{font-weight:700;letter-spacing:.4px;font-size:14px}
+  .brand span{color:var(--blue)}
+  .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
+  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+
+  main{flex:1;overflow:auto;padding:18px}
+  .wrap{max-width:1500px;margin:0 auto}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;margin-bottom:4px}
+  .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
+
+  /* ---------- console ---------- */
+  .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
+    border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+  .tile .name{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tile .val{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1.15;margin-top:5px}
+  .tile .unit{font-size:14px;color:var(--dim);font-weight:400;margin-left:3px}
+  .tile .band{font-size:11px;color:var(--faint);margin-top:5px;font-family:var(--mono)}
+  .tile.alarm{border-color:var(--stop);background:#2a1512}
+  .tile.alarm .val{color:var(--stop)}
+  .tile.caution{border-color:#5c4c2e}
+  .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
+  .chartbox h3{font-size:13px;margin-bottom:2px}
+  .chartbox .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
+  canvas{display:block;width:100%;height:auto}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .stepchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+  .stepchip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+
+  /* ---------- alarms ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+    font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+  th:hover{color:var(--blue)}
+  td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
+  tr.ack{opacity:.42}
+  .sev{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .sev.critical{background:#4a1f1a;color:#ff8f7d}
+  .sev.high{background:#4a3418;color:#ffc069}
+  .sev.medium{background:#1c3a4f;color:#7fc4ea}
+  .sev.low{background:#22303a;color:#8ba6bd}
+  .tick{display:inline-block;width:15px;height:15px;border:1px solid var(--line);border-radius:3px;
+    background:var(--panel2);cursor:pointer;vertical-align:-3px}
+  .tick.on{background:var(--blue);border-color:var(--blue)}
+  .flt{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .flt .chip{font-size:11px;padding:5px 11px;border-radius:20px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--dim);cursor:pointer}
+  .flt .chip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
+
+  .note{font-size:12px;color:var(--dim);line-height:1.55}
+  .hidden{display:none !important}
+
+  /* ---------- submission ---------- */
+  .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
+  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
+  .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
+  .result.show{display:block;background:var(--panel2);border:1px solid var(--line)}
+  .result h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin:15px 0 6px}
+  .result .kvr{display:flex;justify-content:space-between;gap:12px;padding:5px 0;
+    border-bottom:1px solid #1a2c3c;font-size:12px}
+  .result .kvr span:first-child{color:var(--faint)}
+  .result .kvr span:last-child{font-family:var(--mono);text-align:right}
+  .result .kvr.wide span:last-child{font-family:var(--sans);text-align:left;max-width:64%}
+  .result .todo{margin-top:13px;padding:10px 12px;border:1px solid #5c4c2e;border-radius:6px;
+    background:#2b2310;font-size:12.5px;line-height:1.5}
+  .result .todo ul{margin:6px 0 0;padding-left:19px}
+  .result .close{margin-top:13px;font-size:12.5px;color:var(--dim);line-height:1.5}
+  @media print{
+    body{background:#fff;color:#000;overflow:visible}
+    header,.toolbar,.noprint{display:none !important}
+    main{overflow:visible}
+  }
+
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);margin-bottom:8px}
+  .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+
+  /* ---------- lab 1.1 additions ---------- */
+  .planwrap{display:grid;grid-template-columns:1fr 350px;gap:14px;align-items:start}
+  .planbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:11px 13px}
+  .planbox h3{font-size:13px;margin-bottom:2px}
+  .planbox .sub{font-size:11px;color:var(--faint);margin-bottom:9px}
+  svg#plan{display:block;width:100%;height:auto;background:#09131b;
+    border:1px solid var(--line);border-radius:6px;touch-action:none;user-select:none}
+  svg#plan .room{fill:#10202c;stroke:#24405a;stroke-width:1.5}
+  svg#plan .yard{fill:#0d1a24;stroke:#24405a;stroke-width:1.5;stroke-dasharray:7 5}
+  svg#plan .rack{fill:#16293a;stroke:#24405a;stroke-width:1}
+  svg#plan .rlabel{fill:#6f8ea8;font:700 11px var(--sans);letter-spacing:1.1px}
+  svg#plan .glabel{fill:#7d99b0;font:9px var(--mono)}
+  svg#plan .struct{fill:#16293a;stroke:#4a6b86;stroke-width:1.2}
+  svg#plan .tray{fill:none;stroke:#41637f;stroke-width:5;stroke-dasharray:11 6}
+  svg#plan .eq rect{fill:#1b3345;stroke:#33a6e8;stroke-width:1.4;cursor:pointer}
+  svg#plan .eq text{fill:#cfebfc;font:700 10px var(--mono);pointer-events:none}
+  svg#plan .eq:hover rect{fill:#26506e}
+  svg#plan .eq.sel rect{stroke:#ffffff;stroke-width:2.4}
+  svg#plan .eq.done rect{stroke:#37c07a}
+  svg#plan .eq.fx rect{stroke:#e8604c;stroke-dasharray:5 3}
+  svg#plan #bounds,svg#plan #falls,svg#plan #shades,svg#plan #zones,
+  svg#plan #signs,svg#plan #varFeat,svg#plan #rubber{pointer-events:none}
+  svg#plan .bnd{fill:rgba(232,163,61,.07);stroke:#e8a33d;stroke-width:1.4;stroke-dasharray:7 5}
+  svg#plan .bndtxt{fill:#e8a33d;font:700 9px var(--mono)}
+  svg#plan .fx{stroke:#e8604c;stroke-width:3;stroke-linecap:round}
+  svg#plan .fxtxt{fill:#e8604c;font:700 9px var(--mono)}
+  svg#plan .shade{fill:rgba(51,166,232,.15);stroke:#33a6e8;stroke-width:1;stroke-dasharray:4 3}
+  svg#plan .shadetxt{fill:#7fc4ea;font:700 9px var(--mono)}
+  svg#plan .rubber{fill:rgba(51,166,232,.10);stroke:#33a6e8;stroke-width:1;stroke-dasharray:4 3}
+  svg#plan .zone{fill:rgba(232,163,61,.05);stroke:#e8a33d;stroke-width:1;stroke-dasharray:3 3}
+  svg#plan .ztxt{fill:#e8a33d;font:700 11px var(--mono)}
+  svg#plan .zsub{fill:#b98d43;font:9px var(--mono)}
+  svg#plan .sign{fill:#2b2310;stroke:#5c4c2e}
+  svg#plan .signtxt{fill:#ffc069;font:700 9px var(--mono)}
+  svg#plan.mode-noise #equip,svg#plan.mode-fall #equip{pointer-events:none}
+  svg#plan.mode-noise,svg#plan.mode-fall{cursor:crosshair}
+  .side{display:flex;flex-direction:column;gap:12px}
+  .lbl{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px 14px}
+  .lbl h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin:0 0 8px}
+  .aflabel{background:#2b2310;border:1px solid #5c4c2e;border-radius:6px;padding:10px 11px}
+  .aflabel .hd{font-size:10px;letter-spacing:1.4px;font-weight:700;color:#ffc069;
+    text-transform:uppercase;border-bottom:1px solid #5c4c2e;padding-bottom:6px;margin-bottom:7px}
+  .aflabel .lrow{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;padding:3px 0}
+  .aflabel .lrow span:first-child{color:#c8a86e}
+  .aflabel .lrow span:last-child{font-family:var(--mono);font-weight:700;text-align:right;color:#ffe1b0}
+  .aflabel.alt{background:#2a1512;border-color:#6d3129}
+  .aflabel.alt .hd{color:#ff8f7d;border-bottom-color:#6d3129}
+  .aflabel.alt .lrow span:first-child{color:#c98d84}
+  .aflabel.alt .lrow span:last-child{color:#ffb9ae}
+  .sheetbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px;margin-top:14px}
+  .sheetbox h3{font-size:14px;margin-bottom:3px}
+  .sheetbox .sub{font-size:12px;color:var(--faint);margin-bottom:12px}
+  .sheetbox input[type=text]{width:100%;padding:5px 7px;font-size:12px}
+  .sheetbox td{padding:5px 6px}
+  .ck{display:flex;gap:9px;align-items:center;cursor:pointer;font-size:12.5px;margin:10px 0 8px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--faint);margin-top:8px}
+  .legend b{color:var(--dim);font-weight:400}
+  .swatch{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+  .modeon{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">SAFETY ZONE MAPPING TOOL</div>
+    <div class="sysname">524.1.1 &middot; UCI 2227 · Lab 1.1 · objective M1.1 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="spacer"></div>
+    <div id="statusBadge" class="badge">Ready</div>
+    <div>
+      <div class="clocklbl">Site time</div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <button id="btnInspect" class="modeon">Inspect</button>
+    <button id="btnBoundary">Mark boundary</button>
+    <button id="btnNoise">Shade noise</button>
+    <button id="btnFall">Mark fall hazard</button>
+    <span style="width:10px"></span>
+    <button id="btnClear">Clear marks</button>
+    <span class="spacer"></span>
+    <span class="counter" id="counts">no marks yet</span>
+    <button id="btnRestart">Restart</button>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <section id="zoneView"></section>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SET = 0;   /* fixed for this file */
+/* ============================================================
+   UCI 2227 — Lab 1.1 · Safety Zone Mapping
+   Standalone training console. Offline, no libraries, no network.
+   Telemetry model and chart code are identical to the other lab tools.
+   ============================================================ */
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=mulberry32(1);
+function noise(amp){return (rnd()*2-1)*amp;}
+function fmtClock(mins){
+  const base=3*60+14; // scenarios run from 03:14 site time
+  const total=base+mins;
+  const h=Math.floor(total/60)%24, m=Math.floor(total%60), s=Math.floor((mins%1)*60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function fmtElapsed(mins){
+  return "T+"+String(Math.floor(mins)).padStart(2,"0")+":"+String(Math.floor((mins%1)*60)).padStart(2,"0");
+}
+function drawChart(cv,cfg){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth, H=cfg.height||150;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+"px";
+  const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0);
+  x.clearRect(0,0,W,H);
+  const pad={l:46,r:10,t:10,b:20};
+  const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+  const {min,max}=cfg;
+  const sy=v=>pad.t+ph-((v-min)/(max-min))*ph;
+  const sx=i=>pad.l+(i/Math.max(1,cfg.xmax))*pw;
+
+  // alarm band shading
+  if(cfg.band){
+    x.fillStyle="rgba(232,96,76,.10)";
+    if(cfg.band.hi<max) x.fillRect(pad.l,pad.t,pw,sy(cfg.band.hi)-pad.t);
+    if(cfg.band.lo>min) x.fillRect(pad.l,sy(cfg.band.lo),pw,pad.t+ph-sy(cfg.band.lo));
+  }
+  // grid + y labels
+  x.strokeStyle="#1d3346"; x.lineWidth=1; x.font="10px "+getComputedStyle(document.body).fontFamily;
+  x.fillStyle="#5c7a92"; x.textAlign="right"; x.textBaseline="middle";
+  for(let i=0;i<=4;i++){
+    const v=min+(max-min)*i/4, yy=sy(v);
+    x.beginPath(); x.moveTo(pad.l,yy); x.lineTo(W-pad.r,yy); x.stroke();
+    x.fillText(cfg.fmt?cfg.fmt(v):v.toFixed(1),pad.l-6,yy);
+  }
+  // step markers
+  if(cfg.steps) cfg.steps.forEach(s=>{
+    if(s>cfg.xmax) return;
+    x.strokeStyle="#25415a"; x.setLineDash([3,3]);
+    x.beginPath(); x.moveTo(sx(s),pad.t); x.lineTo(sx(s),pad.t+ph); x.stroke(); x.setLineDash([]);
+  });
+  // series
+  (cfg.series||[]).forEach(se=>{
+    if(!se.data.length) return;
+    x.strokeStyle=se.color; x.lineWidth=se.width||2; x.beginPath();
+    se.data.forEach((v,i)=>{ const px=sx(i*(cfg.xstep||1)), py=sy(clamp(v,min,max));
+      i?x.lineTo(px,py):x.moveTo(px,py); });
+    x.stroke();
+    // last point dot
+    const li=se.data.length-1;
+    x.fillStyle=se.color; x.beginPath();
+    x.arc(sx(li*(cfg.xstep||1)),sy(clamp(se.data[li],min,max)),2.6,0,7); x.fill();
+  });
+  // x label
+  x.fillStyle="#5c7a92"; x.textAlign="center"; x.textBaseline="top";
+  x.fillText(cfg.xlabel||"minutes",pad.l+pw/2,H-13);
+}
+function tile(name,val,unit,band,cls){
+  return `<div class="tile ${cls||''}"><div class="name">${name}</div>
+    <div class="val">${val}<span class="unit">${unit||''}</span></div>
+    <div class="band">${band||''}</div></div>`;
+}
+
+/* ---------- this lab ---------- */
+const LAB={lab:"Lab 1.1",obj:"M1.1",title:"Safety Zone Mapping",duration:55,
+  scale:1.5}; // inches of real distance per plan unit
+
+const SETUPS=[
+  {id:"A1",cfg:[5,0,94,85],mode:"tray"},
+  {id:"A2",cfg:[2,1,97,88],mode:"mezz"},
+  {id:"A3",cfg:[0,2,91,80],mode:"scaf"}
+];
+
+const RNG_KEY=(0x9E3779B1^Math.imul(SET+1,2654435761))>>>0;
+function stamp(){
+  const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());
+}
+function kvr(k,v,wide){ return '<div class="kvr'+(wide?" wide":"")+'"><span>'+k+'</span><span>'+v+'</span></div>'; }
+
+const EQUIP=[
+  {id:"MSB-1",  nm:"Main switchgear MSB-1",        x:420,y:90, w:150,h:44, v:"480 V, 3 phase", ie:28.4,cat:"4", afb:118,lim:42,res:12},
+  {id:"UPS-A",  nm:"Uninterruptible supply UPS-A", x:420,y:160,w:110,h:40, v:"480 V, 3 phase", ie:12.6,cat:"3", afb:62, lim:42,res:12},
+  {id:"UPS-B",  nm:"Uninterruptible supply UPS-B", x:420,y:215,w:110,h:40, v:"480 V, 3 phase", ie:11.8,cat:"3", afb:58, lim:42,res:12},
+  {id:"PDU-1",  nm:"Power distribution unit 1",    x:585,y:90, w:80, h:32, v:"480/208 V",      ie:6.8, cat:"2", afb:38, lim:42,res:12},
+  {id:"PDU-2",  nm:"Power distribution unit 2",    x:585,y:132,w:80, h:32, v:"480/208 V",      ie:6.4, cat:"2", afb:36, lim:42,res:12},
+  {id:"PDU-3",  nm:"Power distribution unit 3",    x:585,y:174,w:80, h:32, v:"480/208 V",      ie:6.8, cat:"2", afb:38, lim:42,res:12},
+  {id:"PDU-4",  nm:"Power distribution unit 4",    x:585,y:216,w:80, h:32, v:"480/208 V",      ie:7.1, cat:"2", afb:40, lim:42,res:12},
+  {id:"ATS-1",  nm:"Automatic transfer switch 1",  x:980,y:120,w:90, h:50, v:"480 V, 3 phase", ie:22.1,cat:"3", afb:94, lim:42,res:12},
+  {id:"GEN-1",  nm:"Generator 1 output breaker",   x:760,y:90, w:140,h:60, v:"480 V, 3 phase", ie:9.4, cat:"3", afb:51, lim:42,res:12},
+  {id:"GEN-2",  nm:"Generator 2 output breaker",   x:760,y:180,w:140,h:60, v:"480 V, 3 phase", ie:9.4, cat:"3", afb:51, lim:42,res:12},
+  {id:"CHWP-1", nm:"Chilled water pump 1 starter", x:520,y:375,w:70, h:34, v:"480 V, 3 phase", ie:5.2, cat:"2", afb:34, lim:42,res:12},
+  {id:"CHWP-2", nm:"Chilled water pump 2 starter", x:520,y:425,w:70, h:34, v:"480 V, 3 phase", ie:5.2, cat:"2", afb:34, lim:42,res:12},
+  {id:"AC-1",   nm:"Air compressor control panel", x:520,y:500,w:80, h:40, v:"480 V, 3 phase", ie:3.1, cat:"1", afb:26, lim:42,res:12,
+   extra:"Stored energy: 120 gallon receiver at 145 psi. Bleed down and lock the isolation valve before any work on the panel or the pipework."},
+  {id:"CRAH-01",nm:"Air handler CRAH-01 panel",    x:415,y:375,w:75, h:36, v:"208 V, 1 phase", ie:0.8, cat:"—", afb:11, lim:42,res:12},
+  {id:"CRAH-02",nm:"Air handler CRAH-02 panel",    x:415,y:425,w:75, h:36, v:"208 V, 1 phase", ie:0.8, cat:"—", afb:11, lim:42,res:12},
+  {id:"CRAH-03",nm:"Air handler CRAH-03 panel",    x:415,y:475,w:75, h:36, v:"208 V, 1 phase", ie:0.8, cat:"—", afb:11, lim:42,res:12}
+];
+EQUIP.forEach(e=>{e.cx=e.x+e.w/2; e.cy=e.y+e.h/2;});
+
+const ZONES_BASE=[
+  {id:"Z-MECH", nm:"Mechanical room",  x:395,y:340,w:300,h:310,survey:94,sign:94},
+  {id:"Z-GEN",  nm:"Generator yard",   x:720,y:50, w:440,h:250,survey:97,sign:97},
+  {id:"Z-DOCK", nm:"Loading dock",     x:720,y:330,w:210,h:150,survey:86,sign:86},
+  {id:"Z-HALLB",nm:"Pod B hot aisle",  x:40, y:320,w:330,h:330,survey:82,sign:82}
+];
+const S={learner:"",t:0,timer:null,mode:"inspect",
+  bounds:{},shades:[],falls:[],rows:[],sel:null,flagged:{},z1:"",
+  showSurvey:false,conflictFlag:false,zones:[],drag:null};
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let V=SETUPS[SET];
+
+/* ---------- model ---------- */
+function buildZones(){
+  S.z1=EQUIP[V.cfg[0]].id;
+  S.zones=ZONES_BASE.map((z,i)=>{
+    const o={id:z.id,nm:z.nm,x:z.x,y:z.y,w:z.w,h:z.h,survey:z.survey,sign:z.sign};
+    if(i===V.cfg[1]){o.survey=V.cfg[2];o.sign=V.cfg[3];}
+    o.cx=o.x+o.w/2; o.cy=o.y+o.h/2; o.area=o.w*o.h;
+    o.spots=[0,1,2].map(()=>+(o.survey+noise(0.7)).toFixed(1));
+    return o;
+  });
+}
+function eqById(id){return EQUIP.filter(e=>e.id===id)[0];}
+
+/* ---------- plan drawing ---------- */
+function planStatic(){
+  const racksA=[90,140,190,240].map(y=>`<rect class="rack" x="60" y="${y}" width="290" height="18" rx="2"/>`).join("");
+  const racksB=[360,410,460,510,560].map(y=>`<rect class="rack" x="60" y="${y}" width="290" height="18" rx="2"/>`).join("");
+  return `
+  <rect x="20" y="20" width="1160" height="660" fill="none" stroke="#2b4a66" stroke-width="2" rx="4"/>
+  <rect class="room" x="40" y="50" width="330" height="250" rx="3"/>
+  <text class="rlabel" x="52" y="70">DATA HALL — POD A</text>${racksA}
+  <rect class="room" x="40" y="320" width="330" height="330" rx="3"/>
+  <text class="rlabel" x="52" y="340">DATA HALL — POD B</text>${racksB}
+  <rect class="room" x="395" y="50" width="300" height="270" rx="3"/>
+  <text class="rlabel" x="407" y="70">ELECTRICAL ROOM</text>
+  <rect class="room" x="395" y="340" width="300" height="310" rx="3"/>
+  <text class="rlabel" x="407" y="360">MECHANICAL ROOM</text>
+  <rect class="yard" x="720" y="50" width="440" height="250" rx="3"/>
+  <text class="rlabel" x="732" y="70">GENERATOR YARD</text>
+  <rect class="yard" x="720" y="330" width="210" height="150" rx="3"/>
+  <text class="rlabel" x="732" y="350">LOADING DOCK</text>
+  <rect class="struct" x="720" y="440" width="210" height="18"/>
+  <text class="glabel" x="726" y="474">DOCK LIFT PIT — 4 ft 4 in DROP</text>
+  <rect class="yard" x="950" y="330" width="210" height="320" rx="3"/>
+  <text class="rlabel" x="962" y="350">OVERHEAD WORK AREA</text>
+  <polyline class="tray" points="1140,380 960,380 940,430 210,430"/>
+  <text class="glabel" x="985" y="372">CABLE TRAY RUN — 11 ft AFF</text>
+  <rect class="struct" x="1000" y="520" width="120" height="90" rx="2"/>
+  <text class="glabel" x="1006" y="556">RAISED PLATFORM</text>
+  <text class="glabel" x="1006" y="570">5 ft 8 in DECK</text>
+  <text class="glabel" x="60" y="612">SCALE: 1 PLAN UNIT = 1.5 in</text>`;
+}
+function planFeature(){
+  if(V.mode==="tray") return `
+    <circle cx="250" cy="430" r="15" fill="none" stroke="#4a6b86" stroke-width="2"/>
+    <rect class="struct" x="214" y="446" width="72" height="26" rx="2"/>
+    <text class="glabel" x="219" y="463">MOBILE LIFT</text>
+    <text class="glabel" x="150" y="408">TRAY PULL IN PROGRESS — WORK AT TRAY LEVEL</text>`;
+  if(V.mode==="mezz") return `
+    <rect class="struct" x="855" y="338" width="72" height="46" rx="2"/>
+    <text class="glabel" x="860" y="358">MEZZANINE</text>
+    <text class="glabel" x="860" y="372">6 ft DECK</text>`;
+  return `
+    <rect class="struct" x="575" y="565" width="70" height="50" rx="2"/>
+    <text class="glabel" x="580" y="586">SCAFFOLD</text>
+    <text class="glabel" x="580" y="600">7 ft DECK</text>`;
+}
+function planSigns(){
+  const pos={"Z-MECH":[560,346],"Z-GEN":[960,58],"Z-DOCK":[735,358],"Z-HALLB":[250,326]};
+  return S.zones.map(z=>{
+    const p=pos[z.id];
+    return `<g><rect class="sign" x="${p[0]}" y="${p[1]}" width="118" height="18" rx="3"/>
+      <text class="signtxt" x="${p[0]+7}" y="${p[1]+13}">POSTED ${z.sign} dBA</text></g>`;
+  }).join("");
+}
+function planZones(){
+  return S.zones.map(z=>`<g>
+     <rect class="zone" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="3"/>
+     <text class="ztxt" x="${z.cx}" y="${z.cy-4}" text-anchor="middle">SURVEY ${z.survey.toFixed(0)} dBA</text>
+     <text class="zsub" x="${z.cx}" y="${z.cy+11}" text-anchor="middle">spot readings ${z.spots.map(s=>s.toFixed(1)).join(" / ")}</text>
+     <text class="zsub" x="${z.cx}" y="${z.cy+24}" text-anchor="middle">${z.id} · ${z.nm}</text>
+   </g>`).join("");
+}
+function planEquip(){
+  return EQUIP.map(e=>{
+    const cls=["eq"];
+    if(S.sel===e.id) cls.push("sel");
+    if(S.bounds[e.id]) cls.push("done");
+    if(S.flagged[e.id]) cls.push("fx");
+    return `<g class="${cls.join(" ")}" data-id="${e.id}">
+      <rect x="${e.x}" y="${e.y}" width="${e.w}" height="${e.h}" rx="3"/>
+      <text x="${e.cx}" y="${e.cy+4}" text-anchor="middle">${e.id}</text></g>`;
+  }).join("");
+}
+function drawMarks(){
+  $("bounds").innerHTML=Object.keys(S.bounds).map(id=>{
+    const e=eqById(id), b=S.bounds[id];
+    const r=Math.max(8,b.dist/LAB.scale);
+    return `<g><circle class="bnd" cx="${e.cx}" cy="${e.cy}" r="${r.toFixed(1)}"/>
+      <text class="bndtxt" x="${e.cx}" y="${(e.cy-r-5).toFixed(1)}" text-anchor="middle">AFB ${b.dist} in</text></g>`;
+  }).join("");
+  $("falls").innerHTML=S.falls.map((p,i)=>`<g>
+      <line class="fx" x1="${p.x-10}" y1="${p.y-10}" x2="${p.x+10}" y2="${p.y+10}"/>
+      <line class="fx" x1="${p.x+10}" y1="${p.y-10}" x2="${p.x-10}" y2="${p.y+10}"/>
+      <text class="fxtxt" x="${p.x+14}" y="${p.y+4}">FALL ${i+1}</text></g>`).join("");
+  $("shades").innerHTML=S.shades.map(s=>`<g>
+      <rect class="shade" x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="2"/>
+      <text class="shadetxt" x="${s.x+5}" y="${s.y+14}">NOISE ${s.dba} dBA</text></g>`).join("");
+  $("equip").innerHTML=planEquip();
+  paintCounts();
+}
+function paintCounts(){
+  const nb=Object.keys(S.bounds).length;
+  const rowsDone=S.rows.filter(r=>r.where&&r.what&&r.when&&r.who).length;
+  $("counts").textContent=`${nb} boundaries · ${S.shades.length} noise zones · ${S.falls.length} fall marks · ${rowsDone}/${S.rows.length} sheet rows complete`;
+}
+
+/* ---------- side panel ---------- */
+const MODEHELP={
+  inspect:"Click any item of equipment to read its posted arc flash label. Read the whole label, every line of it. If any part of a label cannot be read with confidence, flag the item and write it up — do not take the number from the panel next to it.",
+  boundary:"Click equipment, then type the arc flash boundary distance you read off its label. The circle is drawn at the distance you enter, so a misread shows up on the plan.",
+  noise:"Press and drag across the plan to shade a noise zone, then enter the level you are working to. Shade the zone, not the whole hall — an oversized rectangle will not be credited.",
+  fall:"Click anywhere a technician would be working above four feet. General industry, 1910.28 and 1910.23 — four feet, not six."
+};
+function paintSide(){
+  $("modeHelp").innerHTML=`<h4>${S.mode==="inspect"?"Inspect":S.mode==="boundary"?"Mark arc flash boundary":S.mode==="noise"?"Shade noise zone":"Mark fall hazard"}</h4>
+    <div class="note">${MODEHELP[S.mode]}</div>`;
+  paintLabel();
+}
+function labelHTML(e){
+  const fl=!!S.flagged[e.id];
+  const btn=`<button class="${fl?"":"primary"}" id="btnFlag" style="margin-top:10px">`+
+    (fl?"Remove this flag":"Flag this item for a written finding")+`</button>`;
+  if(e.id===S.z1){
+    return `<div class="aflabel alt">
+      <div class="hd">Posted label</div>
+      <div class="lrow"><span>Equipment</span><span>${e.id}</span></div>
+      <div class="lrow"><span>Nominal voltage</span><span>▓▓▓ V</span></div>
+      <div class="lrow"><span>Incident energy</span><span>▓▓.▓ cal/cm²</span></div>
+      <div class="lrow"><span>PPE category</span><span>▓</span></div>
+      <div class="lrow"><span>Arc flash boundary</span><span>▓▓ in</span></div>
+      <div class="lrow"><span>Limited approach</span><span>▓▓ in</span></div>
+      <div class="lrow"><span>Restricted approach</span><span>▓▓ in</span></div>
+      <div class="lrow"><span>Study date</span><span>&#9619;&#9619; &#9619;&#9619;&#9619; &#9619;&#9619;&#9619;&#9619;</span></div>
+    </div>${btn}
+    ${fl?'<div class="note" style="color:var(--ok);margin-top:8px">Flagged. Write the detail on the hazard check sheet as well.</div>':""}`;
+  }
+  const extra=e.extra?`<div class="note" style="margin-top:9px">${e.extra}</div>`:"";
+  const marked=e.afb<12?`<div class="note" style="margin-top:9px">Boundary is inside twelve inches, which on this site is inside the enclosure line. It is not floor-marked and does not need a boundary on your map. It still needs the panel kept shut.</div>`:"";
+  return `<div class="aflabel">
+      <div class="hd">Posted arc flash label</div>
+      <div class="lrow"><span>Equipment</span><span>${e.id}</span></div>
+      <div class="lrow"><span>Description</span><span style="font-size:10.5px">${e.nm}</span></div>
+      <div class="lrow"><span>Nominal voltage</span><span>${e.v}</span></div>
+      <div class="lrow"><span>Incident energy</span><span>${e.ie.toFixed(1)} cal/cm²</span></div>
+      <div class="lrow"><span>PPE category</span><span>${e.cat}</span></div>
+      <div class="lrow"><span>Arc flash boundary</span><span>${e.afb} in</span></div>
+      <div class="lrow"><span>Limited approach</span><span>${e.lim} in</span></div>
+      <div class="lrow"><span>Restricted approach</span><span>${e.res} in</span></div>
+      <div class="lrow"><span>Working distance</span><span>18 in</span></div>
+    </div>${extra}${marked}${btn}
+    ${fl?'<div class="note" style="color:var(--ok);margin-top:8px">Flagged. Write the detail on the hazard check sheet as well.</div>':""}`;
+}
+function paintLabel(){
+  const box=$("lblBox");
+  if(!S.sel){
+    box.innerHTML=`<h4>Posted label</h4><div class="note">No equipment selected. Click an item on the plan.</div>`;
+    return;
+  }
+  const e=eqById(S.sel);
+  let html=`<h4>Posted label — ${e.id}</h4>`+labelHTML(e);
+  if(S.mode==="boundary"&&e.id!==S.z1){
+    const cur=S.bounds[e.id]?S.bounds[e.id].dist:"";
+    html+=`<div class="row" style="margin-top:11px">
+      <div class="fld"><label>Boundary distance read off the label (in)</label>
+        <input type="number" id="bdDist" value="${cur}" style="width:130px"></div>
+      <button class="primary" id="bdMark">Draw boundary</button>
+      <button id="bdCancel">Cancel</button></div>`;
+  }
+  if(S.mode==="boundary"&&e.id===S.z1){
+    html+=`<div class="row" style="margin-top:11px">
+      <div class="fld"><label>Boundary distance (in)</label>
+        <input type="number" id="bdDist" style="width:130px"></div>
+      <button id="bdMark">Draw boundary</button>
+      <button id="bdCancel">Cancel</button></div>`;
+  }
+  box.innerHTML=html;
+  const lg=box.querySelector("#btnFlag");
+  if(lg) lg.onclick=()=>{S.flagged[e.id]=!S.flagged[e.id];paintLabel();drawMarks();};
+  const mk=box.querySelector("#bdMark");
+  if(mk) mk.onclick=()=>{
+    const d=+box.querySelector("#bdDist").value;
+    if(!d||d<=0){alert("Enter the boundary distance in inches, as printed on the label.");return;}
+    S.bounds[e.id]={dist:Math.round(d)};
+    drawMarks(); paintLabel();
+  };
+  const cn=box.querySelector("#bdCancel");
+  if(cn) cn.onclick=()=>{S.sel=null;drawMarks();paintLabel();};
+}
+
+/* ---------- hazard check sheet ---------- */
+function paintSheet(){
+  $("sheetBody").innerHTML=S.rows.map((r,i)=>`<tr>
+    <td><input type="text" data-i="${i}" data-k="where" value="${esc(r.where)}" placeholder="e.g. electrical room, MSB-1"></td>
+    <td><input type="text" data-i="${i}" data-k="what" value="${esc(r.what)}" placeholder="the hazard and the number"></td>
+    <td><input type="text" data-i="${i}" data-k="when" value="${esc(r.when)}" placeholder="when it is present"></td>
+    <td><input type="text" data-i="${i}" data-k="who" value="${esc(r.who)}" placeholder="who is exposed"></td>
+    <td class="noprint"><button data-del="${i}">Delete</button></td></tr>`).join("");
+  paintCounts();
+}
+
+/* ---------- geometry ---------- */
+function svgPoint(evt){
+  const svg=$("plan");
+  const pt=svg.createSVGPoint();
+  pt.x=evt.clientX; pt.y=evt.clientY;
+  const m=svg.getScreenCTM();
+  if(!m) return {x:0,y:0};
+  const p=pt.matrixTransform(m.inverse());
+  return {x:p.x,y:p.y};
+}
+
+/* ---------- submission sheet ---------- */
+function buildSubmission(){
+  const r=$("mapResult"), b=[];
+  b.push(`<h3 style="font-size:15px">${LAB.lab} — ${LAB.title}</h3>
+    <div class="sub" style="margin:2px 0 11px">Submission sheet</div>`);
+  b.push(kvr("Name",esc(S.learner)||"—")+
+         kvr("Completed",stamp())+kvr("Time on task",fmtElapsed(S.t)));
+
+  const ids=Object.keys(S.bounds);
+  b.push(`<h4>Arc flash boundaries marked</h4>`+
+    (ids.length?ids.map(id=>kvr(id+" — "+eqById(id).nm,S.bounds[id].dist+" in")).join("")
+               :`<div class="note">No boundaries marked.</div>`));
+
+  const fl=Object.keys(S.flagged).filter(k=>S.flagged[k]);
+  b.push(`<h4>Items flagged for a written finding</h4>`+
+    (fl.length?fl.map(id=>kvr(id,eqById(id)?eqById(id).nm:"—")).join("")
+              :`<div class="note">None flagged.</div>`));
+
+  b.push(`<h4>Noise zones shaded</h4>`+
+    (S.shades.length?S.shades.map((s,i)=>kvr("Zone "+(i+1)+" — plan area "+s.x+","+s.y+" "+s.w+"x"+s.h,
+        s.dba+" dBA")).join("")
+      :`<div class="note">No noise zones shaded.</div>`));
+
+  const cz=$("confZone").value, cs=$("confSign").value, cv=$("confSurvey").value;
+  const czn=cz?(S.zones.filter(z=>z.id===cz)[0]||{}).nm:"";
+  b.push(`<h4>Signage against survey</h4>`+
+    kvr("Conflict box ticked",S.conflictFlag?"yes":"no")+
+    kvr("Zone",cz?esc(cz+" · "+czn):"—")+
+    kvr("Posted signage",cs?esc(cs)+" dBA":"—")+
+    kvr("Acoustic survey",cv?esc(cv)+" dBA":"—"));
+
+  b.push(`<h4>Fall hazard marks</h4>`+
+    (S.falls.length?S.falls.map((p,i)=>kvr("Fall mark "+(i+1),"plan "+p.x+", "+p.y)).join("")
+      :`<div class="note">No fall hazard marks placed.</div>`));
+
+  const rows=S.rows.filter(x=>x.where||x.what||x.when||x.who);
+  b.push(`<h4>Hazard check sheet</h4>`+
+    (rows.length?`<table><thead><tr>
+        <th style="cursor:default">Where</th><th style="cursor:default">What</th>
+        <th style="cursor:default">When</th><th style="cursor:default">Who</th></tr></thead><tbody>`+
+      rows.map(x=>`<tr><td>${esc(x.where)||"—"}</td><td>${esc(x.what)||"—"}</td>
+        <td>${esc(x.when)||"—"}</td><td>${esc(x.who)||"—"}</td></tr>`).join("")+`</tbody></table>`
+      :`<div class="note">No rows written.</div>`));
+
+  b.push(`<h4>Sentence for the shift lead</h4>`+
+    `<div class="note">${esc($("ansText").value.trim())||"—"}</div>`);
+
+  const miss=[];
+  if(!S.learner) miss.push("your name");
+  if(!$("ansText").value.trim()) miss.push("the sentence for the shift lead");
+  if(!S.rows.some(x=>x.where&&x.what&&x.when&&x.who))
+    miss.push("at least one hazard check sheet row with all four columns filled");
+  if(miss.length) b.push(`<div class="todo"><b>Blank fields on this sheet:</b>
+    <ul>${miss.map(m=>`<li>${m}</li>`).join("")}</ul></div>`);
+
+  b.push(`<div class="close">Check every field before printing. Hand this sheet to your instructor
+    with your worksheet.</div>
+    <div class="row noprint" style="margin-top:11px">
+      <button onclick="window.print()">Print submission sheet</button></div>`);
+
+  r.className="result show";
+  r.innerHTML=b.join("");
+}
+
+/* ---------- view ---------- */
+function buildView(){
+  const el=$("zoneView");
+  el.innerHTML=`
+    <div class="planwrap">
+      <div class="planbox">
+        <h3>Ground floor — hazard map</h3>
+        <div class="sub">Plan scale one unit to one and a half inches. Boundary circles are drawn at the distance you enter.</div>
+        <svg id="plan" viewBox="0 0 1200 700" class="mode-inspect">
+          <g id="rooms">${planStatic()}</g>
+          <g id="varFeat">${planFeature()}</g>
+          <g id="zones" class="hidden">${planZones()}</g>
+          <g id="signs">${planSigns()}</g>
+          <g id="shades"></g>
+          <g id="equip"></g>
+          <g id="bounds"></g>
+          <g id="falls"></g>
+          <rect id="rubber" class="rubber hidden" x="0" y="0" width="0" height="0"/>
+        </svg>
+        <div class="legend">
+          <span><span class="swatch" style="background:#1b3345;border:1px solid #33a6e8"></span><b>equipment with a posted label</b></span>
+          <span><span class="swatch" style="background:rgba(232,163,61,.3);border:1px dashed #e8a33d"></span><b>arc flash boundary you drew</b></span>
+          <span><span class="swatch" style="background:rgba(51,166,232,.3);border:1px dashed #33a6e8"></span><b>noise zone you shaded</b></span>
+          <span><span class="swatch" style="background:#e8604c"></span><b>fall hazard mark</b></span>
+        </div>
+      </div>
+      <div class="side">
+        <div class="lbl" id="modeHelp"></div>
+        <div class="lbl" id="lblBox"></div>
+        <div class="lbl">
+          <h4>Acoustic survey</h4>
+          <div class="note">The dBA figures on the plan are the placards posted on the walls. The survey is a separate document. Bring it up and compare.</div>
+          <button id="btnSurvey" style="margin-top:9px">Show posted acoustic survey</button>
+          <div class="ck" id="ckWrap"><span class="tick" id="chkConflict"></span>
+            <span>Conflict flagged — signage disagrees with survey</span></div>
+          <div class="row">
+            <div class="fld"><label>Zone</label>
+              <select id="confZone" style="width:150px"></select></div>
+            <div class="fld"><label>Sign dBA</label>
+              <input type="number" id="confSign" style="width:78px"></div>
+            <div class="fld"><label>Survey dBA</label>
+              <input type="number" id="confSurvey" style="width:78px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheetbox">
+      <h3>Hazard check sheet</h3>
+      <div class="sub">One row per finding. Where it is, what it is with the number attached, when it is present, and who is exposed. This is the page that goes in the permit file.</div>
+      <table>
+        <thead><tr>
+          <th style="cursor:default">Where</th><th style="cursor:default">What</th>
+          <th style="cursor:default">When</th><th style="cursor:default">Who</th>
+          <th style="cursor:default;width:70px" class="noprint"></th>
+        </tr></thead>
+        <tbody id="sheetBody"></tbody>
+      </table>
+      <div class="row noprint" style="margin-top:11px">
+        <button id="btnAddRow">Add row</button>
+      </div>
+    </div>
+
+    <div class="submit">
+      <h3>Submission sheet</h3>
+      <div class="sub">Builds a printable record of everything you marked and everything you wrote. Read it before you print it.</div>
+      <div class="fld" style="margin-bottom:12px">
+        <label>Your name</label>
+        <input type="text" id="learnerName" style="width:280px" autocomplete="off">
+      </div>
+      <div class="fld" style="margin-bottom:12px">
+        <label>The one sentence you would give the shift lead about this floor</label>
+        <textarea id="ansText" rows="3" placeholder="one sentence, in your own words"></textarea>
+      </div>
+      <button class="primary noprint" id="btnSubmitMap">Build submission sheet</button>
+      <div class="result" id="mapResult"></div>
+    </div>`;
+
+  $("confZone").innerHTML=`<option value="">— choose —</option>`+
+    S.zones.map(z=>`<option value="${z.id}">${z.id} · ${z.nm}</option>`).join("");
+
+  const plan=$("plan");
+  plan.addEventListener("click",e=>{
+    if(S.mode==="noise") return;
+    const g=e.target.closest(".eq");
+    if(g){
+      S.sel=g.dataset.id; drawMarks(); paintLabel(); return;
+    }
+    if(S.mode==="fall"){
+      const p=svgPoint(e);
+      if(p.x<20||p.x>1180||p.y<20||p.y>680) return;
+      S.falls.push({x:Math.round(p.x),y:Math.round(p.y)});
+      drawMarks();
+    }
+  });
+  plan.addEventListener("pointerdown",e=>{
+    if(S.mode!=="noise") return;
+    const p=svgPoint(e);
+    S.drag={x0:p.x,y0:p.y,x1:p.x,y1:p.y};
+    plan.setPointerCapture&&plan.setPointerCapture(e.pointerId);
+    paintRubber();
+  });
+  plan.addEventListener("pointermove",e=>{
+    if(!S.drag) return;
+    const p=svgPoint(e);
+    S.drag.x1=p.x; S.drag.y1=p.y; paintRubber();
+  });
+  plan.addEventListener("pointerup",()=>{
+    if(!S.drag) return;
+    const d=S.drag; S.drag=null;
+    $("rubber").classList.add("hidden");
+    const x=Math.min(d.x0,d.x1), y=Math.min(d.y0,d.y1);
+    const w=Math.abs(d.x1-d.x0), h=Math.abs(d.y1-d.y0);
+    if(w<25||h<25) return;
+    const v=prompt("Noise level you are working to in this zone, in dBA:","");
+    if(v===null) return;
+    const n=+v;
+    if(!n||n<40||n>140){alert("Enter a level between 40 and 140 dBA.");return;}
+    S.shades.push({x:Math.round(x),y:Math.round(y),w:Math.round(w),h:Math.round(h),dba:Math.round(n)});
+    drawMarks();
+  });
+  plan.addEventListener("pointercancel",()=>{S.drag=null;$("rubber").classList.add("hidden");});
+
+  $("btnSurvey").onclick=()=>{
+    S.showSurvey=!S.showSurvey;
+    $("zones").classList.toggle("hidden",!S.showSurvey);
+    $("btnSurvey").textContent=S.showSurvey?"Hide posted acoustic survey":"Show posted acoustic survey";
+    $("btnSurvey").className=S.showSurvey?"modeon":"";
+  };
+  $("chkConflict").onclick=()=>{
+    S.conflictFlag=!S.conflictFlag;
+    $("chkConflict").classList.toggle("on",S.conflictFlag);
+  };
+  $("ckWrap").onclick=e=>{if(e.target.id!=="chkConflict"){$("chkConflict").click();}};
+  $("sheetBody").addEventListener("input",e=>{
+    const i=e.target.dataset.i, k=e.target.dataset.k;
+    if(i===undefined||!k) return;
+    S.rows[+i][k]=e.target.value; paintCounts();
+  });
+  $("sheetBody").addEventListener("click",e=>{
+    const b=e.target.closest("button[data-del]"); if(!b) return;
+    S.rows.splice(+b.dataset.del,1);
+    if(!S.rows.length) S.rows.push({where:"",what:"",when:"",who:""});
+    paintSheet();
+  });
+  $("btnAddRow").onclick=()=>{S.rows.push({where:"",what:"",when:"",who:""});paintSheet();};
+  $("learnerName").value=S.learner;
+  $("learnerName").addEventListener("input",e=>{S.learner=e.target.value.trim();});
+  $("btnSubmitMap").onclick=buildSubmission;
+
+  paintSheet(); drawMarks(); paintSide();
+}
+function paintRubber(){
+  const d=S.drag; if(!d) return;
+  const r=$("rubber");
+  r.classList.remove("hidden");
+  r.setAttribute("x",Math.min(d.x0,d.x1));
+  r.setAttribute("y",Math.min(d.y0,d.y1));
+  r.setAttribute("width",Math.abs(d.x1-d.x0));
+  r.setAttribute("height",Math.abs(d.y1-d.y0));
+}
+function setMode(m){
+  S.mode=m;
+  S.drag=null; // an interrupted drag must not carry into the next mode
+  if(m!=="inspect"&&m!=="boundary") S.sel=null;
+  const map={inspect:"btnInspect",boundary:"btnBoundary",noise:"btnNoise",fall:"btnFall"};
+  Object.keys(map).forEach(k=>$(map[k]).className=(k===m?"modeon":""));
+  const plan=$("plan");
+  if(plan) plan.setAttribute("class","mode-"+m);
+  const names={inspect:"Inspect",boundary:"Marking boundaries",noise:"Shading noise",fall:"Marking falls"};
+  $("statusBadge").textContent=names[m];
+  $("statusBadge").className="badge run";
+  if(plan){$("rubber").classList.add("hidden");drawMarks();paintSide();}
+}
+
+/* ---------- clock ---------- */
+function startClock(){
+  stopClock();
+  $("clock").textContent=fmtClock(S.t);
+  S.timer=setInterval(()=>{S.t+=1/60;$("clock").textContent=fmtClock(S.t);},1000);
+}
+function stopClock(){if(S.timer){clearInterval(S.timer);S.timer=null;}}
+
+/* ---------- reset / nav ---------- */
+function clearMarks(){
+  S.bounds={}; S.shades=[]; S.falls=[]; S.sel=null; S.flagged={};
+  drawMarks(); paintLabel();
+  const r=$("mapResult"); if(r) r.className="result";
+}
+function resetRun(){
+  rnd=mulberry32(RNG_KEY);
+  S.t=0; S.bounds={}; S.shades=[]; S.falls=[]; S.sel=null;
+  S.flagged={}; S.showSurvey=false; S.conflictFlag=false; S.drag=null;
+  S.rows=[{where:"",what:"",when:"",who:""},{where:"",what:"",when:"",who:""},{where:"",what:"",when:"",who:""}];
+  buildZones();
+  buildView(); setMode("inspect"); startClock();
+}
+/* ---------- wiring ---------- */
+$("btnInspect").onclick=()=>setMode("inspect");
+$("btnBoundary").onclick=()=>setMode("boundary");
+$("btnNoise").onclick=()=>setMode("noise");
+$("btnFall").onclick=()=>setMode("fall");
+$("btnClear").onclick=clearMarks;
+$("btnRestart").onclick=resetRun;
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&S.sel&&$("lblBox")){S.sel=null;drawMarks();paintLabel();}
+});
+
+/* ---------- boot ---------- */
+$("setTag").textContent="Set "+"ABCDEFGH".charAt(SET);
+resetRun();
+
+</script>
+<!-- LQ_SUBMISSION_MODULE -->
+<script id="lqData">var LQ={"lab": "524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 524.1.1 - Safety Zone Mapping", "file": "524-1-1-A_SafetyZones.html", "set": "A", "items": [{"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 1. Collect your blueprint packet, hazard check sheet, acoustic survey map and coloured markers from the front bench, and sign the facility entry safety log. Record your entry time. If your group is working in the tool, open the 524.1.1 file your instructor gives you — it opens straight into the lab. Write your entry time below."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 2. Before you move, read the packet cover. Confirm the route, the floor level, the plan revision date and the plan scale. The plan is drawn at 1.5 plan units to one inch of real distance, which matters the moment you convert a boundary distance in inches into a circle on the drawing. Get this wrong and every boundary you draw is the wrong size. Record the route, the floor level, the plan revision date and the plan scale below."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 4. Walk it a second time and start marking. At each item of energised equipment, read the arc flash label from outside the boundary [Inspect]. Record the equipment identifier, the system voltage, the incident energy in cal/cm², the PPE category and the arc flash boundary distance in inches. Record the first three you reach below, so you have a worked example of the format."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 6. You will find at least one label you cannot read. Do not estimate it, do not measure it off the plan, and do not copy the distance from the identical unit next to it. Log it as a finding [Log unreadable]: the equipment identifier, what specifically is wrong with the label, and the consequence — that the equipment cannot be worked energised until the incident energy study is re-issued. Write that finding out in full below."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 7. Now the noise zones. Shade every zone where posted signage or the acoustic survey shows 85 dBA or above [Noise / Survey]. Work zone by zone rather than sign by sign, and check both sources for each zone before you shade it. List the zones you shaded and the dBA figure you shaded them at."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 8. One zone will have a posted sign and a survey figure that disagree, and there is no way to tell from the floor which is current. Log both numbers, flag the conflict explicitly [Flag conflict], and work to the higher figure until somebody with the survey file says otherwise. Do not average them and do not pick the one you like. Record the zone, both values, and the figure you are working to."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 9. Mark with an X every location where work would put a technician above four feet [Fall]. Four feet, not six — this is general industry under 29 CFR 1910.28 and 1910.23, and the six-foot figure you may have heard is the construction standard. There are three such locations on your route. List all three below, each with the height involved and the work that would take somebody up there."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 10. For each fall location, note whether there is an anchor point. Where an anchor point is absent, that absence is the finding, and it is worth more than the marking itself — a fall location with a rated anchor is a controlled hazard, a fall location without one is not."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 11. Complete the hazard check sheet — one line per finding, using WHERE / WHAT / WHEN / WHO [Add row]. WHERE is a location a stranger could find. WHAT is what you observed, not what you concluded. WHEN is the time you observed it. WHO is the person or role who has to act. Write your three strongest lines out below."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 12. Before you submit, check yourself against the critical set: every category 3 and category 4 arc flash boundary marked, and every fall zone marked. Count them and write the counts below. This is the one check that decides whether you pass or re-take, so do it deliberately rather than assuming."}, {"s": "Part 1: Walking and mapping the floor", "k": "image", "p": "Step 13. Type your name into the submission panel, press Build submission sheet and print it, or photograph your marked blueprint and completed check sheet. Paste the sheet or the photograph below."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 14. Hand both sheets to your instructor and walk them through two findings out loud. Describe what you saw; do not diagnose. If you find yourself saying “this is unsafe”, stop and replace it with the observation that made you say it. Note below which two findings you chose and the exact observation you led with for each."}, {"s": "Part 2: Reflection", "k": "text", "p": "You were made to walk the route twice, and the first pass had no writing in it. Name one specific thing you marked on the second pass that you know you would have missed if you had been writing on the first. Then say what that tells you about how attention works on a floor round."}, {"s": "Part 2: Reflection", "k": "text", "p": "On the noise conflict, you had a posted sign and a survey figure that could not both be current. Averaging them is the instinct most people have. Explain what averaging would actually have produced — in terms of the protection a technician standing in that zone would or would not have had."}, {"s": "Part 2: Reflection", "k": "text", "p": "A colleague suggests you take the boundary distance from the identical unit sitting next to the one with the destroyed label, on the grounds that they are the same model. Explain why that is not acceptable, in terms of what an arc flash boundary distance is actually calculated from."}, {"s": "Part 2: Reflection", "k": "text", "p": "Read back your own hazard check sheet as though you were the technician coming on shift tomorrow and had never met you. Pick your weakest line — the one that would make you ask a question — and rewrite it below so that it does not."}]};</script>
+<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+     Collects every handout question and its response inside this lab tool and
+     exports ONE print-to-PDF submission sheet for Canvas grading.
+     Self-contained. No external libraries. Safe to re-inject (idempotent).
+
+     v2.0 — WCAG 2.1 AA pass (label association, headings, alt text, contrast,
+     status announcement, authored focus); image downscale before storage with a
+     visible error if the quota still throws; Save-as-PDF filename set from the
+     learner name; print pagination and running header; duplicate learner-name
+     rows stripped from the harvested simulator record.
+     ========================================================================= -->
+<style id="lqStyle">
+  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
+  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+  #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#9db6c9;font-weight:700}
+  #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
+    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+  #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
+  #lqCard .lqq{margin-bottom:16px}
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+    cursor:pointer}
+  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+    margin-right:6px;font-weight:700}
+  #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
+    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
+  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+  #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
+  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard .lqimgwrap{margin-top:7px}
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+    border-radius:5px;display:block;margin-top:8px}
+  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+
+  /* authored focus — the simulators author none, so this is the only visible ring.
+     Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
+     in the simulator above as much as in the submission panel. */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+  @media print{ :focus-visible{outline:none!important} }
+
+  /* error banner for a storage failure the learner must know about */
+  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr b{color:#fff}
+
+  /* screen-reader-only live region */
+  .lqvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* ---- the assembled submission sheet ---- */
+  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
+  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
+  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+    padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
+  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
+    font-size:12px;color:#a8c0d3;line-height:1.9}
+
+  #lqPrint{display:none}
+  #lqPrint .lqpage{width:100%;border-collapse:collapse}
+
+  /* ---- print: only the sheet ---- */
+  @media print{
+    body.lq-print{background:#fff!important;color:#000!important;
+      overflow:visible!important;height:auto!important}
+    body.lq-print>*{display:none!important}
+    body.lq-print>#lqPrint{display:block!important}
+
+    /* Everything harvested from the simulator arrives in the dark console palette:
+       near-white text that would print invisibly, on backgrounds the browser drops
+       by default. Flatten the whole print container to ink on paper first, then
+       re-assert the few greys that carry meaning. */
+    body.lq-print #lqPrint,body.lq-print #lqPrint *{
+      color:#000!important;background-color:transparent!important;background-image:none!important;
+      box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
+
+    /* running header — a thead repeats on every page in every engine that paginates */
+    body.lq-print #lqPrint thead.lqrhead{display:table-header-group}
+    body.lq-print #lqPrint td.lqrh{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      font-size:8pt;color:#444!important;border-bottom:.5pt solid #999!important;
+      padding:0 0 3pt;text-align:left}
+    body.lq-print #lqPrint td.lqrh .r{float:right}
+    body.lq-print #lqPrint td.lqbody{padding:6pt 0 0}
+
+    body.lq-print #lqPrint .lqsheet{background:#fff;border:0;padding:0;margin:0;color:#000}
+    body.lq-print #lqPrint h1{color:#000}
+    body.lq-print #lqPrint h1,body.lq-print #lqPrint h2{border-bottom-color:#999!important}
+    body.lq-print #lqPrint h2{color:#000;border-bottom:1px solid #999;
+      page-break-after:avoid;break-after:avoid}
+    body.lq-print #lqPrint .lqmeta,body.lq-print #lqPrint .lqrow .k,
+    body.lq-print #lqPrint .lqa .q{color:#444!important}
+    body.lq-print #lqPrint .lqa .q .qn{color:#000!important}
+    body.lq-print #lqPrint .lqrow,body.lq-print #lqPrint .lqa{border-bottom:1px solid #ddd!important}
+    body.lq-print #lqPrint .lqa,body.lq-print #lqPrint .lqrow,
+    body.lq-print #lqPrint .lqsign,body.lq-print #lqPrint .lqgap{
+      page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint .lqa .a.blank{color:#000;font-style:italic}
+    body.lq-print #lqPrint .lqgap,body.lq-print #lqPrint .lqgap.ok{
+      background:#fff!important;border:1pt solid #666!important;color:#000!important}
+    body.lq-print #lqPrint .lqsign{color:#000;border-top:1px solid #999}
+    body.lq-print #lqPrint .noprint{display:none!important}
+    body.lq-print #lqPrint button{display:none!important}
+    /* harvested simulator tables keep their column headers across pages */
+    body.lq-print #lqPrint thead{display:table-header-group}
+    body.lq-print #lqPrint tr{page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint p,body.lq-print #lqPrint .a{orphans:3;widows:3}
+    @page{margin:16mm 14mm 14mm}
+  }
+</style>
+<script id="lqScript">
+(function(){
+  if(window.__lqLoaded) return; window.__lqLoaded=true;
+
+  var esc=function(s){return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
+
+  var KEY="uci2227:"+LQ.file;
+  var store={}, storageBroken=false;
+  try{ store=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ store={}; }
+
+  /* ---------- cross-lab storage budget ----------
+     Every lab in the module is served from one origin, so all 43 share a single
+     ~5 MB localStorage budget. Seventeen image questions at ~325 KB apiece is 5.4 MB
+     — a learner working through the whole module on one browser profile would run out
+     near the end. Images belonging to OTHER labs are evicted when room is needed,
+     oldest and already-exported first. Text answers are never evicted: they are tiny,
+     and they are the part a learner cannot reproduce. An evicted image is already
+     inside the submission PDF that lab produced. */
+  function otherLabKeys(){
+    var out=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0&&k!==KEY) out.push(k);
+      }
+    }catch(e){}
+    return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
+  }
+  function evictOtherImages(target){
+    /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
+    var recs=[];
+    otherLabKeys().forEach(function(k){
+      var raw,obj;
+      try{ raw=localStorage.getItem(k)||"{}"; obj=JSON.parse(raw); }catch(e){ return; }
+      var imgBytes=0;
+      for(var f in obj) if(/_img$/.test(f)) imgBytes+=String(obj[f]).length;
+      if(imgBytes>0) recs.push({k:k,obj:obj,bytes:imgBytes,ts:obj._ts||0,done:obj._done?1:0});
+    });
+    recs.sort(function(a,b){ return (b.done-a.done)||(a.ts-b.ts); });
+    var freed=0;
+    for(var i=0;i<recs.length&&freed<target;i++){
+      var r=recs[i];
+      for(var f in r.obj) if(/_img$/.test(f)) delete r.obj[f];
+      r.obj._evicted=true;
+      try{ localStorage.setItem(r.k,JSON.stringify(r.obj)); freed+=r.bytes; }catch(e){}
+    }
+    return freed;
+  }
+
+  function save(){
+    store._ts=Date.now();
+    var payload;
+    try{ payload=JSON.stringify(store); }catch(e){ return false; }
+    try{
+      localStorage.setItem(KEY,payload);
+      if(storageBroken){ storageBroken=false; showStoreErr(null); }
+      return true;
+    }catch(e){
+      /* make room from other labs, then try once more */
+      if(evictOtherImages(payload.length+200000)>0){
+        try{
+          localStorage.setItem(KEY,payload);
+          if(storageBroken){ storageBroken=false; showStoreErr(null); }
+          return true;
+        }catch(e2){}
+      }
+      storageBroken=true;
+      showStoreErr(e);
+      return false;
+    }
+  }
+  function showStoreErr(e){
+    var b=document.getElementById("lqStoreErr");
+    if(!b) return;
+    if(!e){ b.style.display="none"; return; }
+    b.style.display="block";
+    b.innerHTML='<b>Your work is no longer being saved in this browser.</b><br>'
+      +'Storage is full or switched off — usually private browsing, or a great many images '
+      +'attached across the labs on this machine. Everything on screen is intact and the '
+      +'submission PDF will still build correctly — but <b>do not refresh or close this tab</b>. '
+      +'Press <b>Build submission PDF</b> now and save the file. '
+      +'Then press <b>Clear my responses</b> to free the space up for the next lab.';
+    if(b.scrollIntoView) b.scrollIntoView({block:"nearest"});
+  }
+
+  function announce(msg){
+    var s=document.getElementById("lqStatus");
+    if(s){ s.textContent=""; setTimeout(function(){ s.textContent=msg; },30); }
+  }
+
+  /* ---------- detect the set letter the tool is running ---------- */
+  function setLetter(){
+    try{ if(typeof SETLETTER!=="undefined"&&SETLETTER) return SETLETTER; }catch(e){}
+    var tag=document.getElementById("setTag");
+    if(tag&&tag.textContent){
+      var m=tag.textContent.match(/set\s+([A-H])/i); if(m) return m[1].toUpperCase();
+    }
+    var m2=(LQ.file||"").match(/524-\d-\d-([A-H])_/); if(m2) return m2[1];
+    return LQ.set||"—";
+  }
+
+  /* ---------- downscale an image before it goes anywhere near storage ----------
+     A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
+     about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
+     capture under 400 KB, which is still far more detail than the PDF can show. */
+  var MAXPX=1600, JPEGQ=0.82;
+  function downscale(file,cb){
+    var rd=new FileReader();
+    rd.onerror=function(){ cb(null,"The browser could not read that file."); };
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ cb(null,"That file does not look like an image the browser can open."); };
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(rd.result,null); return; }
+          var sc=Math.min(1,MAXPX/Math.max(w,h));
+          if(sc>=1&&rd.result.length<600000){ cb(rd.result,null); return; }
+          var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+          var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+          var x=c.getContext("2d");
+          x.fillStyle="#fff"; x.fillRect(0,0,cw,ch);
+          x.drawImage(img,0,0,cw,ch);
+          cb(c.toDataURL("image/jpeg",JPEGQ),null);
+        }catch(err){ cb(rd.result,null); }
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+
+  /* ---------- build the card ---------- */
+  var host=document.querySelector("main .wrap")||document.querySelector("main")||document.body;
+  var card=document.createElement("section");
+  card.id="lqCard";
+  card.setAttribute("aria-labelledby","lqCardTitle");
+
+  var qs=LQ.items, secs=[], cur=null;
+  qs.forEach(function(it,i){
+    if(!cur||cur.name!==it.s){ cur={name:it.s,list:[]}; secs.push(cur); }
+    cur.list.push({i:i,it:it});
+  });
+
+  var html=""
+   +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
+   +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
+   +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
+   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<div id="lqStoreErr" role="alert"></div>'
+   +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
+   +'<div class="lqid">'
+   +'<div class="lqfld" style="flex:1 1 260px"><label for="lqName">Your name</label>'
+     +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
+     +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
+     +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
+   +'</div>';
+
+  secs.forEach(function(sec,si){
+    html+='<h3 class="lqsec" id="lqSec'+si+'">'+esc(sec.name||"Questions")+'</h3>';
+    sec.list.forEach(function(o){
+      var id="lqQ"+o.i, n=o.i+1;
+      html+='<div class="lqq">';
+      if(o.it.k==="image"){
+        html+='<p class="lqp"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</p>'
+             +'<div class="lqimgwrap">'
+             +'<label class="lqfilelbl" for="'+id+'_f">Attach your image for question '+n+'</label>'
+             +'<input type="file" accept="image/*" id="'+id+'_f">'
+             +'<p class="lqnote" style="margin:5px 0 0">A photo or screenshot. It is resized and '
+             +'embedded in the PDF you hand in.</p>'
+             +'<img id="'+id+'_img" alt="Your attached image for question '+n+'" style="display:none">'
+             +'<label class="lqfilelbl" for="'+id+'" style="margin-top:8px">Caption or note for question '+n+'</label>'
+             +'<textarea id="'+id+'" rows="2" placeholder="Add any caption or note that goes with the image.">'
+             +esc(store[id]||"")+'</textarea></div>';
+      }else{
+        html+='<label class="lqp" for="'+id+'"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</label>'
+             +'<textarea id="'+id+'" rows="3" placeholder="Type your answer here.">'+esc(store[id]||"")+'</textarea>';
+      }
+      html+='</div>';
+    });
+  });
+
+  html+='<div class="lqbtns">'
+    +'<button type="button" class="lqprimary" id="lqBuild">Build submission PDF</button>'
+    +'<button type="button" id="lqPreview">Preview without printing</button>'
+    +'<button type="button" id="lqClear">Clear my responses</button>'
+    +'<span class="lqnote">The PDF carries every question, your responses and the simulator record. One file, one upload.</span>'
+    +'</div><div id="lqOut" role="region" aria-label="Submission sheet preview"></div>';
+
+  card.innerHTML=html;
+  host.appendChild(card);
+
+  /* ---------- wiring ---------- */
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
+    var el=document.getElementById(id);
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+  });
+  qs.forEach(function(it,i){
+    var id="lqQ"+i, ta=document.getElementById(id);
+    if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
+    var f=document.getElementById(id+"_f");
+    if(f) f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      announce("Processing your image for question "+(i+1)+".");
+      downscale(file,function(dataUrl,err){
+        if(err){ announce(err); alert(err); return; }
+        var img=document.getElementById(id+"_img");
+        img.src=dataUrl; img.style.display="block";
+        store[id+"_img"]=dataUrl;
+        var okSave=save();
+        announce("Image attached to question "+(i+1)+
+          (okSave?"." : ", but it could not be saved in this browser. Build your PDF now."));
+      });
+    };
+    if(store[id+"_img"]){
+      var im0=document.getElementById(id+"_img");
+      if(im0){ im0.src=store[id+"_img"]; im0.style.display="block"; }
+    }
+  });
+
+  /* an image of this lab was evicted to make room for another lab on the shared
+     origin, and this lab had not yet been exported — say so plainly */
+  if(store._evicted&&!store._done){
+    var eb=document.getElementById("lqStoreErr");
+    eb.style.display="block";
+    eb.innerHTML='<b>An image you attached is no longer stored.</b><br>'
+      +'This browser ran out of room across all the labs on this machine and dropped it. '
+      +'Your typed answers are all still here — only the image went. '
+      +'Attach it again before you build your submission PDF.';
+    delete store._evicted; save();
+  }
+
+  document.getElementById("lqClear").onclick=function(){
+    if(!confirm("Clear every response you have typed in this lab? This cannot be undone.")) return;
+    store={}; save();
+    qs.forEach(function(it,i){
+      var ta=document.getElementById("lqQ"+i); if(ta) ta.value="";
+      var im=document.getElementById("lqQ"+i+"_img"); if(im){ im.removeAttribute("src"); im.style.display="none"; }
+      var fi=document.getElementById("lqQ"+i+"_f"); if(fi) fi.value="";
+    });
+    document.getElementById("lqOut").innerHTML="";
+    announce("All responses cleared.");
+  };
+
+  /* ---------- guard the simulator's Restart button ----------
+     Restart wipes the simulator record but not the responses typed here, which
+     would leave a submission whose prose describes a record that no longer exists.
+     A capture-phase listener runs ahead of the tool's own onclick, so one confirm
+     covers every variant of the handler. */
+  (function(){
+    var rb=document.getElementById("btnRestart")||document.getElementById("btnReset");
+    if(!rb||card.contains(rb)) return;
+    rb.addEventListener("click",function(ev){
+      if(rb.dataset.lqOk==="1"){ rb.dataset.lqOk=""; return; }
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      var ok=confirm(
+        "Restart the scenario?\n\n"+
+        "Everything you recorded in the simulator — readings, marks, logs, the "+
+        "submission sheet it built — is wiped and the run starts again.\n\n"+
+        "The answers you typed in the submission panel lower down are KEPT. If they "+
+        "describe readings you are about to erase, build your submission PDF first.");
+      if(ok){ rb.dataset.lqOk="1"; rb.click(); }
+    },true);
+  })();
+
+  /* ---------- harvest the simulator's own record ---------- */
+  var REC_SEL=".sheet, .result.show";
+  function collect(){
+    var raw=[];
+    Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
+      if(card.contains(s)) return;
+      if(!s.textContent.replace(/\s/g,"")) return;
+      raw.push(s);
+    });
+    return raw.filter(function(s){
+      return !raw.some(function(o){ return o!==s && o.contains(s); });
+    });
+  }
+
+  /* the module already prints the learner name in its own Learner block, and every
+     simulator sheet prints it again — four of them twice. Strip it from the clone. */
+  var NAMEKEY=/^(your\s+)?(name|learner(\s+name)?)\s*:?\s*$/i;
+  function stripDuplicateName(root){
+    Array.prototype.forEach.call(root.querySelectorAll(".learnerline"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    var rows=root.querySelectorAll("div,tr,p");
+    Array.prototype.forEach.call(rows,function(r){
+      var first=r.firstElementChild;
+      if(!first||r.children.length>3) return;
+      if(NAMEKEY.test((first.textContent||"").trim())){
+        if(r.parentNode) r.parentNode.removeChild(r);
+      }
+    });
+  }
+
+  function toolRecord(){
+    var found=collect();
+    if(!found.length){
+      var btns=document.querySelectorAll("button");
+      var hit=null;
+      Array.prototype.forEach.call(btns,function(b){
+        if(card.contains(b)||hit) return;
+        var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+        if(/print/.test(t)) return;
+        if(/^build submission sheet$/.test(t)) hit=b;
+      });
+      if(!hit){
+        Array.prototype.forEach.call(btns,function(b){
+          if(card.contains(b)||hit) return;
+          var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+          if(/print/.test(t)) return;
+          if(/build .*sheet|submission sheet|submit .*(map|answer|sheet|round|log)|^submit$/.test(t)) hit=b;
+        });
+      }
+      if(hit){ try{ hit.click(); }catch(e){} }
+      found=collect();
+    }
+    if(!found.length) return null;
+    var wrap=document.createElement("div");
+    found.forEach(function(s){
+      var c=s.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      });
+      stripDuplicateName(c);
+      wrap.appendChild(c);
+    });
+    return wrap.innerHTML;
+  }
+
+  /* ---------- assemble the one sheet ---------- */
+  function build(){
+    var name=document.getElementById("lqName").value.trim();
+    var coh=document.getElementById("lqCohort").value.trim();
+    var dt=document.getElementById("lqDate").value.trim();
+    var gaps=[];
+    if(!name) gaps.push("Your name");
+    if(!coh)  gaps.push("Cohort / section");
+
+    var h=''
+     +'<div class="lqsheet">'
+     +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
+     +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
+       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+     +'<h2>Learner</h2>'
+     +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Built</span><span class="v">'
+       +esc(new Date().toLocaleString())+'</span></div>';
+
+    var rec=LQ.nosim?null:toolRecord();
+    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
+    else if(!LQ.nosim){
+      gaps.push("The simulator record — work through the lab tool above and press its own "
+               +"“Build submission sheet” button before you build this PDF");
+    }else{
+      h+='<h2>Assessed on the floor</h2>'
+        +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
+        +'Observed and signed off by the instructor against the handout. '
+        +'The instructor signature below records that sign-off.</span></div>';
+    }
+
+    var curSec=null;
+    qs.forEach(function(it,i){
+      if(it.s!==curSec){ curSec=it.s; h+='<h2>'+esc(curSec||"Questions")+'</h2>'; }
+      var ta=document.getElementById("lqQ"+i);
+      var a=ta?ta.value.trim():"";
+      var im=store["lqQ"+i+"_img"];
+      if(!a&&!im) gaps.push("Q"+(i+1));
+      h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
+      if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
+      h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
+    });
+
+    if(gaps.length){
+      h+='<div class="lqgap"><b>Not yet filled in ('+gaps.length+'):</b> '+esc(gaps.join(", "))
+        +'.<br>This is a completeness check, not a grade. Fill them in and build again, '
+        +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
+    }else{
+      h+='<div class="lqgap ok">'
+        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+    }
+
+    h+='<div class="lqsign">Learner signature: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'Instructor verification: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
+
+    document.getElementById("lqOut").innerHTML=h;
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
+    return h;
+  }
+
+  document.getElementById("lqPreview").onclick=function(){
+    build();
+    var o=document.getElementById("lqOut");
+    if(o&&o.scrollIntoView) o.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* ---------- the one PDF ---------- */
+  function safeName(s){
+    return String(s||"").normalize?String(s||"").normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+      :String(s||"").replace(/[^\w\s-]/g,"").trim();
+  }
+  function fileTitle(){
+    var n=safeName(document.getElementById("lqName").value).split(/\s+/).filter(Boolean);
+    var last=n.length>1?n[n.length-1]:(n[0]||"Learner");
+    var first=n.length>1?n.slice(0,-1).join("_"):"";
+    var who=first?(last+"_"+first):last;
+    return who+"_"+String(LQ.lab||"").replace(/[^\d.]/g,"");
+  }
+
+  document.getElementById("lqBuild").onclick=function(){
+    var h=build();
+    /* this lab's images are now inside a PDF the learner holds, so they become the
+       first thing evicted when another lab needs room on the shared origin */
+    store._done=true; save();
+
+    var old=document.getElementById("lqPrint"); if(old) old.parentNode.removeChild(old);
+
+    /* The sheet goes inside a one-cell table whose thead repeats on every printed
+       page, so pages 2+ still carry the learner name, the lab and the set. */
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+      +esc(document.getElementById("lqName").value.trim()||"Name not entered")
+      +' · '+esc(LQ.title);
+    var pr=document.createElement("div"); pr.id="lqPrint";
+    pr.innerHTML='<table class="lqpage"><thead class="lqrhead"><tr><td class="lqrh">'
+      +runHead+'</td></tr></thead><tbody><tr><td class="lqbody">'+h+'</td></tr></tbody></table>';
+    document.body.appendChild(pr);
+
+    /* the browser suggests document.title as the Save-as-PDF filename */
+    var prevTitle=document.title;
+    document.title=fileTitle();
+    document.body.classList.add("lq-print");
+
+    var restored=false;
+    var done=function(){
+      if(restored) return; restored=true;
+      document.body.classList.remove("lq-print");
+      document.title=prevTitle;
+      var a=document.getElementById("lqPrint"); if(a&&a.parentNode) a.parentNode.removeChild(a);
+      window.removeEventListener("afterprint",done);
+      if(mq&&mq.removeListener) mq.removeListener(mqHandler);
+    };
+    var mq=window.matchMedia?window.matchMedia("print"):null;
+    var mqHandler=function(m){ if(!m.matches) done(); };
+    if(mq&&mq.addListener) mq.addListener(mqHandler);
+    window.addEventListener("afterprint",done);
+
+    setTimeout(function(){
+      window.print();
+      /* generous fallback: mobile print sheets are asynchronous, and tearing the
+         container out too early yields a blank PDF */
+      setTimeout(done,60000);
+    },80);
+  };
+})();
+</script>
+<!-- ===== end submission module ============================================= -->
+
+</body>
+</html>

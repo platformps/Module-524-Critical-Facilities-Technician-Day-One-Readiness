@@ -1,0 +1,2014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>524.4.3 — UCI 2227 — Lab 4.3 MOP Rollback Execution Gate (Training Simulator)</title>
+<style>
+  :root{
+    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
+    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+  button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:7px 13px}
+  button:hover{background:#1b3044;border-color:#2d4d68}
+  button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  button.primary:hover{background:#0a8bd8}
+  button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input[type=text],input[type=number],textarea{
+    font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:7px 9px}
+  textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
+  h1,h2,h3{margin:0;font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  /* ---------- shell ---------- */
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex:0 0 auto}
+  .brand{font-weight:700;letter-spacing:.4px;font-size:14px}
+  .brand span{color:var(--blue)}
+  .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
+  .spacer{flex:1}
+  .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
+  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
+  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+
+  main{flex:1;overflow:auto;padding:18px}
+  .wrap{max-width:1500px;margin:0 auto}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;margin-bottom:4px}
+  .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
+
+  /* ---------- console ---------- */
+  .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
+    border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+
+  /* ---------- alarms ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+    font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+  th:hover{color:var(--blue)}
+  td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
+  .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
+
+  .hidden{display:none !important}
+
+  /* ---------- submission ---------- */
+  .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
+  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
+  .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
+  .result.show{display:block}
+  .result.show{background:var(--panel2);border:1px solid var(--line)}
+  @media print{
+    body{background:#fff;color:#000;overflow:visible}
+    header,.toolbar,.noprint{display:none !important}
+    main{overflow:visible}
+  }
+
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+    color:var(--blue);margin-bottom:8px}
+  .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+
+  /* ---------- additive: labs 4.2 / 4.3 ---------- */
+  .doc{background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:24px 28px;max-width:1040px;margin:0 auto}
+  .doc h2{font-size:17px;margin:0 0 4px}
+  .doc h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin:22px 0 8px}
+  .doc p{font-size:13px;line-height:1.6;color:var(--dim);margin:0 0 10px}
+  .doc ol,.doc ul{font-size:13px;line-height:1.6;color:var(--dim);margin:0 0 10px;padding-left:20px}
+  .doc li{margin-bottom:5px}
+  .tblock{display:grid;grid-template-columns:repeat(3,1fr);gap:11px 20px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:14px 16px;margin:12px 0 4px}
+  .tblock .k{font-size:9.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tblock .v{font-size:12.5px;font-family:var(--mono);margin-top:3px;line-height:1.4}
+  table.mop td{font-size:12px;line-height:1.5}
+  table.mop th{cursor:default}
+  table.mop th:hover{color:var(--faint)}
+  table.mop td.n{font-family:var(--mono);color:var(--blue);font-weight:700;width:34px}
+  .pill{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.6px;
+    padding:3px 8px;border-radius:3px;white-space:nowrap;border:1px solid var(--line);background:var(--panel2);color:var(--dim)}
+  .pill.closed{background:#12261c;border-color:#1d5b41;color:#7fdcaa}
+  .pill.open{background:#4a3418;border-color:#6a4d22;color:#ffc069}
+  .pill.live{background:#12261c;border-color:#1d5b41;color:#7fdcaa}
+  .pill.dead{background:#22303a;border-color:#2b3c49;color:#8ba6bd}
+  .pill.spare{background:var(--panel2);color:var(--faint)}
+  .pill.tagged{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
+  .ctrl{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:11px 13px;border:1px solid var(--line);
+    border-radius:7px;background:var(--panel2);margin-bottom:9px}
+  .ctrl.done{border-color:#1d5b41;background:#12261c}
+  .ctrl.next{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset}
+  .ctrl .cnum{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--faint);
+    border:1px solid var(--line);border-radius:4px;padding:3px 7px}
+  .ctrl .cname{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;color:var(--ice);min-width:126px}
+  .ctrl .cbody{flex:1;min-width:260px;font-size:12.5px;color:var(--dim);line-height:1.5}
+  .obs{background:#101f2c;border:1px dashed #2d4d68;border-radius:7px;padding:12px 14px;
+    font-size:12.5px;line-height:1.6;color:var(--ice);margin:4px 0 14px}
+  .obs b{color:#fff}
+  .logbox{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:10px 12px;
+    max-height:230px;overflow:auto;font-family:var(--mono);font-size:11.5px;line-height:1.65}
+  .logbox div{white-space:pre-wrap}
+  .logbox .lv{color:#ffb9ae}
+  .logbox .lg{color:#7fdcaa}
+  .logbox .ln{color:var(--faint)}
+  .logbox .lw{color:#ffc069}
+  .ctr{display:grid;grid-template-columns:1fr auto;gap:3px 12px;font-size:12px}
+  .ctr .cl{color:var(--faint)}
+  .ctr .cv{font-family:var(--mono);text-align:right}
+  .ctr .cv.bad{color:#ff8f7d;font-weight:700}
+  .rbrow{display:flex;gap:12px;align-items:flex-start;padding:11px 13px;border-radius:7px;
+    border:1px solid var(--line);background:var(--panel2);margin-bottom:8px}
+  .rbrow.done{border-color:#1d5b41;background:#12261c}
+  .rbrow.wrong{border-color:#6d3129;background:#2a1512}
+  .rbrow .rbt{flex:1;font-size:12.5px;line-height:1.5}
+  .rbrow .rbd{font-size:11px;color:var(--faint);margin-top:3px;font-family:var(--mono)}
+  .sectbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-bottom:14px}
+  .sectbox h3{font-size:14px;margin-bottom:3px}
+  .sectbox .sub{font-size:12px;color:var(--faint);margin-bottom:13px;line-height:1.5}
+  .pcrow{display:flex;gap:12px;align-items:center;padding:9px 12px;border:1px solid var(--line);
+    border-radius:7px;background:var(--panel2);margin-bottom:7px}
+  .pcrow .pcid{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--blue);min-width:38px}
+  .pcrow .pct{flex:1;font-size:12.5px;line-height:1.5}
+  .pcrow.yes{border-color:#1d5b41}
+  .pcrow.no{border-color:#6a4d22}
+  .stepstrip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .sbox{font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:4px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--faint)}
+  .sbox.cur{background:#16324a;border-color:var(--blue);color:var(--ice);font-weight:700}
+  .sbox.ok{background:#12261c;border-color:#1d5b41;color:#7fdcaa}
+  .sbox.bad{background:#2a1512;border-color:#6d3129;color:#ffb9ae}
+  .halted{background:#2a1512;border:1px solid #6d3129;border-radius:9px;padding:16px 18px;margin-bottom:14px;
+    font-size:13px;line-height:1.6}
+  .flash{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;
+    background:#16324a;border:1px solid var(--blue);color:var(--ice);border-radius:7px;
+    padding:10px 16px;font-size:12.5px;box-shadow:0 8px 26px rgba(0,0,0,.5)}
+  .sigline{border-bottom:1px solid var(--line);min-height:26px;margin-top:16px}
+  .notebox{background:#132c3f;border:1px solid #23485f;border-radius:7px;padding:13px;
+    font-size:12.5px;line-height:1.55}
+  .sheetrow{display:flex;justify-content:space-between;gap:16px;padding:5px 0;
+    border-bottom:1px solid #182b3b;font-size:12.5px}
+  .sheetrow span:first-child{color:var(--faint)}
+  .sheetrow span:last-child{text-align:right}
+  .sheet h3{font-size:15px;margin-bottom:4px}
+  .sheet h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+    font-weight:700;margin:18px 0 8px}
+  .sheet table{margin-bottom:4px}
+  .sheet td,.sheet th{font-size:12px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">MOP EXECUTION PACKET</div>
+    <div class="sysname" id="sysname">524.4.3 · UCI 2227 · Lab 4.3 · objective M4.3 · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="spacer"></div>
+    <div id="statusBadge" class="badge">Ready</div>
+    <div>
+      <div class="clocklbl">Site time</div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <button id="btnDoc">MOP document</button>
+    <button id="btnRack">Rack state</button>
+    <button id="btnExec" class="primary">Execute</button>
+    <button id="btnHalt" class="danger">HALT</button>
+    <button id="btnRoll">Rollback</button>
+    <button id="btnRed">Redline</button>
+    <span class="spacer"></span>
+    <span class="counter" id="stepTimer">step --:--</span>
+    <span class="counter" id="elapsed">T+00:00</span>
+    <button id="btnRestart">Restart</button>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <section id="mopView"></section>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SET = 3;   /* fixed for this file */
+/* ============================================================
+   UCI 2227 — Labs 4.2 / 4.3 · MOP Execution and Rollback Gate
+   Standalone training console. Offline, no libraries, no network.
+   Telemetry model and chart code are identical to the other lab tools.
+   ============================================================ */
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let rnd=mulberry32(1);
+function noise(amp){return (rnd()*2-1)*amp;}
+function fmtClock(mins){
+  const base=3*60+14; // scenarios run from 03:14 site time
+  const total=base+mins;
+  const h=Math.floor(total/60)%24, m=Math.floor(total%60), s=Math.floor((mins%1)*60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function fmtElapsed(mins){
+  return "T+"+String(Math.floor(mins)).padStart(2,"0")+":"+String(Math.floor((mins%1)*60)).padStart(2,"0");
+}
+
+/* ---------- this lab ---------- */
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+
+const LAB={lab:"Lab 4.3",obj:"M4.3",title:"MOP Rollback Execution Gate"};
+
+const DOC={no:"MOP-2227-041",rev:"C",
+  title:"Corrective maintenance — replacement of the faulty A-side rack power distribution unit in rack R-14, Hall B row 3",
+  author:"T. Okonjo, Critical Facilities Engineering",
+  reviewer:"S. Halloran, Electrical Supervisor",
+  approver:"R. Vance, Data Centre Manager",
+  approved:"14 May 2026",
+  duration:"45 minutes on the floor",
+  risk:"High — the rack runs on a single power path for the duration of the transfer and isolation.",
+  window:"04:00 to 06:00, change record CHG-4471",
+  purpose:"Corrective maintenance. The A-side rack power distribution unit (PDU) in rack R-14 is faulty and is to be replaced like for like, in house, by CE Technicians. This document covers the maintenance preparation: transferring the two loads recorded as A-side onto spare B-side outlets and isolating the A-side feed at the distribution board so the faulty unit can be exchanged. The transfer and the isolation are embedded steps of the maintenance task, which clause 5.3.2 of the procedure standard expressly permits — including shut down, Isolation and start-up steps if required — and they are not a stand-alone switching activity.",
+  scope:"Rack R-14 only, Hall B row 3. Distribution board RP-2B breakers CB-11 and CB-14. Rack PDU-A and rack PDU-B outlets. Applies to the devices listed in Appendix A of this document.",
+  excl:"Does not cover the physical exchange of the faulty unit, which is carried out under the companion document MOP-2227-042 in the same corrective maintenance package. Does not cover any work on board RP-2A or the redundant path tie CB-16. Does not authorise any change to cabling other than the two power leads named in steps 6 and 7."};
+
+const PRECON=[
+  {id:"PC-1",t:"Change record CHG-4471 is approved and the work is inside the agreed window of 04:00 to 06:00."},
+  {id:"PC-2",t:"Shift lead has been briefed, is on the floor, and knows this MOP is starting."},
+  {id:"PC-3",t:"Replacement A-side rack PDU is staged at the rack, unpacked, and visually inspected as undamaged."},
+  {id:"PC-4",t:"Redundant B-side path is in service — distribution board breaker CB-16 is CLOSED and carries no tags."},
+  {id:"PC-5",t:"Torch, insulated gloves and safety glasses are to hand. Rack aisle is clear of loose items."},
+  {id:"PC-6",t:"Field copy of MOP-2227-041 Rev C is printed, together with a blank field redline form."}
+];
+
+const TOOLSREQ=["Head torch and hand torch","Insulated screwdriver set, VDE rated","Non-contact voltage tester, tested before and after use","Clamp meter for confirming PDU load current","Cable labels, label printer, hook-and-loop cable ties","Field copy of MOP-2227-041 Rev C, pen, and a blank field redline form"];
+const PPEREQ=["Safety glasses","Arc-rated long-sleeved shirt","Class 00 insulated gloves for all breaker operation","No rings, watches or lanyards"];
+
+const DEVICES=[
+  {id:"rack",  name:"Rack R-14 cabinet — front and rear doors",            label:"R-14 · HALL B · ROW 3"},
+  {id:"srv",   name:"Dell PowerEdge R630 server — SRV-R630-01, 2U, dual power supply", label:"SRV-R630-01 · U18-U19"},
+  {id:"sw3750",name:"Cisco Catalyst 3750 switch — SW-3750-01, distribution", label:"SW-3750-01 · DIST · U22"},
+  {id:"sw2960",name:"Cisco Catalyst 2960G switch — SW-2960G-01, access",     label:"SW-2960G-01 · ACCESS · U21"},
+  {id:"pp1",   name:"StarTech 24-port patch panel PP-01",                   label:"PP-01 · PORTS 1-24 · U23"},
+  {id:"pp2",   name:"StarTech 24-port patch panel PP-02",                   label:"PP-02 · PORTS 25-48 · U24"},
+  {id:"kvm",   name:"KVM switch KVM-01",                                    label:"KVM-01 · U20"},
+  {id:"pdua",  name:"Rack power distribution unit, A-side — PDU-A",         label:"PDU-A · RACK R-14 · 16 A · FED FROM CB-11"},
+  {id:"pdub",  name:"Rack power distribution unit, B-side — PDU-B",         label:"PDU-B · RACK R-14 · 16 A · FED FROM CB-12"},
+  {id:"panel", name:"Distribution board RP-2B — breakers CB-11 to CB-18",   label:"RP-2B · ROW 3 · BREAKER PANEL"}
+];
+const DEVNAME=id=>(DEVICES.find(d=>d.id===id)||{name:id}).name;
+
+const BRK=[
+  {id:"CB-11",label:"CB-11 · RACK R-14 PDU-A PRIMARY · 20 A",serves:"Rack R-14 PDU-A primary feed"},
+  {id:"CB-12",label:"CB-12 · RACK R-14 PDU-B PRIMARY · 20 A",serves:"Rack R-14 PDU-B primary feed"},
+  {id:"CB-13",label:"CB-13 · SPARE · 20 A",serves:"Spare"},
+  {id:"CB-14",label:"CB-14A · RACK R-14 SECONDARY · 20 A",serves:"Rack R-14 secondary feed and maintenance receptacle RCP-14"},
+  {id:"CB-15",label:"CB-15 · RACK R-15 PDU-A PRIMARY · 20 A",serves:"Rack R-15 PDU-A primary feed"},
+  {id:"CB-16",label:"CB-16 · HALL B REDUNDANT PATH TIE TO RP-2A · 32 A",serves:"Redundant path tie to board RP-2A"},
+  {id:"CB-17",label:"CB-17 · SPARE · 20 A",serves:"Spare"},
+  {id:"CB-18",label:"CB-18 · MAINTENANCE RECEPTACLES ROW 3 · 20 A",serves:"Row 3 maintenance receptacles"}
+];
+const OUTLETS_A=["A-01","A-02","A-03","A-04","A-05","A-06","A-07","A-08"];
+const OUTLETS_B=["B-01","B-02","B-03","B-04","B-05","B-06","B-07","B-08"];
+const LEADS=[
+  {k:"srv1", name:"SRV-R630-01 power supply 1 (PSU1)"},
+  {k:"srv2", name:"SRV-R630-01 power supply 2 (PSU2)"},
+  {k:"sw3750",name:"SW-3750-01 power lead"},
+  {k:"sw2960",name:"SW-2960G-01 power lead"},
+  {k:"kvm",  name:"KVM-01 power lead"}
+];
+const LEADNAME=k=>(LEADS.find(l=>l.k===k)||{name:k}).name;
+
+/* Appendix A — what the document believes is true of the rack. */
+const APPENDIX={
+  leads:{srv1:"A-03",srv2:null,sw3750:"A-05",sw2960:"B-03",kvm:"A-07"},
+  loadA:"7.2 A",loadB:"6.1 A",
+  note:"SRV-R630-01 is recorded as single-corded on outlet A-03. Outlet B-04 is recorded as spare. Combined B-side load after transfer is calculated at 12.7 A against a 16 A supply. SW-2960G-01 carries the Power over Ethernet (PoE) load for the row, which is why the B-side figure is the larger of the two at rest."
+};
+
+/* Plant state at the start of the run. It is also the rollback target. */
+function startState(vid){
+  const st={
+    breakers:{"CB-11":"CLOSED","CB-12":"CLOSED","CB-13":"OPEN","CB-14":"CLOSED",
+              "CB-15":"CLOSED","CB-16":"CLOSED","CB-17":"OPEN","CB-18":"CLOSED"},
+    tagsOnBreakers:{},
+    leads:{srv1:"A-03",srv2:null,sw3750:"A-05",sw2960:"B-03",kvm:"A-07"},
+    tags:{front:false,rear:false},
+    lockoff:false
+  };
+  if(vid==="M2"){ st.breakers["CB-14"]="OPEN"; st.lockoff=true; }
+  if(vid==="M3"){ st.leads.srv2="B-04"; }
+  if(vid==="M4"){ st.breakers["CB-16"]="OPEN";
+                  st.tagsOnBreakers["CB-16"]="OUT FOR SERVICE — ELECTRICAL — DO NOT OPERATE — 03:52"; }
+  return st;
+}
+const cloneState=s=>JSON.parse(JSON.stringify(s));
+function sameState(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+function outletMap(st){
+  const m={};
+  OUTLETS_A.concat(OUTLETS_B).forEach(o=>{m[o]=null;});
+  Object.keys(st.leads).forEach(k=>{ const o=st.leads[k]; if(o) m[o]=k; });
+  return m;
+}
+function pduLoad(st,side){
+  const w={srv1:3.9,srv2:5.3,sw3750:2.7,sw2960:6.1,kvm:0.6};
+  let a=0;
+  Object.keys(st.leads).forEach(k=>{
+    const o=st.leads[k];
+    if(o && o[0]===side) a+=w[k];
+  });
+  if(side==="A" && st.breakers["CB-11"]==="OPEN") return 0;
+  if(side==="B" && st.breakers["CB-12"]==="OPEN") return 0;
+  return a;
+}
+
+const CONFIGS=[
+ {id:"M1",mode:"A"},
+ {id:"M2",mode:"B"},
+ {id:"M3",mode:"B"},
+ {id:"M4",mode:"B"}
+];
+
+/* fixed integer derived from SET — the run is identical every time the file is opened */
+const RKEY=(Math.imul(SET+1,2654435761)^0x9E3779B9)>>>0;
+function labNo(){ return V.mode==="A"?"4.2":"4.3"; }
+function labName(){ return "Lab "+labNo(); }
+function labHead(){ return "Lab "+labNo()+" — MOP execution"; }
+function labTag(){ return "524."+labNo()+" &middot; Lab "+labNo()+" &middot; objective M"+labNo()+
+  " &middot; Module 4 &mdash; Procedure Discipline"; }
+
+const STEPS=[
+ {n:1,dev:"rack",
+  action:"Confirm the rack identification label reads R-14 and that the field copy of this document is revision C.",
+  expect:"Rack front door label reads R-14 · HALL B · ROW 3. Field copy header reads Rev C.",
+  verify:"Read the door label and the revision aloud, then compare both with the title block.",
+  scriptref:"rack R-14",
+  opts:["R-14 · HALL B · ROW 3","R-14 · HALL B · ROW 4","RACK R14 · HALL B","R-14","the rack in row 3"]},
+
+ {n:2,dev:"pdua",
+  action:"Read the A-side and B-side rack PDU displays and record both load currents on the field copy.",
+  expect:"PDU-A reads 7.2 A and PDU-B reads 6.1 A, matching the Appendix A headroom calculation.",
+  verify:"State both figures aloud before writing them down. Do not copy the figures out of Appendix A.",
+  scriptref:"PDU-A display",
+  opts:["PDU-A · RACK R-14 · 16 A · FED FROM CB-11","PDU-A · RACK R-14 · 16A · FED FROM CB-12","PDU A · RACK R-14 · 16 A","PDU-B · RACK R-14 · 16 A · FED FROM CB-12","the A-side PDU"]},
+
+ {n:3,dev:"sw2960",
+  action:"Confirm the outage window for SW-2960G-01 with the shift lead, and confirm the server and both switches are up.",
+  expect:"Shift lead confirms the window 04:00 to 06:00. Status indicators on the server and both switches are normal.",
+  verify:"State the window times aloud back to the shift lead and wait for the confirmation.",
+  scriptref:"SW-2960G-01",
+  opts:["SW-2960G-01 · ACCESS · U21","SW-2960-G01 · ACCESS · U21","SW-2960G-01 · DIST · U21","SW-2960G-01","the access switch"]},
+
+ {n:4,dev:"rack",
+  action:"Fit WORK IN PROGRESS tags to the rack R-14 front and rear doors, each initialled and timed.",
+  expect:"Two tags fitted, front and rear, both initialled and timed.",
+  verify:"Read the tag text aloud as each tag is fitted.",
+  scriptref:"WORK IN PROGRESS tag",
+  opts:["WORK IN PROGRESS · MOP-2227-041 · DO NOT OPERATE","WORK IN PROGRESS · MOP-2227-042 · DO NOT OPERATE","DANGER · DO NOT OPERATE","WORK IN PROGRESS","a work in progress tag"],
+  mutate:st=>{st.tags.front=true; st.tags.rear=true;}},
+
+ {n:5,dev:"panel",
+  action:"Open breaker CB-14, the A-side rack PDU secondary feed, and confirm the rack outlet map and the redundant path agree with Appendix A.",
+  expect:"CB-14 moves from CLOSED to OPEN. Maintenance receptacle RCP-14 dead. Outlet B-04 spare. Redundant path breaker CB-16 CLOSED and untagged.",
+  verify:"State the CB-14 handle position aloud before and after operating it, then read the outlet map aloud outlet by outlet, then read CB-16 aloud.",
+  scriptref:"Open breaker CB-14",
+  opts:["CB-14A · RACK R-14 SECONDARY · 20 A","CB-14 · RACK R-14 SECONDARY · 20 A","CB-14A · RACK R-14 · 20 A","CB-14","open the breaker"],
+  mutate:st=>{st.breakers["CB-14"]="OPEN";}},
+
+ {n:6,dev:"sw3750",
+  action:"Transfer the SW-3750-01 power lead from outlet A-05 to outlet B-06.",
+  expect:"Switch restarts on the B-side. Uplink and access port indicators restore within ninety seconds.",
+  verify:"Read both outlet labels aloud before the lead leaves A-05, and read the destination label again before it goes in.",
+  scriptref:"SW-3750-01 power lead, A-05 to B-06",
+  opts:["SW-3750-01 · DIST · U22","SW-3750-1 · DIST · U22","SW-3750-01 · ACCESS · U22","SW-3750-01","the 3750"],
+  mutate:st=>{st.leads.sw3750="B-06";}},
+
+ {n:7,dev:"srv",
+  action:"Transfer the SRV-R630-01 PSU1 power lead from outlet A-03 to outlet B-05.",
+  expect:"PSU1 status indicator returns to normal within twenty seconds. Server does not restart.",
+  verify:"State the PSU1 indicator condition aloud before the lead is moved and again after it is seated.",
+  scriptref:"SRV-R630-01 PSU1, A-03 to B-05",
+  opts:["SRV-R630-01 · U18-U19","SRV-R630-1 · U18-U19","SRV-R630-01 · U18","SRV-R630-01","the server"],
+  mutate:st=>{st.leads.srv1="B-05";}},
+
+ {n:8,dev:"panel",
+  action:"Open breaker CB-11, the A-side rack PDU primary feed, and verify PDU-A is dead.",
+  expect:"CB-11 OPEN. PDU-A display blank. All A-side outlets dead. Rack running on the B-side path only.",
+  verify:"State the handle position aloud, then state the blank display aloud, then prove dead at outlet A-01 with the voltage tester.",
+  scriptref:"Open breaker CB-11",
+  opts:["CB-11 · RACK R-14 PDU-A PRIMARY · 20 A","CB-11A · RACK R-14 PDU-A PRIMARY · 20 A","CB-11 · RACK R-14 PDU-A · 20 A","CB-11","the A-side breaker"],
+  mutate:st=>{st.breakers["CB-11"]="OPEN";}},
+
+ {n:9,dev:"rack",
+  action:"Complete the sign-off block, remove the front door tag only, and hand the rack to the electrical fitter.",
+  expect:"Sign-off block complete. Front tag removed. Rear tag remains in place until the PDU replacement is finished.",
+  verify:"Read the sign-off block aloud to the fitter as the rack is handed over.",
+  scriptref:"front door tag",
+  opts:["WORK IN PROGRESS · MOP-2227-041 · DO NOT OPERATE","WORK IN PROGRESS · MOP-2227-042 · DO NOT OPERATE","DANGER · DO NOT OPERATE","WORK IN PROGRESS","the tag on the door"],
+  mutate:st=>{st.tags.front=false;}}
+];
+const CTRLS=[
+  {k:"read", name:"Read aloud",  hint:"Read the step text aloud, word for word, before you look at anything."},
+  {k:"point",name:"Point",       hint:"Put a finger on the device the step names. Choose it from the rack list."},
+  {k:"match",name:"Match label", hint:"Select the exact text on the physical label. Not what the script says, what the label says."},
+  {k:"act",  name:"Act",         hint:"Carry out the action, then state the verification result before you sign."},
+  {k:"sign", name:"Sign",        hint:"Initial the step now, at the rack, not later at the desk."}
+];
+const SEQ=CTRLS.map(c=>c.k);
+
+const RB_ADMIN=[
+  {id:"a-announce",t:"Announce the rollback to the shift lead — step number, what was observed, and that the MOP is suspended."},
+  {id:"a-record",  t:"Record the as-found condition of the affected item on the field redline form."},
+  {id:"a-return",  t:"Return the field copy of MOP-2227-041 Rev C to the change file, marked SUSPENDED."}
+];
+
+const S={ci:SET,rkey:RKEY,learner:"",t:0,timer:null,pane:"doc",
+  st:null,start:null,step:1,phase:{},log:[],
+  counters:{silent:0,backsign:0,paraphrase:0,pointing:0,override:0,order:0,side:0},
+  precon:{},startedAnyway:false,
+  started:false,finished:false,
+  halted:false,haltStep:null,haltBeforeAct:false,haltInfo:{},
+  rbSummary:"",rbDone:{},rbOtherUsed:[],rbActions:[],rbSubmitted:false,rbSubmittedAt:"",
+  rbOutstanding:[],rbAdminMissing:[],
+  redline:{},initials:"",stepStart:0,stepSecs:[],labelOpts:{}};
+let V=CONFIGS[SET];
+/* ---------- log, flash, phase ---------- */
+function addLog(kind,text){
+  S.log.push({t:fmtClock(S.t),kind:kind,text:text});
+  if(S.log.length>400) S.log.shift();
+}
+let flashTimer=null;
+function flash(msg){
+  let f=document.getElementById("flashbox");
+  if(!f){ f=document.createElement("div"); f.id="flashbox"; f.className="flash noprint"; document.body.appendChild(f); }
+  f.textContent=msg; f.style.display="block";
+  clearTimeout(flashTimer); flashTimer=setTimeout(()=>{f.style.display="none";},2600);
+}
+function ph(n){
+  n=n||S.step;
+  if(!S.phase[n]) S.phase[n]={read:false,point:false,match:false,act:false,sign:false,
+    vres:"",vresAt:"",pointPick:"",labelPick:"",silentFlagged:false,advanced:false,secs:0,signedAt:"",at:{}};
+  return S.phase[n];
+}
+function stepDef(n){ return STEPS[(n||S.step)-1]; }
+function expectNext(p){ for(let i=0;i<SEQ.length;i++){ if(!p[SEQ[i]]) return SEQ[i]; } return null; }
+function ctrlName(k){ const c=CTRLS.find(x=>x.k===k); return c?c.name:k; }
+function labelOptsFor(n){
+  if(!S.labelOpts[n]){
+    const src=stepDef(n).opts.slice();
+    const out=[];
+    while(src.length) out.push(src.splice(Math.floor(rnd()*src.length),1)[0]);
+    S.labelOpts[n]=out;
+  }
+  return S.labelOpts[n];
+}
+
+/* ---------- observed field condition, read from live state ---------- */
+function observed(n){
+  const st=S.st, om=outletMap(st);
+  const brk=k=>`<span class="pill ${st.breakers[k]==="CLOSED"?"closed":"open"}">${k} ${st.breakers[k]}</span>`;
+  const tagOn=k=>st.tagsOnBreakers[k]?` <span class="pill tagged">TAG: ${esc(st.tagsOnBreakers[k])}</span>`:"";
+  if(n===1) return `Front door label reads <b>${esc(DEVICES[0].label)}</b>. The field copy in your hand is headed <b>MOP-2227-041 Rev C</b>.`;
+  if(n===2) return `PDU-A display reads <b>${pduLoad(st,"A").toFixed(1)} A</b>. PDU-B display reads <b>${pduLoad(st,"B").toFixed(1)} A</b>. Appendix A gives ${APPENDIX.loadA} and ${APPENDIX.loadB}.`;
+  if(n===3) return `Shift lead A. Reyes confirms the window 04:00 to 06:00. SRV-R630-01 power supply indicators normal. SW-3750-01 and SW-2960G-01 status indicators normal.`;
+  if(n===4) return `Front door tag: <b>${st.tags.front?"fitted":"not fitted"}</b>. Rear door tag: <b>${st.tags.rear?"fitted":"not fitted"}</b>. Tag stock at the rack reads WORK IN PROGRESS · MOP-2227-041 · DO NOT OPERATE.`;
+  if(n===5){
+    return `Board RP-2B, breaker <b>CB-14</b>, physical label reads <b>CB-14A</b>: handle in the <b>${st.breakers["CB-14"]}</b> position`+
+      (st.lockoff?` with a <b>lock-off cover fitted</b> and no tag`:``)+`. `+
+      `Maintenance receptacle RCP-14: ${st.breakers["CB-14"]==="OPEN"?"<b>dead</b>":"<b>live</b>"}.<br>`+
+      `Redundant path: ${brk("CB-16")}${tagOn("CB-16")}.<br>`+
+      `Rack outlet map read off the strips — A-side: `+
+      OUTLETS_A.map(o=>`${o} ${om[o]?esc(LEADNAME(om[o]).split(" ")[0]):"spare"}`).join(" · ")+`<br>`+
+      `B-side: `+OUTLETS_B.map(o=>`${o} ${om[o]?esc(LEADNAME(om[o]).split(" ")[0]):"spare"}`).join(" · ")+
+      (st.leads.srv2?`<br>Outlet B-04 is carrying a lead.`:``);
+  }
+  if(n===6) return `Outlet <b>A-05</b> label reads A-05 · SW-3750-01. Outlet <b>B-06</b> label reads B-06 · SPARE. SW-3750-01 lead is presently in <b>${esc(st.leads.sw3750||"not fitted")}</b>. PDU-B presently reads ${pduLoad(st,"B").toFixed(1)} A on a 16 A supply.`;
+  if(n===7) return `SRV-R630-01 PSU1 lead is presently in <b>${esc(st.leads.srv1||"not fitted")}</b>. PSU2 lead is <b>${st.leads.srv2?"in "+esc(st.leads.srv2):"not fitted"}</b>. Outlet B-05 label reads B-05 · SPARE. PDU-B presently reads ${pduLoad(st,"B").toFixed(1)} A on a 16 A supply.`;
+  if(n===8) return `Board RP-2B, breaker ${brk("CB-11")}. PDU-A display: <b>${st.breakers["CB-11"]==="OPEN"?"blank":pduLoad(st,"A").toFixed(1)+" A"}</b>. Voltage tester proves ${st.breakers["CB-11"]==="OPEN"?"dead":"live"} at outlet A-01.`;
+  return `Sign-off block on the field copy: ${STEPS.filter(s=>ph(s.n).sign).length} of 9 steps initialled. Front tag ${st.tags.front?"fitted":"removed"}, rear tag ${st.tags.rear?"fitted":"removed"}. Electrical fitter is at the rack.`;
+}
+
+/* ---------- the five controls ---------- */
+function opControl(kind){
+  if(!S.started){ flash("Execution has not started."); return; }
+  if(S.halted){ flash("Execution is halted. Work the rollback, not the script."); return; }
+  if(S.finished){ flash("The script is finished."); return; }
+  const p=ph(), d=stepDef();
+  if(p[kind]){ flash("That control has already been operated on this step."); paint(); return; }
+  const exp=expectNext(p);
+  if(exp!==kind){
+    S.counters.order++;
+    if(!p.read && kind!=="read" && !p.silentFlagged){ p.silentFlagged=true; S.counters.silent++; }
+    if(kind==="sign" && !p.act) S.counters.backsign++;
+    addLog("n","Step "+S.step+": "+ctrlName(kind)+" operated. "+ctrlName(exp)+" had not been operated yet.");
+  }
+  if(kind==="read"){
+    p.read=true; addLog("g","Step "+S.step+": read aloud — “"+d.action+"”");
+  }
+  if(kind==="point"){
+    const sel=$("pointSel"); const pick=sel?sel.value:"";
+    if(!pick){ flash("Choose the device you are pointing at."); return; }
+    p.point=true; p.pointPick=pick;
+    if(pick!==d.dev) S.counters.pointing++;
+    addLog("g","Step "+S.step+": pointed at "+DEVNAME(pick)+".");
+  }
+  if(kind==="match"){
+    const sel=$("labelSel"); const pick=sel?sel.value:"";
+    if(!pick){ flash("Select the exact text on the physical label."); return; }
+    p.match=true; p.labelPick=pick;
+    if(pick!==d.opts[0]) S.counters.paraphrase++;
+    addLog("g","Step "+S.step+": label recorded as “"+pick+"” against the script text “"+d.scriptref+"”.");
+  }
+  if(kind==="act"){
+    p.act=true;
+    if(d.mutate) d.mutate(S.st);
+    addLog("g","Step "+S.step+": action taken — "+d.action);
+  }
+  if(kind==="sign"){
+    const inp=$("sigIn"); const init=inp?inp.value.trim():S.initials;
+    if(!init){ flash("Initials are required to sign a step."); return; }
+    S.initials=init; p.sign=true; p.signedAt=fmtClock(S.t);
+    addLog(p.act?"g":"n","Step "+S.step+": signed "+init+" at "+p.signedAt+(p.act?"":" — the action had not been recorded at that point."));
+  }
+  p.at[kind]=fmtClock(S.t);
+  paint();
+}
+function stateVerification(val){
+  const p=ph();
+  p.vres=val; p.vresAt=fmtClock(S.t);
+  if(val==="ok") addLog("n","Step "+S.step+": verification result stated — as expected.");
+  else if(val==="not") addLog("w","Step "+S.step+": verification result stated — NOT as expected.");
+  paint();
+}
+function overrideStep(){
+  const p=ph();
+  S.counters.override++;
+  p.vres="override"; p.vresAt=fmtClock(S.t);
+  addLog("n","Step "+S.step+": proceeded without stating the verification result.");
+  paint();
+}
+function sideAction(txt){
+  S.counters.side++;
+  addLog("w","Outside the script: "+txt+".");
+  paint();
+}
+function advanceStep(){
+  const p=ph(), d=stepDef();
+  const missing=SEQ.filter(k=>!p[k]);
+  if(missing.length){
+    addLog("n","Step "+S.step+" closed with "+missing.map(ctrlName).join(", ").toLowerCase()+" not recorded.");
+    if(!p.read && !p.silentFlagged){ p.silentFlagged=true; S.counters.silent++; }
+  }
+  if(!p.vres && p.act) addLog("n","Step "+S.step+" closed without a verification result stated.");
+  p.advanced=true;
+  p.secs=Math.round((S.t-S.stepStart)*60);
+  S.stepSecs[S.step-1]=p.secs;
+  if(S.step>=9){
+    S.finished=true;
+    addLog("n","Step 9 closed. Script complete.");
+    $("statusBadge").textContent="Script complete"; $("statusBadge").className="badge run";
+  }else{
+    S.step++; S.stepStart=S.t;
+    addLog("n","Moved to step "+S.step+" of 9.");
+  }
+  paint();
+}
+
+/* ---------- pre-conditions ---------- */
+function setPre(id,val){
+  S.precon[id]=val;
+  addLog("n","Pre-condition "+id+" recorded as "+(val==="yes"?"confirmed":"not confirmed")+".");
+  paint();
+}
+function beginExecution(){
+  if(S.halted){ flash("Execution is halted. Work the rollback, not the script."); return; }
+  const unanswered=PRECON.filter(p=>!S.precon[p.id]);
+  if(unanswered.length){ flash("Answer every pre-condition before starting. There are "+unanswered.length+" left."); return; }
+  if(V.mode==="B"){
+    const txt=($("rbSum")?$("rbSum").value:S.rbSummary).trim();
+    S.rbSummary=txt;
+    if(txt.length<40){ flash("Write the rollback sequence in your own words before you start. Nothing begins until it is written."); return; }
+  }
+  const notConfirmed=PRECON.filter(p=>S.precon[p.id]==="no");
+  if(notConfirmed.length && !S.startedAnyway){
+    flash("Pre-condition "+notConfirmed.map(p=>p.id).join(", ")+" is not confirmed. A MOP whose pre-conditions are not met does not start.");
+    paint(); return;
+  }
+  if(notConfirmed.length && S.startedAnyway){
+    addLog("v","Execution started with "+notConfirmed.map(p=>p.id).join(", ")+" recorded as not confirmed.");
+  }
+  S.started=true; S.step=1; S.stepStart=S.t;
+  addLog("n","Execution started. MOP-2227-041 Rev C, rack R-14.");
+  $("statusBadge").textContent="Executing"; $("statusBadge").className="badge run";
+  S.pane="exec"; paint();
+}
+
+/* ---------- halt ---------- */
+function doHalt(){
+  if(S.halted){ S.pane="halt"; paint(); return; }
+  S.pane="halt"; paint();
+}
+function confirmHalt(){
+  const obs=($("hObs")?$("hObs").value:"").trim();
+  const notif=($("hNotif")?$("hNotif").value:"").trim();
+  const stepNo=($("hStep")?$("hStep").value:"").trim();
+  const tObs=($("hTObs")?$("hTObs").value:"").trim();
+  if(!stepNo||!obs||!notif||!tObs){ flash("Step number, what you observed, the time you observed it and who you notified are all required."); return; }
+  S.halted=true;
+  S.haltStep=S.started?S.step:0;
+  S.haltDeclared=+stepNo;
+  S.haltBeforeAct=S.started?!ph().act:true;
+  S.haltInfo={step:stepNo,obs:obs,notified:notif,tObs:tObs,tHalt:fmtClock(S.t)};
+  S.redline.step=S.redline.step||stepNo;
+  S.redline.obs=S.redline.obs||obs;
+  S.redline.notified=S.redline.notified||notif;
+  S.redline.tObs=S.redline.tObs||tObs;
+  S.redline.tHalt=S.haltInfo.tHalt;
+  S.redline.script=S.redline.script||(S.started?stepDef().action:"Pre-conditions, before step 1");
+  addLog("w","HALT declared at step "+stepNo+" at "+S.haltInfo.tHalt+". Observed: "+obs+". Notified: "+notif+".");
+  $("statusBadge").textContent="Halted"; $("statusBadge").className="badge hold";
+  S.pane="roll"; paint();
+}
+
+/* ---------- rollback ---------- */
+function diffItems(){
+  const c=S.st,b=S.start,out=[];
+  const brkItem=k=>{ if(c.breakers[k]!==b.breakers[k]) out.push({
+      id:"brk-"+k,
+      t:(b.breakers[k]==="CLOSED"?"Close":"Open")+" breaker "+k+" and verify the handle position and the state downstream of it",
+      d:k+" is now "+c.breakers[k]+" · as found it was "+b.breakers[k],
+      apply:()=>{S.st.breakers[k]=b.breakers[k];}});};
+  const leadItem=k=>{ if(c.leads[k]!==b.leads[k]) out.push({
+      id:"lead-"+k,
+      t:(b.leads[k]?"Return the "+LEADNAME(k)+" to outlet "+b.leads[k]:"Remove the "+LEADNAME(k)+" from outlet "+c.leads[k])+" and verify the device",
+      d:LEADNAME(k)+" is now in "+(c.leads[k]||"no outlet")+" · as found it was in "+(b.leads[k]||"no outlet"),
+      apply:()=>{S.st.leads[k]=b.leads[k];}});};
+  brkItem("CB-11");
+  ["srv1","srv2","sw3750","sw2960","kvm"].forEach(leadItem);
+  brkItem("CB-14"); brkItem("CB-12"); brkItem("CB-16"); brkItem("CB-13");
+  brkItem("CB-15"); brkItem("CB-17"); brkItem("CB-18");
+  if(c.tags.rear!==b.tags.rear) out.push({id:"tag-rear",
+    t:(b.tags.rear?"Fit":"Remove")+" the rear door WORK IN PROGRESS tag",
+    d:"rear tag is now "+(c.tags.rear?"fitted":"removed")+" · as found it was "+(b.tags.rear?"fitted":"removed"),
+    apply:()=>{S.st.tags.rear=b.tags.rear;}});
+  if(c.tags.front!==b.tags.front) out.push({id:"tag-front",
+    t:(b.tags.front?"Fit":"Remove")+" the front door WORK IN PROGRESS tag",
+    d:"front tag is now "+(c.tags.front?"fitted":"removed")+" · as found it was "+(b.tags.front?"fitted":"removed"),
+    apply:()=>{S.st.tags.front=b.tags.front;}});
+  return out;
+}
+const DOCBRK={"CB-11":"CLOSED","CB-12":"CLOSED","CB-13":"OPEN","CB-14":"CLOSED",
+              "CB-15":"CLOSED","CB-16":"CLOSED","CB-17":"OPEN","CB-18":"CLOSED"};
+function otherActions(){
+  const c=S.st,b=S.start,out=[];
+  BRK.forEach(x=>{
+    const k=x.id;
+    if(c.breakers[k]===b.breakers[k] && c.breakers[k]==="OPEN" && DOCBRK[k]==="CLOSED")
+      out.push({id:"o-"+k,t:"Close breaker "+k+" so the board matches the document",
+        apply:()=>{S.st.breakers[k]="CLOSED";}});
+  });
+  Object.keys(c.leads).forEach(k=>{
+    if(c.leads[k]===b.leads[k] && c.leads[k] && APPENDIX.leads[k]!==c.leads[k])
+      out.push({id:"o-"+k,t:"Unplug the "+LEADNAME(k)+" from outlet "+c.leads[k]+" so the rack matches Appendix A",
+        apply:()=>{S.st.leads[k]=null;}});
+  });
+  out.push({id:"o-CB-12x",t:"Open breaker CB-12 to prove the B-side is dead",
+    apply:()=>{S.st.breakers["CB-12"]="OPEN";}});
+  return out;
+}
+function recordRbAction(text){ S.rbActions.push({t:fmtClock(S.t),text:text}); }
+function applyRb(id){
+  const it=diffItems().find(x=>x.id===id);
+  if(!it){ flash("That restoration is already done."); return; }
+  it.apply(); S.rbDone[id]=true;
+  addLog("g","Rollback: "+it.t+".");
+  recordRbAction(it.t);
+  paint();
+}
+function applyOther(id){
+  const it=otherActions().find(x=>x.id===id);
+  if(!it) return;
+  it.apply();
+  S.rbOtherUsed.push({id:id,t:it.t,at:fmtClock(S.t)});
+  addLog("w","Rollback: "+it.t+".");
+  recordRbAction(it.t);
+  paint();
+}
+function toggleAdmin(id){
+  S.rbDone[id]=!S.rbDone[id];
+  const txt=RB_ADMIN.find(a=>a.id===id).t;
+  addLog("n","Rollback: "+(S.rbDone[id]?"marked done":"un-ticked")+" — "+txt);
+  if(S.rbDone[id]) recordRbAction(txt);
+  paint();
+}
+function submitRollback(){
+  const missing=diffItems();
+  const admin=RB_ADMIN.filter(a=>!S.rbDone[a.id]);
+  S.rbSubmitted=true; S.rbSubmittedAt=fmtClock(S.t);
+  S.rbOutstanding=missing.map(m=>({t:m.t,d:m.d}));
+  S.rbAdminMissing=admin.map(a=>a.t);
+  addLog("n","Rollback declared complete at "+S.rbSubmittedAt+". Items still differing from the recorded start state: "+missing.length+".");
+  $("statusBadge").textContent="Rollback declared"; $("statusBadge").className="badge";
+  paint();
+}
+/* ---------- submission sheet ---------- */
+function redlineMissing(){
+  const r=S.redline, need=[["step","step number"],["script","script text as written"],
+    ["obs","observed state"],["tObs","time observed"],["tHalt","time halted"],
+    ["notified","who was notified"],["sig","signature"]];
+  return need.filter(k=>!(r[k[0]]&&String(r[k[0]]).trim().length)).map(k=>k[1]);
+}
+function pad2(n){return String(n).padStart(2,"0");}
+function stampNow(){
+  const d=new Date();
+  return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes());
+}
+function sRow(k,v){return `<div class="sheetrow"><span>${k}</span><span>${v}</span></div>`;}
+function buildSheet(){
+  const name=($("subName")?$("subName").value.trim():"")||S.learner;
+  S.learner=name;
+  const miss=[];
+  if(!name) miss.push("your name");
+  if(!S.initials) miss.push("your initials");
+  if(V.mode==="B" && !String(S.rbSummary||"").trim()) miss.push("the rollback summary in your own words");
+  const upto=S.halted?((Number(S.haltStep)||0)-1):9;
+  STEPS.forEach(st=>{
+    if(st.n>upto) return;
+    const p=S.phase[st.n];
+    if(!p||!p.advanced){ miss.push("step "+st.n+" — not closed out"); return; }
+    const gaps=SEQ.filter(k=>!p[k]).map(ctrlName);
+    if(gaps.length) miss.push("step "+st.n+" — "+gaps.join(", ").toLowerCase()+" not recorded");
+    if(!p.vres) miss.push("step "+st.n+" — verification result not stated");
+  });
+  if(S.halted){
+    redlineMissing().forEach(m=>miss.push("field redline — "+m));
+    if(!S.rbSubmitted) miss.push("the rollback has not been declared complete");
+  }
+
+  const stepRows=STEPS.map(st=>{
+    const p=S.phase[st.n]||{at:{}};
+    const at=k=>(p.at&&p.at[k])?p.at[k]:"—";
+    const worked=!!(p.advanced||p.read||p.act||p.sign);
+    const vr=!worked?"—":p.vres==="ok"?"as expected":p.vres==="not"?"not as expected":"not stated";
+    return `<tr><td class="n">${st.n}</td><td>${esc(st.action)}</td>
+      <td class="mono">${at("read")}</td>
+      <td class="mono">${p.pointPick?esc(DEVNAME(p.pointPick)):"—"}<br>${at("point")}</td>
+      <td class="mono">${p.labelPick?esc(p.labelPick):"—"}<br>${at("match")}</td>
+      <td class="mono">${at("act")}</td>
+      <td class="mono">${vr}<br>${esc(p.vresAt||"—")}</td>
+      <td class="mono">${p.sign?esc(S.initials):"—"}<br>${esc(p.signedAt||"—")}</td>
+      <td class="mono">${p.advanced?p.secs+" s":"—"}</td></tr>`;
+  }).join("");
+
+  const preRows=PRECON.map(p=>`<tr><td class="mono" style="color:var(--blue)">${p.id}</td>
+    <td>${esc(p.t)}</td><td class="mono">${S.precon[p.id]==="yes"?"CONFIRMED":S.precon[p.id]==="no"?"NOT CONFIRMED":"not recorded"}</td></tr>`).join("");
+
+  const rbRows=S.rbActions.map(a=>`<tr><td class="mono">${esc(a.t)}</td><td>${esc(a.text)}</td></tr>`).join("");
+
+  const cmpRows=BRK.map(b=>`<tr><td class="mono">${b.id}</td>
+      <td class="mono">${S.start.breakers[b.id]}${S.start.tagsOnBreakers[b.id]?" · TAG: "+esc(S.start.tagsOnBreakers[b.id]):""}</td>
+      <td class="mono">${S.st.breakers[b.id]}${S.st.tagsOnBreakers[b.id]?" · TAG: "+esc(S.st.tagsOnBreakers[b.id]):""}</td></tr>`).join("")+
+    LEADS.map(l=>`<tr><td>${esc(l.name)}</td><td class="mono">${esc(S.start.leads[l.k]||"not fitted")}</td>
+      <td class="mono">${esc(S.st.leads[l.k]||"not fitted")}</td></tr>`).join("")+
+    `<tr><td>Front door tag</td><td class="mono">${S.start.tags.front?"fitted":"none"}</td><td class="mono">${S.st.tags.front?"fitted":"none"}</td></tr>
+     <tr><td>Rear door tag</td><td class="mono">${S.start.tags.rear?"fitted":"none"}</td><td class="mono">${S.st.tags.rear?"fitted":"none"}</td></tr>`;
+
+  const r=S.redline, c=S.counters;
+  const html=`<div class="sheet">
+    <h3>${labHead()} · submission sheet</h3>
+    ${sRow("Your name",esc(name||"—"))}
+    ${sRow("Initials used to sign",esc(S.initials||"—"))}
+    ${sRow("Completed",stampNow())}
+    ${sRow("Site time at completion",fmtClock(S.t))}
+    ${sRow("Elapsed",fmtElapsed(S.t))}
+    ${sRow("Procedure",DOC.no+" Rev "+DOC.rev)}
+    ${sRow("Plant",  "Rack R-14 · Hall B row 3 · board RP-2B")}
+    ${sRow("Change record","CHG-4471")}
+    ${sRow("Level of Risk",esc(DOC.risk))}
+
+    <h4>Pre-conditions as recorded</h4>
+    <table><thead><tr><th style="width:60px">Ref</th><th>Condition</th><th style="width:150px">Recorded</th></tr></thead>
+      <tbody>${preRows}</tbody></table>
+
+    <h4>Action steps — what was done and when</h4>
+    <table class="mop"><thead><tr>
+      <th style="width:30px">Step</th><th style="width:22%">Action</th><th>Read aloud</th>
+      <th>Pointed at</th><th>Label recorded</th><th>Acted</th><th>Verification</th>
+      <th>Signed</th><th>On step</th></tr></thead><tbody>${stepRows}</tbody></table>
+
+    <h4>Halt</h4>
+    ${S.halted?`${sRow("Step number",esc(String(S.haltInfo.step)))}
+      ${sRow("Time observed",esc(S.haltInfo.tObs))}
+      ${sRow("Time halted",esc(S.haltInfo.tHalt))}
+      ${sRow("Notified",esc(S.haltInfo.notified))}
+      <div style="font-size:12.5px;line-height:1.6;margin-top:8px"><b>Observation recorded:</b><br>${esc(S.haltInfo.obs)}</div>`
+     :`<div style="font-size:12.5px">No halt was declared during this run.</div>`}
+
+    <h4>Rollback summary, in your own words</h4>
+    <div style="font-size:12.5px;line-height:1.6;white-space:pre-wrap">${esc(S.rbSummary||"— not written —")}</div>
+
+    <h4>Rollback actions performed</h4>
+    ${rbRows?`<table><thead><tr><th style="width:90px">Time</th><th>Action</th></tr></thead><tbody>${rbRows}</tbody></table>`
+      :`<div style="font-size:12.5px">No rollback actions were performed.</div>`}
+    ${S.rbSubmitted?`${sRow("Rollback declared complete at",esc(S.rbSubmittedAt))}
+      ${sRow("Items still differing from the recorded start state",String(S.rbOutstanding.length))}
+      ${S.rbOutstanding.length?`<div style="font-size:12.5px;line-height:1.6">${S.rbOutstanding.map(m=>"— "+esc(m.d)).join("<br>")}</div>`:""}
+      ${S.rbAdminMissing.length?`<div style="font-size:12.5px;line-height:1.6;margin-top:6px">Close-out items not ticked:<br>${S.rbAdminMissing.map(a=>"— "+esc(a)).join("<br>")}</div>`:""}`
+     :`<div style="font-size:12.5px;margin-top:6px">The rollback was not declared complete.</div>`}
+
+    <h4>Device state at the end against the state recorded at the start</h4>
+    <table><thead><tr><th>Item</th><th style="width:32%">State recorded at the start</th><th style="width:32%">State now</th></tr></thead>
+      <tbody>${cmpRows}</tbody></table>
+
+    <h4>Field redline</h4>
+    ${sRow("Document",DOC.no+" Rev "+DOC.rev)}
+    ${sRow("Step number",esc(r.step||"—"))}
+    ${sRow("Time observed",esc(r.tObs||"—"))}
+    ${sRow("Time halted",esc(r.tHalt||"—"))}
+    ${sRow("Who was notified",esc(r.notified||"—"))}
+    ${sRow("Signature",esc(r.sig||"—"))}
+    <div style="font-size:12.5px;line-height:1.6;margin-top:8px"><b>Script text as written:</b><br>${esc(r.script||"—")}</div>
+    <div style="font-size:12.5px;line-height:1.6;margin-top:8px"><b>Observed state:</b><br>${esc(r.obs||"—")}</div>
+
+    <h4>Record of how the steps were worked</h4>
+    ${sRow("Steps where a control was operated before the step was read aloud",String(c.silent))}
+    ${sRow("Steps signed before the action was taken",String(c.backsign))}
+    ${sRow("Labels recorded as text other than the label on the device",String(c.paraphrase))}
+    ${sRow("Steps where the device pointed at was not the device the step names",String(c.pointing))}
+    ${sRow("Controls operated out of the five-control order",String(c.order))}
+    ${sRow("Steps continued without a verification result stated",String(c.override))}
+    ${sRow("Actions taken outside the script",String(c.side))}
+    ${sRow("Steps signed",STEPS.filter(x=>S.phase[x.n]&&S.phase[x.n].sign).length+" of 9")}
+    ${sRow("Verification results stated",STEPS.filter(x=>S.phase[x.n]&&(S.phase[x.n].vres==="ok"||S.phase[x.n].vres==="not")).length+" of 9")}
+
+    ${miss.length?`<h4>Fields still blank</h4>
+      <div style="font-size:12.5px;line-height:1.6">${miss.map(m=>"— "+esc(m)).join("<br>")}</div>`:""}
+
+    <div style="font-size:12.5px;margin-top:16px">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
+    <div class="row noprint" style="margin-top:12px"><button id="btnPrintSheet" class="primary">Print submission sheet</button></div>
+  </div>`;
+  const el=$("mopSheet");
+  el.className="result show";
+  el.innerHTML=html;
+  addLog("n","Submission sheet built at "+fmtClock(S.t)+".");
+}
+
+/* ---------- pane: MOP document ---------- */
+function paneDoc(){
+  const rows=STEPS.map(s=>{
+    const p=S.phase[s.n];
+    return `<tr>
+      <td class="n">${s.n}</td>
+      <td>${esc(s.action)}</td>
+      <td>${esc(s.expect)}</td>
+      <td>${esc(s.verify)}</td>
+      <td class="mono">${p&&p.sign?esc(S.initials):"&nbsp;"}</td>
+      <td class="mono">${p&&p.signedAt?p.signedAt:"&nbsp;"}</td></tr>`;}).join("");
+  return `<div class="doc">
+    <div class="labtag">Method of procedure — field copy</div>
+    <h2>${esc(DOC.title)}</h2>
+    <div class="tblock">
+      <div><div class="k">Document number</div><div class="v">${DOC.no}</div></div>
+      <div><div class="k">Revision</div><div class="v">${DOC.rev}</div></div>
+      <div><div class="k">Approved</div><div class="v">${DOC.approved}</div></div>
+      <div><div class="k">Author</div><div class="v">${esc(DOC.author)}</div></div>
+      <div><div class="k">Reviewed by</div><div class="v">${esc(DOC.reviewer)}</div></div>
+      <div><div class="k">Approved by</div><div class="v">${esc(DOC.approver)}</div></div>
+      <div><div class="k">Duration</div><div class="v">${esc(DOC.duration)}</div></div>
+      <div><div class="k">Window</div><div class="v">${esc(DOC.window)}</div></div>
+      <div><div class="k">Level of Risk</div><div class="v">${esc(DOC.risk)}</div></div>
+    </div>
+
+    <h4>1 · Purpose</h4><p>${esc(DOC.purpose)}</p>
+    <h4>2 · Scope</h4><p>${esc(DOC.scope)}</p>
+    <p><b style="color:var(--ink)">Not in scope.</b> ${esc(DOC.excl)}</p>
+
+    <h4>3 · Pre-conditions — all must be true before step 1</h4>
+    <p>If any one of these is not true, the procedure does not start. Stop, say which one is false and why, and raise it with the shift lead.</p>
+    <table><thead><tr><th style="width:60px">Ref</th><th>Condition</th><th style="width:120px">Confirmed</th></tr></thead><tbody>
+      ${PRECON.map(p=>`<tr><td class="mono" style="color:var(--blue)">${p.id}</td><td>${esc(p.t)}</td>
+        <td class="mono">${S.precon[p.id]==="yes"?"YES":S.precon[p.id]==="no"?"NO":"&nbsp;"}</td></tr>`).join("")}
+    </tbody></table>
+
+    <h4>4 · Tools required</h4><ul>${TOOLSREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    <h4>5 · Personal protective equipment (PPE)</h4><ul>${PPEREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+
+    <h4>6 · Action steps</h4>
+    <p>Each step is executed in the same order every time: read the step aloud, point at the device, match the label to the script text, act, then sign. Do not sign a step you have not done.</p>
+    <table class="mop"><thead><tr>
+      <th style="width:34px">Step</th><th style="width:26%">Action</th><th style="width:24%">Expected result</th>
+      <th style="width:24%">Verification</th><th style="width:70px">Initials</th><th style="width:80px">Time</th>
+    </tr></thead><tbody>${rows}</tbody></table>
+
+    <h4>7 · Appendix A — rack R-14 as recorded</h4>
+    <p>${esc(APPENDIX.note)}</p>
+    <table><thead><tr><th>Device</th><th>Outlet</th><th>Feed</th></tr></thead><tbody>
+      <tr><td>SRV-R630-01 PSU1</td><td class="mono">A-03</td><td class="mono">PDU-A · CB-11</td></tr>
+      <tr><td>SRV-R630-01 PSU2</td><td class="mono">not fitted</td><td class="mono">—</td></tr>
+      <tr><td>SW-3750-01</td><td class="mono">A-05</td><td class="mono">PDU-A · CB-11</td></tr>
+      <tr><td>KVM-01</td><td class="mono">A-07</td><td class="mono">PDU-A · CB-11</td></tr>
+      <tr><td>SW-2960G-01</td><td class="mono">B-03</td><td class="mono">PDU-B · CB-12</td></tr>
+      <tr><td>PP-01, PP-02 patch panels</td><td class="mono">passive</td><td class="mono">—</td></tr>
+      <tr><td>PDU-A load, recorded</td><td class="mono">${APPENDIX.loadA}</td><td class="mono">16 A supply</td></tr>
+      <tr><td>PDU-B load, recorded</td><td class="mono">${APPENDIX.loadB}</td><td class="mono">16 A supply</td></tr>
+    </tbody></table>
+
+    <h4>8 · Rollback</h4>
+    <p>If any step cannot be completed as written, or the plant does not match this document, <b style="color:var(--ink)">stop at that step</b>. Do not improvise the next step. Announce the halt to the shift lead with the step number and what you observed, then roll back in the reverse of the order performed:</p>
+    <ol>
+      <li>Close breaker CB-11 and verify PDU-A energised, if step 8 was performed.</li>
+      <li>Return the SRV-R630-01 PSU1 lead to outlet A-03 and verify the power supply indicator, if step 7 was performed.</li>
+      <li>Return the SW-3750-01 lead to outlet A-05 and verify the switch, if step 6 was performed.</li>
+      <li>Restore breaker CB-14 to the position it was found in, if step 5 was performed.</li>
+      <li>Remove both door tags, if step 4 was performed.</li>
+      <li>Announce to the shift lead that the rack is back to as-found and the MOP is suspended.</li>
+      <li>Record the as-found condition on the field redline form and return the field copy to the change file marked SUSPENDED.</li>
+    </ol>
+    <p><b style="color:var(--ink)">The rollback target is the state the rack was found in, not the state this document describes.</b> If something was already out of position when you arrived, it stays where it was. Changing it to match the document is a plant change nobody has authorised.</p>
+
+    <h4>9 · Sign-off</h4>
+    <table><thead><tr><th>Role</th><th>Name</th><th>Signature</th><th>Date and time</th></tr></thead><tbody>
+      <tr><td>Prepared by</td><td>${esc(DOC.author)}</td><td class="sigline"></td><td class="mono">${DOC.approved}</td></tr>
+      <tr><td>Reviewed by</td><td>${esc(DOC.reviewer)}</td><td class="sigline"></td><td class="mono">${DOC.approved}</td></tr>
+      <tr><td>Executed by</td><td>${esc(S.learner||"")}</td><td class="sigline">${esc(S.finished?S.initials:"")}</td><td class="mono">${S.finished?fmtClock(S.t):""}</td></tr>
+      <tr><td>Verified by</td><td>&nbsp;</td><td class="sigline"></td><td>&nbsp;</td></tr>
+    </tbody></table>
+    <p class="noprint" style="margin-top:16px"><button onclick="window.print()">Print the field copy</button></p>
+  </div>`;
+}
+
+/* ---------- pane: rack state ---------- */
+function paneRack(){
+  const st=S.st, om=outletMap(st);
+  const outRow=(o)=>{
+    const k=om[o];
+    const side=o[0];
+    const dead=(side==="A"&&st.breakers["CB-11"]==="OPEN")||(side==="B"&&st.breakers["CB-12"]==="OPEN");
+    return `<tr><td class="mono">${o}</td>
+      <td>${k?esc(LEADNAME(k)):"<span class=\"pill spare\">SPARE</span>"}</td>
+      <td><span class="pill ${dead?"dead":k?"live":"spare"}">${dead?"DEAD":k?"LIVE":"—"}</span></td></tr>`;};
+  const devRows=DEVICES.map(d=>{
+    let statev="";
+    if(d.id==="srv") statev="PSU1 "+(st.leads.srv1||"not fitted")+" · PSU2 "+(st.leads.srv2||"not fitted");
+    else if(d.id==="sw3750") statev="power lead "+(st.leads.sw3750||"not fitted")+" · uplink Gi1/0/49 to PP-01 port 1";
+    else if(d.id==="sw2960") statev="power lead "+(st.leads.sw2960||"not fitted")+" · uplink Gi0/24 to SW-3750-01 Gi1/0/1";
+    else if(d.id==="kvm") statev="power lead "+(st.leads.kvm||"not fitted");
+    else if(d.id==="pdua") statev=(st.breakers["CB-11"]==="OPEN"?"display blank":"display "+pduLoad(st,"A").toFixed(1)+" A")+" · 16 A supply";
+    else if(d.id==="pdub") statev=(st.breakers["CB-12"]==="OPEN"?"display blank":"display "+pduLoad(st,"B").toFixed(1)+" A")+" · 16 A supply";
+    else if(d.id==="rack") statev="front tag "+(st.tags.front?"FITTED":"none")+" · rear tag "+(st.tags.rear?"FITTED":"none");
+    else if(d.id==="pp1") statev="ports 1-24 patched to SW-3750-01 · port 12 lead sits proud of the frame";
+    else if(d.id==="pp2") statev="ports 25-48 patched to SW-2960G-01";
+    else if(d.id==="panel") statev="8 ways, CB-11 to CB-18";
+    return `<tr><td>${esc(d.name)}</td><td class="mono" style="color:var(--ice)">${esc(d.label)}</td><td class="mono">${esc(statev)}</td></tr>`;
+  }).join("");
+  const brkRows=BRK.map(b=>{
+    const pos=st.breakers[b.id];
+    const tag=st.tagsOnBreakers[b.id];
+    return `<tr><td class="mono" style="color:var(--blue)">${b.id}</td>
+      <td class="mono" style="color:var(--ice)">${esc(b.label)}${b.id==="CB-14"&&st.lockoff?" <span class=\"pill\">LOCK-OFF COVER FITTED</span>":""}</td>
+      <td>${esc(b.serves)}</td>
+      <td><span class="pill ${pos==="CLOSED"?"closed":"open"}">${pos}</span>${tag?" <span class=\"pill tagged\">"+esc(tag)+"</span>":""}</td></tr>`;}).join("");
+  return `<div class="sectbox">
+      <h3>Rack R-14 — live device state</h3>
+      <div class="sub">Hall B, row 3. This is what is in front of you at the rack. Appendix A in the MOP tab is what the document records. Read both and compare them yourself.</div>
+      <table><thead><tr><th>Device</th><th>Label as fitted</th><th>State</th></tr></thead><tbody>${devRows}</tbody></table>
+    </div>
+    <div class="grid g2">
+      <div class="sectbox" style="margin:0">
+        <h3>PDU-A outlets — A-side</h3>
+        <div class="sub">Fed from CB-11 · 16 A · display ${st.breakers["CB-11"]==="OPEN"?"blank":pduLoad(st,"A").toFixed(1)+" A"}</div>
+        <table><thead><tr><th>Outlet</th><th>Load</th><th>State</th></tr></thead><tbody>${OUTLETS_A.map(outRow).join("")}</tbody></table>
+      </div>
+      <div class="sectbox" style="margin:0">
+        <h3>PDU-B outlets — B-side</h3>
+        <div class="sub">Fed from CB-12 · 16 A · display ${st.breakers["CB-12"]==="OPEN"?"blank":pduLoad(st,"B").toFixed(1)+" A"}</div>
+        <table><thead><tr><th>Outlet</th><th>Load</th><th>State</th></tr></thead><tbody>${OUTLETS_B.map(outRow).join("")}</tbody></table>
+      </div>
+    </div>
+    <div class="sectbox" style="margin-top:14px">
+      <h3>Distribution board RP-2B</h3>
+      <div class="sub">Eight ways serving row 3. Read the label on the breaker, not the label in the document.</div>
+      <table><thead><tr><th style="width:70px">Way</th><th style="width:34%">Label as fitted</th><th>Serves</th><th style="width:230px">Position</th></tr></thead><tbody>${brkRows}</tbody></table>
+    </div>
+    <div class="sectbox">
+      <h3>Cable and port labels</h3>
+      <div class="sub">As found on the leads themselves.</div>
+      <table><thead><tr><th>Lead</th><th>Label</th><th>From</th><th>To</th></tr></thead><tbody>
+        <tr><td>SRV-R630-01 PSU1</td><td class="mono">PWR · SRV-R630-01 · PSU1</td><td class="mono">${esc(st.leads.srv1||"not fitted")}</td><td class="mono">server PSU1 inlet</td></tr>
+        <tr><td>SRV-R630-01 PSU2</td><td class="mono">${st.leads.srv2?"PWR · SRV-R630-01 · PSU2":"—"}</td><td class="mono">${esc(st.leads.srv2||"not fitted")}</td><td class="mono">${st.leads.srv2?"server PSU2 inlet":"—"}</td></tr>
+        <tr><td>SW-3750-01 power</td><td class="mono">PWR · SW-3750-01</td><td class="mono">${esc(st.leads.sw3750||"not fitted")}</td><td class="mono">switch inlet</td></tr>
+        <tr><td>SW-2960G-01 power</td><td class="mono">PWR · SW-2960G-01</td><td class="mono">${esc(st.leads.sw2960||"not fitted")}</td><td class="mono">switch inlet</td></tr>
+        <tr><td>KVM-01 power</td><td class="mono">PWR · KVM-01</td><td class="mono">${esc(st.leads.kvm||"not fitted")}</td><td class="mono">KVM inlet</td></tr>
+        <tr><td>Uplink</td><td class="mono">DATA · PP-01 P1 · SW-3750-01 Gi1/0/49</td><td class="mono">PP-01 port 1</td><td class="mono">SW-3750-01 Gi1/0/49</td></tr>
+        <tr><td>Inter-switch</td><td class="mono">DATA · SW-2960G-01 Gi0/24</td><td class="mono">SW-2960G-01 Gi0/24</td><td class="mono">SW-3750-01 Gi1/0/1</td></tr>
+      </tbody></table>
+    </div>`;
+}
+/* ---------- pane: execute ---------- */
+function execGate(){
+  const notConf=PRECON.filter(p=>S.precon[p.id]==="no");
+  return `<div class="sectbox">
+      <div class="labtag">${labTag()}</div>
+      <h3>${labHead()}</h3>
+      <div class="sub">${V.mode==="A"
+        ? "Nine steps on rack R-14. The work is the rhythm: read the step aloud, point at the device, match the label to the script text, act, sign at the rack, and state the verification result before you move on. Nothing is done from memory."
+        : "Nine steps on rack R-14, same rhythm: read aloud, point, match the label, act, sign, and state the verification result before you move on. Confirm every pre-condition and every expected result against the plant in front of you rather than against the document. If the plant does not match the document, halt at that step, roll back to the state you found, and raise a field redline."}</div>
+    </div>
+    <div class="sectbox">
+      <h3>Pre-conditions</h3>
+      <div class="sub">Confirm each one against the plant, not against the document. Anything you cannot confirm, mark Not confirmed.</div>
+      ${PRECON.map(p=>`<div class="pcrow ${S.precon[p.id]==="yes"?"yes":S.precon[p.id]==="no"?"no":""}">
+        <div class="pcid">${p.id}</div><div class="pct">${esc(p.t)}</div>
+        <button data-pre="${p.id}" data-val="yes" class="${S.precon[p.id]==="yes"?"primary":""}">Confirmed</button>
+        <button data-pre="${p.id}" data-val="no" class="${S.precon[p.id]==="no"?"danger":""}">Not confirmed</button>
+      </div>`).join("")}
+      ${notConf.length?`<div class="notebox" style="margin-top:10px">${notConf.map(p=>p.id).join(", ")} not confirmed. A MOP whose pre-conditions are not met does not start. Halt, say which pre-condition is false and why, and raise it with the shift lead.</div>`:""}
+    </div>
+    ${V.mode==="B"?`<div class="sectbox">
+      <h3>Rollback summary — in your own words</h3>
+      <div class="sub">Before you touch anything, write out the rollback sequence as you would say it to somebody on the phone. Not copied from section 8 — your own words, in order.</div>
+      <textarea id="rbSum" rows="5" placeholder="If I have to stop, I will ...">${esc(S.rbSummary)}</textarea>
+      <div class="hint">Nothing starts until this is written.</div>
+    </div>`:""}
+    <div class="sectbox">
+      <div class="row">
+        <button class="primary" id="btnBegin">Begin execution</button>
+        ${notConf.length?`<button id="btnBeginAnyway">Begin anyway — the start is written to the log</button>
+          <button class="danger" id="btnGateHalt">HALT at the pre-conditions</button>`:""}
+      </div>
+    </div>`;
+}
+function execStep(){
+  const d=stepDef(), p=ph(), exp=expectNext(p);
+  const strip=STEPS.map(s=>{
+    const q=S.phase[s.n];
+    let cls="sbox";
+    if(S.started&&s.n===S.step&&!S.finished) cls+=" cur";
+    else if(q&&q.advanced) cls+=(q.read&&q.act&&q.sign&&q.vres)?" ok":" bad";
+    return `<div class="${cls}">${s.n}</div>`;
+  }).join("");
+  const ctrlRow=c=>{
+    const done=p[c.k], isNext=(exp===c.k);
+    let body=`<div class="cbody">${esc(c.hint)}</div>`;
+    if(c.k==="read") body=`<div class="cbody">${done?"Read at "+"the rack: ":"Step text: "}<span style="color:var(--ink)">“${esc(d.action)}”</span></div>`;
+    if(c.k==="point") body=`<div class="cbody">${done?"Pointed at: <span style=\"color:var(--ink)\">"+esc(DEVNAME(p.pointPick))+"</span>":
+      `<select id="pointSel" style="width:100%"><option value="">— choose the device you are pointing at —</option>`+
+      DEVICES.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")+`</select>`}</div>`;
+    if(c.k==="match") body=`<div class="cbody">${done?"Label given as: <span style=\"color:var(--ink)\">“"+esc(p.labelPick)+"”</span>":
+      `Script says <span style="color:var(--ink)">“${esc(d.scriptref)}”</span>. Select the exact text on the physical label.<br>
+       <select id="labelSel" style="width:100%;margin-top:6px"><option value="">— select the label text —</option>`+
+      labelOptsFor(S.step).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("")+`</select>`}</div>`;
+    if(c.k==="act") body=`<div class="cbody">${esc(d.expect)}</div>`;
+    if(c.k==="sign") body=`<div class="cbody">${done?"Signed <span style=\"color:var(--ink)\">"+esc(S.initials)+"</span> at "+p.signedAt:
+      `<input type="text" id="sigIn" placeholder="your initials" value="${esc(S.initials)}" style="width:150px"> at the rack, now.`}</div>`;
+    return `<div class="ctrl ${done?"done":""} ${isNext?"next":""}">
+      <div class="cnum">${SEQ.indexOf(c.k)+1}</div>
+      <div class="cname">${c.name}</div>
+      ${body}
+      <button data-ctrl="${c.k}" ${done?"disabled":""}>${done?"done":c.name}</button>
+    </div>`;};
+  const vresBox=p.act?`<div class="ctrl ${p.vres?"done":""} ${(!p.vres&&exp==="sign")?"next":""}">
+      <div class="cnum">4b</div><div class="cname">State the result</div>
+      <div class="cbody">${p.vres==="override"?"<span style=\"color:#ffb9ae\">Verification overridden.</span>":
+        p.vres?"Stated: <span style=\"color:var(--ink)\">"+(p.vres==="ok"?"as expected":"NOT as expected")+"</span>":
+        "Say the verification result out loud before you sign. Compare what you can see with the expected result above."}</div>
+      ${p.vres?"":`<button data-vres="ok">As expected</button><button data-vres="not">Not as expected</button>`}
+    </div>`:"";
+  return `<div class="stepstrip">${strip}<span style="flex:1"></span>
+      <div class="sbox">${S.finished?"script closed":S.started?("step "+S.step+" of 9"):"not started"}</div></div>
+    ${S.halted?`<div class="halted"><b>Execution halted at step ${esc(String(S.haltInfo.step))} at ${esc(S.haltInfo.tHalt)}.</b><br>
+      Observed: ${esc(S.haltInfo.obs)}<br>Notified: ${esc(S.haltInfo.notified)}<br><br>
+      The script is closed. Go to <b>Rollback</b> and return the rack to the state you found it in, then raise the <b>Redline</b>.</div>`:""}
+    ${S.finished&&!S.halted?`<div class="sectbox"><h3>Script complete</h3>
+      <div class="sub">All nine steps closed out at ${fmtClock(S.t)}. Submit the run below.</div></div>`:""}
+    ${(!S.halted&&!S.finished)?`
+    <div class="sectbox">
+      <h3>Step ${S.step} of 9</h3>
+      <div class="sub">Five controls, in this order, every time. Operating them out of order is recorded.</div>
+      <div class="obs"><b>What you can see at the rack right now.</b><br>${observed(S.step)}</div>
+      ${CTRLS.map(ctrlRow).join("")}
+      ${vresBox}
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="btnAdvance">${S.step<9?"Close step "+S.step+" and move to step "+(S.step+1):"Close step 9 and finish the script"}</button>
+        <button id="btnOverride">Override — proceed without the verification</button>
+        <span class="spacer"></span>
+        <span class="counter">verification: ${p.vres?esc(p.vres==="ok"?"as expected":p.vres==="not"?"not as expected":"OVERRIDDEN"):"not stated"}</span>
+      </div>
+    </div>
+    <div class="sectbox">
+      <h3>Other things you could do at the rack</h3>
+      <div class="sub">None of these are in the script. They are recorded either way.</div>
+      <div class="row">
+        <button data-side="straightened the cable bundle at PP-01">Straighten the cable bundle at PP-01</button>
+        <button data-side="re-seated the loose patch lead on PP-01 port 12">Re-seat the loose lead on PP-01 port 12</button>
+        <button data-side="wiped the dust off the PDU-A display">Wipe the PDU-A display</button>
+        <button data-side="tidied a label that had curled off the SW-2960G-01 lead">Re-stick the curled label on the 2960G lead</button>
+      </div>
+    </div>`:""}
+    <div class="sectbox">
+      <h3>Execution log</h3>
+      <div class="sub">Everything you have done, in the order you did it.</div>
+      <div class="logbox" id="logbox">${S.log.slice().reverse().map(l=>
+        `<div class="l${l.kind}">${l.t}  ${esc(l.text)}</div>`).join("")||"<div class=\"ln\">nothing yet</div>"}</div>
+    </div>
+    <div class="submit noprint">
+      <h3>Submission sheet</h3>
+      <div class="sub">Builds a printable record of this run: every step with the five controls and the time each was performed, the halt if there was one, the rollback, the device state against the state recorded at the start, and the redline. Check it, print it, hand it in.</div>
+      <div class="fgrid">
+        <div class="fld"><label>Your name</label><input type="text" id="subName" value="${esc(S.learner)}"></div>
+        <div class="fld"><label>Time</label><input type="text" value="${fmtClock(S.t)}" disabled></div>
+      </div>
+      <button class="primary" id="btnBuildSheet">Build submission sheet</button>
+    </div>
+    <div class="result" id="mopSheet"></div>`;
+}
+function paneExec(){ return (S.started||S.halted)?execStep():execGate(); }
+
+/* ---------- pane: halt ---------- */
+function paneHalt(){
+  if(S.halted){
+    return `<div class="sectbox">
+      <h3>Halt already declared</h3>
+      <div class="sub">Step ${esc(String(S.haltInfo.step))} at ${esc(S.haltInfo.tHalt)}. A second halt is not a thing.</div>
+      <div class="notebox">Observed: ${esc(S.haltInfo.obs)}<br>Time observed: ${esc(S.haltInfo.tObs)}<br>Notified: ${esc(S.haltInfo.notified)}</div>
+      <div class="row" style="margin-top:12px"><button class="primary" id="btnGoRoll">Go to rollback</button>
+      <button id="btnGoRed">Go to redline</button></div>
+    </div>`;
+  }
+  const n=S.started?S.step:0;
+  return `<div class="sectbox">
+      <h3>HALT</h3>
+      <div class="sub">Halting stops the script where it stands. Nothing after this point gets executed. Announce the step number and what you observed — out loud to the shift lead first, then here.</div>
+      <div class="fgrid">
+        <div class="fld"><label>Step number you are halting at</label>
+          <input type="text" id="hStep" value="${S.started?S.step:"pre-conditions"}"></div>
+        <div class="fld"><label>Time you observed it</label>
+          <input type="text" id="hTObs" value="${fmtClock(S.t)}"></div>
+      </div>
+      <div class="fld" style="margin-bottom:12px">
+        <label>What did you observe — device, label, position, and how it differs from the script</label>
+        <textarea id="hObs" rows="4" placeholder="Name the step, the device, the label text as fitted, the position or reading you found, and how that differs from what the script says."></textarea>
+      </div>
+      <div class="fld" style="margin-bottom:12px">
+        <label>Who did you notify, and when</label>
+        <input type="text" id="hNotif" placeholder="e.g. Shift lead A. Reyes, by radio, 04:24">
+      </div>
+      <button class="danger" id="btnConfirmHalt">Confirm halt and close the script</button>
+    </div>
+    <div class="sectbox">
+      <h3>What you can see right now</h3>
+      <div class="obs">${S.started?observed(S.step):"You have not started. The pre-condition checklist is the last thing you looked at."}</div>
+    </div>`;
+}
+
+/* ---------- pane: rollback ---------- */
+function paneRoll(){
+  if(!S.halted){
+    return `<div class="sectbox">
+      <h3>Rollback</h3>
+      <div class="sub">A rollback follows a halt. Declare the halt first — step number, what you observed, who you told.</div>
+      <button class="danger" id="btnGoHalt">Go to HALT</button>
+    </div>`;
+  }
+  const items=diffItems(), others=otherActions();
+  const doneList=Object.keys(S.rbDone).filter(k=>S.rbDone[k]&&k.indexOf("a-")!==0);
+  return `<div class="sectbox">
+      <h3>Rollback — reverse the sequence</h3>
+      <div class="sub">These are the differences between the rack as it stands and the rack as you found it, in the reverse of the order they were made. Work down the list. The target is the <b>as-found</b> state — if something was already out of position when you arrived, it stays where it was.</div>
+      ${items.length?items.map(it=>`<div class="rbrow">
+        <div class="rbt">${esc(it.t)}<div class="rbd">${esc(it.d)}</div></div>
+        <button data-rb="${it.id}">Restore</button></div>`).join("")
+      :`<div class="notebox">Nothing left to restore. Every device is in the position recorded at the start.</div>`}
+      ${doneList.length?`<div class="hint">Restored so far: ${doneList.length} item${doneList.length===1?"":"s"}.</div>`:""}
+    </div>
+    <div class="sectbox">
+      <h3>Other actions available</h3>
+      <div class="sub">Other things you could do at the rack. Read each one twice before you press it. They are recorded either way.</div>
+      ${others.map(w=>`<div class="rbrow">
+        <div class="rbt">${esc(w.t)}</div>
+        <button data-other="${w.id}">Do it</button></div>`).join("")}
+    </div>
+    <div class="sectbox">
+      <h3>Close out</h3>
+      <div class="sub">The plant is only half of a rollback.</div>
+      ${RB_ADMIN.map(a=>`<div class="rbrow ${S.rbDone[a.id]?"done":""}">
+        <div class="rbt">${esc(a.t)}</div>
+        <button data-admin="${a.id}">${S.rbDone[a.id]?"done":"mark done"}</button></div>`).join("")}
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="btnSubmitRb">Declare the rollback complete</button>
+        <span class="counter">${items.length} plant item${items.length===1?"":"s"} outstanding</span>
+      </div>
+      ${S.rbSubmitted?`<div class="notebox" style="margin-top:12px">
+        <b>Rollback declared complete at ${esc(S.rbSubmittedAt)}.</b>
+        ${S.rbOutstanding.length?"<br>Items still differing from the state recorded at the start:"+S.rbOutstanding.map(m=>"<br>— "+esc(m.d)).join(""):"<br>Every item matches the state recorded at the start."}
+        ${(S.rbAdminMissing||[]).length?"<br><br>Close-out items not ticked:"+(S.rbAdminMissing||[]).map(a=>"<br>— "+esc(a)).join(""):""}
+      </div>`:""}
+    </div>
+    <div class="sectbox">
+      <h3>State recorded at the start, against now</h3>
+      <div class="sub">Item by item, for your comparison.</div>
+      <table><thead><tr><th>Item</th><th>Recorded at the start</th><th>Now</th><th>Same</th></tr></thead><tbody>
+      ${BRK.map(b=>`<tr><td class="mono">${b.id}</td><td class="mono">${S.start.breakers[b.id]}</td>
+        <td class="mono">${S.st.breakers[b.id]}</td>
+        <td>${S.start.breakers[b.id]===S.st.breakers[b.id]?"<span class=\"pill closed\">YES</span>":"<span class=\"pill open\">NO</span>"}</td></tr>`).join("")}
+      ${LEADS.map(l=>`<tr><td>${esc(l.name)}</td><td class="mono">${esc(S.start.leads[l.k]||"not fitted")}</td>
+        <td class="mono">${esc(S.st.leads[l.k]||"not fitted")}</td>
+        <td>${S.start.leads[l.k]===S.st.leads[l.k]?"<span class=\"pill closed\">YES</span>":"<span class=\"pill open\">NO</span>"}</td></tr>`).join("")}
+      <tr><td>Front door tag</td><td class="mono">${S.start.tags.front?"fitted":"none"}</td><td class="mono">${S.st.tags.front?"fitted":"none"}</td>
+        <td>${S.start.tags.front===S.st.tags.front?"<span class=\"pill closed\">YES</span>":"<span class=\"pill open\">NO</span>"}</td></tr>
+      <tr><td>Rear door tag</td><td class="mono">${S.start.tags.rear?"fitted":"none"}</td><td class="mono">${S.st.tags.rear?"fitted":"none"}</td>
+        <td>${S.start.tags.rear===S.st.tags.rear?"<span class=\"pill closed\">YES</span>":"<span class=\"pill open\">NO</span>"}</td></tr>
+      </tbody></table>
+    </div>`;
+}
+
+/* ---------- pane: redline ---------- */
+function paneRed(){
+  const r=S.redline;
+  return `<div class="doc">
+      <div class="labtag">Field redline — MOP-2227-041 Rev C</div>
+      <h2>Field redline form</h2>
+      <p>Raised when the plant does not match the document. It goes back to the author with the field copy. The person who reads it was not standing where you are standing, so write it for them.</p>
+      <div class="tblock">
+        <div><div class="k">Document</div><div class="v">${DOC.no} Rev ${DOC.rev}</div></div>
+        <div><div class="k">Rack</div><div class="v">R-14 · HALL B · ROW 3</div></div>
+        <div><div class="k">Change record</div><div class="v">CHG-4471</div></div>
+        <div><div class="k">Level of Risk</div><div class="v">${esc(DOC.risk)}</div></div>
+      </div>
+      <div class="fgrid" style="margin-top:16px">
+        <div class="fld"><label>Step number</label><input type="text" id="rStep" value="${esc(r.step||"")}"></div>
+        <div class="fld"><label>Signature — initials and name</label><input type="text" id="rSig" value="${esc(r.sig||"")}" placeholder="e.g. J.M. — J. Mendez"></div>
+      </div>
+      <div class="fld" style="margin-bottom:12px">
+        <label>Script text as written — copy it, do not summarise it</label>
+        <textarea id="rScript" rows="3" placeholder="Copy the step wording out of the document, word for word.">${esc(r.script||"")}</textarea>
+      </div>
+      <div class="fld" style="margin-bottom:12px">
+        <label>Observed state — device, label as fitted, position, and how it differs</label>
+        <textarea id="rObs" rows="4" placeholder="Name the device, quote the label text you read, give the position you found it in, and say plainly how that differs from the script.">${esc(r.obs||"")}</textarea>
+      </div>
+      <div class="fgrid">
+        <div class="fld"><label>Time observed</label><input type="text" id="rTObs" value="${esc(r.tObs||"")}"></div>
+        <div class="fld"><label>Time halted</label><input type="text" id="rTHalt" value="${esc(r.tHalt||"")}"></div>
+      </div>
+      <div class="fld" style="margin-bottom:12px">
+        <label>Who was notified, by what means, and when</label>
+        <input type="text" id="rNotif" value="${esc(r.notified||"")}" placeholder="e.g. Shift lead A. Reyes, by radio, 04:24">
+      </div>
+      <div class="row noprint">
+        <button class="primary" id="btnSaveRed">Save redline</button>
+        <button onclick="window.print()">Print redline</button>
+        <span class="counter" id="redSaved">${S.redlineSaved?"saved at "+esc(S.redlineSaved):""}</span>
+      </div>
+      <div class="hint noprint">Saved automatically when you leave the tab as well. The submission sheet reads the saved copy.</div>
+    </div>`;
+}
+function saveRedline(){
+  const g=id=>{const e=$(id);return e?e.value.trim():"";};
+  if(!$("rStep")) return;
+  S.redline={step:g("rStep"),sig:g("rSig"),script:g("rScript"),obs:g("rObs"),
+    tObs:g("rTObs"),tHalt:g("rTHalt"),notified:g("rNotif")};
+  S.redlineSaved=fmtClock(S.t);
+}
+/* ---------- paint ---------- */
+function paint(){
+  const el=$("mopView");
+  let html="";
+  if(S.pane==="doc") html=paneDoc();
+  else if(S.pane==="rack") html=paneRack();
+  else if(S.pane==="exec") html=paneExec();
+  else if(S.pane==="halt") html=paneHalt();
+  else if(S.pane==="roll") html=paneRoll();
+  else html=paneRed();
+  el.innerHTML=html;
+  [["btnDoc","doc"],["btnRack","rack"],["btnExec","exec"],["btnRoll","roll"],["btnRed","red"]].forEach(([id,p])=>{
+    const b=$(id); if(b) b.className=(S.pane===p?"primary":"");
+  });
+  const hb=$("btnHalt"); if(hb) hb.className="danger";
+  bindPane();
+  renderClock();
+}
+function bindPane(){
+  const el=$("mopView");
+  el.onclick=e=>{
+    const t=e.target.closest("button"); if(!t) return;
+    if(t.dataset.pre!==undefined){ setPre(t.dataset.pre,t.dataset.val); return; }
+    if(t.dataset.ctrl!==undefined){ opControl(t.dataset.ctrl); return; }
+    if(t.dataset.vres!==undefined){ stateVerification(t.dataset.vres); return; }
+    if(t.dataset.side!==undefined){ sideAction(t.dataset.side); return; }
+    if(t.dataset.rb!==undefined){ applyRb(t.dataset.rb); return; }
+    if(t.dataset.other!==undefined){ applyOther(t.dataset.other); return; }
+    if(t.dataset.admin!==undefined){ toggleAdmin(t.dataset.admin); return; }
+    switch(t.id){
+      case "btnBegin": beginExecution(); break;
+      case "btnBeginAnyway": S.startedAnyway=true; beginExecution(); break;
+      case "btnGateHalt": S.pane="halt"; paint(); break;
+      case "btnAdvance": advanceStep(); break;
+      case "btnOverride": overrideStep(); break;
+      case "btnConfirmHalt": confirmHalt(); break;
+      case "btnGoHalt": S.pane="halt"; paint(); break;
+      case "btnGoRoll": S.pane="roll"; paint(); break;
+      case "btnGoRed": S.pane="red"; paint(); break;
+      case "btnSubmitRb": submitRollback(); break;
+      case "btnSaveRed": saveRedline(); flash("Redline saved."); paint(); break;
+      case "btnBuildSheet": buildSheet(); break;
+      case "btnPrintSheet": window.print(); break;
+    }
+  };
+  const sum=$("rbSum"); if(sum) sum.oninput=()=>{S.rbSummary=sum.value;};
+}
+function renderClock(){
+  $("clock").textContent=fmtClock(S.t);
+  $("elapsed").textContent=fmtElapsed(S.t);
+  const stEl=$("stepTimer");
+  if(stEl){
+    if(S.started&&!S.finished&&!S.halted){
+      const s=Math.max(0,Math.round((S.t-S.stepStart)*60));
+      stEl.textContent="step "+S.step+"  "+String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+    }else{
+      stEl.textContent="step --:--";
+    }
+  }
+}
+function tick(){
+  S.t+=1/60;
+  renderClock();
+}
+
+/* ---------- launch / nav ---------- */
+function resetRun(){
+  rnd=mulberry32((S.rkey^(S.ci*2654435761))>>>0);
+  S.t=0; S.pane="doc"; S.step=1; S.phase={}; S.log=[]; S.labelOpts={};
+  S.counters={silent:0,backsign:0,paraphrase:0,pointing:0,override:0,order:0,side:0};
+  S.precon={}; S.startedAnyway=false; S.started=false; S.finished=false;
+  S.halted=false; S.haltStep=null; S.haltBeforeAct=false; S.haltInfo={};
+  S.rbSummary=""; S.rbDone={}; S.rbOtherUsed=[]; S.rbActions=[]; S.rbSubmitted=false; S.rbSubmittedAt="";
+  S.rbOutstanding=[]; S.rbAdminMissing=[];
+  S.redline={}; S.redlineSaved=""; S.initials=""; S.stepStart=0; S.stepSecs=[];
+  S.start=startState(V.id); S.st=cloneState(S.start);
+  $("statusBadge").textContent="Ready"; $("statusBadge").className="badge";
+  if(S.timer) clearInterval(S.timer);
+  S.timer=setInterval(tick,1000);
+  paint();
+}
+function showConsole(){
+  $("sysname").textContent="524."+labNo()+" · UCI 2227 · "+labName()+" · objective M"+labNo()+
+    " · TRAINING SIMULATOR — not connected to any live plant";
+  $("toolbar").classList.remove("hidden");
+  $("mopView").classList.remove("hidden");
+  resetRun();
+}
+
+/* ---------- wiring ---------- */
+function go(p){ if(S.pane==="red") saveRedline(); S.pane=p; paint(); }
+$("btnDoc").onclick=()=>go("doc");
+$("btnRack").onclick=()=>go("rack");
+$("btnExec").onclick=()=>go("exec");
+$("btnRoll").onclick=()=>go("roll");
+$("btnRed").onclick=()=>go("red");
+$("btnHalt").onclick=()=>{ if(S.pane==="red") saveRedline(); doHalt(); };
+$("btnRestart").onclick=()=>{ resetRun(); flash("Run restarted. Rack returned to the state recorded at the start."); };
+showConsole();
+</script>
+<!-- LQ_SUBMISSION_MODULE -->
+<script id="lqData">var LQ={"lab": "524.4.3", "title": "MOP Rollback Execution Gate", "handout": "GLAB 524.4.3 - MOP Rollback Execution Gate", "file": "524-4-3-C_MOPRollback.html", "set": "C", "items": [{"s": "Part 1: Executing the gate on rack R-14", "k": "text", "p": "Step 2. Read the full MOP from start to finish, including Appendix A and the rollback section, before you operate anything. Then write down every latent risk and every missing parameter you can find — a hazard that is present in the procedure before anyone begins executing it. Read Appendix A carefully: it records which outlets are in use, which are spare, and what the two PDU strips should be drawing. It is a claim about the rack, not a fact about the rack."}, {"s": "Part 1: Executing the gate on rack R-14", "k": "text", "p": "Step 3. Write your own summary of the rollback sequence, in your words, before you start. Not a copy of the document. Write the actual order of undoing: which breakers, which leads, which tags, and what the rack has to look like when you are finished. A rollback plan you have only read is not a rollback plan you can execute with adrenaline up. Learners who write three words here are the ones whose rollback comes out partial."}, {"s": "Part 1: Executing the gate on rack R-14", "k": "text", "p": "Step 4. Confirm the six pre-conditions and walk to each one. PC-1, change record CHG-4471 approved and the work inside the 04:00 to 06:00 window. PC-2, shift lead briefed and on the floor. PC-3, replacement A-side PDU staged, unpacked and visually undamaged. PC-4, redundant B-side path in service — board breaker CB-16 CLOSED and carrying no tags. PC-5, torch, insulated gloves and safety glasses to hand and the aisle clear. PC-6, field copy of Rev C printed with a blank redline form. Record what you actually saw at each one. A MOP whose pre-conditions are not met does not start, and confirming a pre-condition you did not walk to the board to check is itself a fail."}, {"s": "Part 1: Executing the gate on rack R-14", "k": "text", "p": "Step 7. Execute steps 1 and 2. Step 1: confirm the rack identification label and the revision of your field copy, both read aloud and compared with the title block. Step 2: read the A-side and B-side rack PDU displays and record both load currents on the field copy. Read them off the displays. Do not copy the figures out of Appendix A. Record here the two currents you actually observed and, next to them, the two figures Appendix A claims."}, {"s": "Part 1: Executing the gate on rack R-14", "k": "text", "p": "Step 11. Announce the halt out loud. State the step number, exactly what you observed including the device identifier and its state, the time you observed it, and who you are notifying. Then notify them — the shift lead is on the floor under PC-2. Record the announcement here as you made it."}, {"s": "Part 1: Executing the gate on rack R-14", "k": "text", "p": "Step 12. Execute the written rollback sequence and return the system to its exact starting state. The target is the state you found, not the state the document describes. If an item was already in an unexpected position when you arrived, that position is the as-found state and restoring it to what the document expected is itself an unauthorised change to the plant. Work your rollback summary from step 3, item by item, and tick each one off as you complete it."}, {"s": "Part 1: Executing the gate on rack R-14", "k": "text", "p": "Step 13. Check for a partial rollback before you declare it complete. Most of the system restored with one thing left changed is a fail, and it is the most common way to fail this lab. Walk the rack and the board and confirm every breaker handle, every lead, every tag and every cover is exactly as you found it. Then complete the rollback administration: announce the rollback to the shift lead with the step number and what was observed, record the as-found condition on the redline form, and return the field copy of Rev C to the change file marked SUSPENDED."}, {"s": "Part 1: Executing the gate on rack R-14", "k": "text", "p": "Step 14. Draft the field redline. Seven things, all of them required: the exact step number where the variance was found; the script text quoted word for word as written; what you actually observed, including the device identifier, its state and a measured value where one exists; the time you observed it; the time the halt was declared and the rollback completed; who you escalated to and when they acknowledged; and your signature. An unsigned redline is an anonymous rumour about your facility."}, {"s": "Part 1: Executing the gate on rack R-14", "k": "image", "p": "Step 15. Write observations only. Do not write your theory about why the plant differs from the paper. “Probably left closed after last month’s work” is a guess, and once it is written down it becomes the leading hypothesis for everyone who reads it afterwards. If it is wrong, the engineer starts in the wrong place and your speculation has cost time. You may absolutely say it out loud to the engineer. It does not go in the record as if it were an observation. Type your name into the submission panel, press Build submission sheet, print it, and attach it with your completed redline form."}, {"s": "Part 1: Executing the gate on rack R-14", "k": "text", "p": "Step 16. Present the redline to your instructor in role as R. Vance, the MOP approver, receiving it cold. Read it aloud. They will ask you what you found, what you did, what state the rack is in now and what they should do next. If they have to ask you a question the redline should have answered, revise it and present it again."}, {"s": "Part 2: Reflection", "k": "text", "p": "What were you feeling at the step where the floor stopped matching the paper? Answer honestly rather than correctly. The usual honest answer is some version of “I didn’t want to be the person who couldn’t finish it”, and naming that is the point of the whole week. Whatever yours was, write it down in the words you actually thought it in."}, {"s": "Part 2: Reflection", "k": "text", "p": "If you pushed through, or considered it, describe the reasoning you used at the time. What made continuing feel like the sensible option in that moment, and what would you have had to believe about the plant for it to have been safe?"}, {"s": "Part 2: Reflection", "k": "text", "p": "Halting cost you about twenty minutes and one awkward conversation. Write down what it would have cost the facility if you had not halted. Be specific about the equipment and the load, not general about safety."}, {"s": "Part 2: Reflection", "k": "text", "p": "This is the same social problem as Stop-Work Authority in Module 1: holding your position politely against someone senior, competent and in a hurry. What did you learn today about how you personally behave under that pressure, and what will you do differently on your first site?"}]};</script>
+<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+     Collects every handout question and its response inside this lab tool and
+     exports ONE print-to-PDF submission sheet for Canvas grading.
+     Self-contained. No external libraries. Safe to re-inject (idempotent).
+
+     v2.0 — WCAG 2.1 AA pass (label association, headings, alt text, contrast,
+     status announcement, authored focus); image downscale before storage with a
+     visible error if the quota still throws; Save-as-PDF filename set from the
+     learner name; print pagination and running header; duplicate learner-name
+     rows stripped from the harvested simulator record.
+     ========================================================================= -->
+<style id="lqStyle">
+  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
+  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+  #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#9db6c9;font-weight:700}
+  #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
+    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+  #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
+  #lqCard .lqq{margin-bottom:16px}
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+    cursor:pointer}
+  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+    margin-right:6px;font-weight:700}
+  #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
+    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
+  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+  #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
+  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard .lqimgwrap{margin-top:7px}
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+    border-radius:5px;display:block;margin-top:8px}
+  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+
+  /* authored focus — the simulators author none, so this is the only visible ring.
+     Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
+     in the simulator above as much as in the submission panel. */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+  @media print{ :focus-visible{outline:none!important} }
+
+  /* error banner for a storage failure the learner must know about */
+  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr b{color:#fff}
+
+  /* screen-reader-only live region */
+  .lqvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* ---- the assembled submission sheet ---- */
+  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
+  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
+  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+    padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
+  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
+    font-size:12px;color:#a8c0d3;line-height:1.9}
+
+  #lqPrint{display:none}
+  #lqPrint .lqpage{width:100%;border-collapse:collapse}
+
+  /* ---- print: only the sheet ---- */
+  @media print{
+    body.lq-print{background:#fff!important;color:#000!important;
+      overflow:visible!important;height:auto!important}
+    body.lq-print>*{display:none!important}
+    body.lq-print>#lqPrint{display:block!important}
+
+    /* Everything harvested from the simulator arrives in the dark console palette:
+       near-white text that would print invisibly, on backgrounds the browser drops
+       by default. Flatten the whole print container to ink on paper first, then
+       re-assert the few greys that carry meaning. */
+    body.lq-print #lqPrint,body.lq-print #lqPrint *{
+      color:#000!important;background-color:transparent!important;background-image:none!important;
+      box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
+
+    /* running header — a thead repeats on every page in every engine that paginates */
+    body.lq-print #lqPrint thead.lqrhead{display:table-header-group}
+    body.lq-print #lqPrint td.lqrh{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      font-size:8pt;color:#444!important;border-bottom:.5pt solid #999!important;
+      padding:0 0 3pt;text-align:left}
+    body.lq-print #lqPrint td.lqrh .r{float:right}
+    body.lq-print #lqPrint td.lqbody{padding:6pt 0 0}
+
+    body.lq-print #lqPrint .lqsheet{background:#fff;border:0;padding:0;margin:0;color:#000}
+    body.lq-print #lqPrint h1{color:#000}
+    body.lq-print #lqPrint h1,body.lq-print #lqPrint h2{border-bottom-color:#999!important}
+    body.lq-print #lqPrint h2{color:#000;border-bottom:1px solid #999;
+      page-break-after:avoid;break-after:avoid}
+    body.lq-print #lqPrint .lqmeta,body.lq-print #lqPrint .lqrow .k,
+    body.lq-print #lqPrint .lqa .q{color:#444!important}
+    body.lq-print #lqPrint .lqa .q .qn{color:#000!important}
+    body.lq-print #lqPrint .lqrow,body.lq-print #lqPrint .lqa{border-bottom:1px solid #ddd!important}
+    body.lq-print #lqPrint .lqa,body.lq-print #lqPrint .lqrow,
+    body.lq-print #lqPrint .lqsign,body.lq-print #lqPrint .lqgap{
+      page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint .lqa .a.blank{color:#000;font-style:italic}
+    body.lq-print #lqPrint .lqgap,body.lq-print #lqPrint .lqgap.ok{
+      background:#fff!important;border:1pt solid #666!important;color:#000!important}
+    body.lq-print #lqPrint .lqsign{color:#000;border-top:1px solid #999}
+    body.lq-print #lqPrint .noprint{display:none!important}
+    body.lq-print #lqPrint button{display:none!important}
+    /* harvested simulator tables keep their column headers across pages */
+    body.lq-print #lqPrint thead{display:table-header-group}
+    body.lq-print #lqPrint tr{page-break-inside:avoid;break-inside:avoid}
+    body.lq-print #lqPrint p,body.lq-print #lqPrint .a{orphans:3;widows:3}
+    @page{margin:16mm 14mm 14mm}
+  }
+</style>
+<script id="lqScript">
+(function(){
+  if(window.__lqLoaded) return; window.__lqLoaded=true;
+
+  var esc=function(s){return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
+
+  var KEY="uci2227:"+LQ.file;
+  var store={}, storageBroken=false;
+  try{ store=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ store={}; }
+
+  /* ---------- cross-lab storage budget ----------
+     Every lab in the module is served from one origin, so all 43 share a single
+     ~5 MB localStorage budget. Seventeen image questions at ~325 KB apiece is 5.4 MB
+     — a learner working through the whole module on one browser profile would run out
+     near the end. Images belonging to OTHER labs are evicted when room is needed,
+     oldest and already-exported first. Text answers are never evicted: they are tiny,
+     and they are the part a learner cannot reproduce. An evicted image is already
+     inside the submission PDF that lab produced. */
+  function otherLabKeys(){
+    var out=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0&&k!==KEY) out.push(k);
+      }
+    }catch(e){}
+    return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
+  }
+  function evictOtherImages(target){
+    /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
+    var recs=[];
+    otherLabKeys().forEach(function(k){
+      var raw,obj;
+      try{ raw=localStorage.getItem(k)||"{}"; obj=JSON.parse(raw); }catch(e){ return; }
+      var imgBytes=0;
+      for(var f in obj) if(/_img$/.test(f)) imgBytes+=String(obj[f]).length;
+      if(imgBytes>0) recs.push({k:k,obj:obj,bytes:imgBytes,ts:obj._ts||0,done:obj._done?1:0});
+    });
+    recs.sort(function(a,b){ return (b.done-a.done)||(a.ts-b.ts); });
+    var freed=0;
+    for(var i=0;i<recs.length&&freed<target;i++){
+      var r=recs[i];
+      for(var f in r.obj) if(/_img$/.test(f)) delete r.obj[f];
+      r.obj._evicted=true;
+      try{ localStorage.setItem(r.k,JSON.stringify(r.obj)); freed+=r.bytes; }catch(e){}
+    }
+    return freed;
+  }
+
+  function save(){
+    store._ts=Date.now();
+    var payload;
+    try{ payload=JSON.stringify(store); }catch(e){ return false; }
+    try{
+      localStorage.setItem(KEY,payload);
+      if(storageBroken){ storageBroken=false; showStoreErr(null); }
+      return true;
+    }catch(e){
+      /* make room from other labs, then try once more */
+      if(evictOtherImages(payload.length+200000)>0){
+        try{
+          localStorage.setItem(KEY,payload);
+          if(storageBroken){ storageBroken=false; showStoreErr(null); }
+          return true;
+        }catch(e2){}
+      }
+      storageBroken=true;
+      showStoreErr(e);
+      return false;
+    }
+  }
+  function showStoreErr(e){
+    var b=document.getElementById("lqStoreErr");
+    if(!b) return;
+    if(!e){ b.style.display="none"; return; }
+    b.style.display="block";
+    b.innerHTML='<b>Your work is no longer being saved in this browser.</b><br>'
+      +'Storage is full or switched off — usually private browsing, or a great many images '
+      +'attached across the labs on this machine. Everything on screen is intact and the '
+      +'submission PDF will still build correctly — but <b>do not refresh or close this tab</b>. '
+      +'Press <b>Build submission PDF</b> now and save the file. '
+      +'Then press <b>Clear my responses</b> to free the space up for the next lab.';
+    if(b.scrollIntoView) b.scrollIntoView({block:"nearest"});
+  }
+
+  function announce(msg){
+    var s=document.getElementById("lqStatus");
+    if(s){ s.textContent=""; setTimeout(function(){ s.textContent=msg; },30); }
+  }
+
+  /* ---------- detect the set letter the tool is running ---------- */
+  function setLetter(){
+    try{ if(typeof SETLETTER!=="undefined"&&SETLETTER) return SETLETTER; }catch(e){}
+    var tag=document.getElementById("setTag");
+    if(tag&&tag.textContent){
+      var m=tag.textContent.match(/set\s+([A-H])/i); if(m) return m[1].toUpperCase();
+    }
+    var m2=(LQ.file||"").match(/524-\d-\d-([A-H])_/); if(m2) return m2[1];
+    return LQ.set||"—";
+  }
+
+  /* ---------- downscale an image before it goes anywhere near storage ----------
+     A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
+     about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
+     capture under 400 KB, which is still far more detail than the PDF can show. */
+  var MAXPX=1600, JPEGQ=0.82;
+  function downscale(file,cb){
+    var rd=new FileReader();
+    rd.onerror=function(){ cb(null,"The browser could not read that file."); };
+    rd.onload=function(){
+      var img=new Image();
+      img.onerror=function(){ cb(null,"That file does not look like an image the browser can open."); };
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(rd.result,null); return; }
+          var sc=Math.min(1,MAXPX/Math.max(w,h));
+          if(sc>=1&&rd.result.length<600000){ cb(rd.result,null); return; }
+          var cw=Math.max(1,Math.round(w*sc)), ch=Math.max(1,Math.round(h*sc));
+          var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+          var x=c.getContext("2d");
+          x.fillStyle="#fff"; x.fillRect(0,0,cw,ch);
+          x.drawImage(img,0,0,cw,ch);
+          cb(c.toDataURL("image/jpeg",JPEGQ),null);
+        }catch(err){ cb(rd.result,null); }
+      };
+      img.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+
+  /* ---------- build the card ---------- */
+  var host=document.querySelector("main .wrap")||document.querySelector("main")||document.body;
+  var card=document.createElement("section");
+  card.id="lqCard";
+  card.setAttribute("aria-labelledby","lqCardTitle");
+
+  var qs=LQ.items, secs=[], cur=null;
+  qs.forEach(function(it,i){
+    if(!cur||cur.name!==it.s){ cur={name:it.s,list:[]}; secs.push(cur); }
+    cur.list.push({i:i,it:it});
+  });
+
+  var html=""
+   +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
+   +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
+   +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
+   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<div id="lqStoreErr" role="alert"></div>'
+   +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
+   +'<div class="lqid">'
+   +'<div class="lqfld" style="flex:1 1 260px"><label for="lqName">Your name</label>'
+     +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
+     +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
+     +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
+   +'</div>';
+
+  secs.forEach(function(sec,si){
+    html+='<h3 class="lqsec" id="lqSec'+si+'">'+esc(sec.name||"Questions")+'</h3>';
+    sec.list.forEach(function(o){
+      var id="lqQ"+o.i, n=o.i+1;
+      html+='<div class="lqq">';
+      if(o.it.k==="image"){
+        html+='<p class="lqp"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</p>'
+             +'<div class="lqimgwrap">'
+             +'<label class="lqfilelbl" for="'+id+'_f">Attach your image for question '+n+'</label>'
+             +'<input type="file" accept="image/*" id="'+id+'_f">'
+             +'<p class="lqnote" style="margin:5px 0 0">A photo or screenshot. It is resized and '
+             +'embedded in the PDF you hand in.</p>'
+             +'<img id="'+id+'_img" alt="Your attached image for question '+n+'" style="display:none">'
+             +'<label class="lqfilelbl" for="'+id+'" style="margin-top:8px">Caption or note for question '+n+'</label>'
+             +'<textarea id="'+id+'" rows="2" placeholder="Add any caption or note that goes with the image.">'
+             +esc(store[id]||"")+'</textarea></div>';
+      }else{
+        html+='<label class="lqp" for="'+id+'"><span class="qn">Q'+n+'.</span>'+esc(o.it.p)+'</label>'
+             +'<textarea id="'+id+'" rows="3" placeholder="Type your answer here.">'+esc(store[id]||"")+'</textarea>';
+      }
+      html+='</div>';
+    });
+  });
+
+  html+='<div class="lqbtns">'
+    +'<button type="button" class="lqprimary" id="lqBuild">Build submission PDF</button>'
+    +'<button type="button" id="lqPreview">Preview without printing</button>'
+    +'<button type="button" id="lqClear">Clear my responses</button>'
+    +'<span class="lqnote">The PDF carries every question, your responses and the simulator record. One file, one upload.</span>'
+    +'</div><div id="lqOut" role="region" aria-label="Submission sheet preview"></div>';
+
+  card.innerHTML=html;
+  host.appendChild(card);
+
+  /* ---------- wiring ---------- */
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
+    var el=document.getElementById(id);
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+  });
+  qs.forEach(function(it,i){
+    var id="lqQ"+i, ta=document.getElementById(id);
+    if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
+    var f=document.getElementById(id+"_f");
+    if(f) f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      announce("Processing your image for question "+(i+1)+".");
+      downscale(file,function(dataUrl,err){
+        if(err){ announce(err); alert(err); return; }
+        var img=document.getElementById(id+"_img");
+        img.src=dataUrl; img.style.display="block";
+        store[id+"_img"]=dataUrl;
+        var okSave=save();
+        announce("Image attached to question "+(i+1)+
+          (okSave?"." : ", but it could not be saved in this browser. Build your PDF now."));
+      });
+    };
+    if(store[id+"_img"]){
+      var im0=document.getElementById(id+"_img");
+      if(im0){ im0.src=store[id+"_img"]; im0.style.display="block"; }
+    }
+  });
+
+  /* an image of this lab was evicted to make room for another lab on the shared
+     origin, and this lab had not yet been exported — say so plainly */
+  if(store._evicted&&!store._done){
+    var eb=document.getElementById("lqStoreErr");
+    eb.style.display="block";
+    eb.innerHTML='<b>An image you attached is no longer stored.</b><br>'
+      +'This browser ran out of room across all the labs on this machine and dropped it. '
+      +'Your typed answers are all still here — only the image went. '
+      +'Attach it again before you build your submission PDF.';
+    delete store._evicted; save();
+  }
+
+  document.getElementById("lqClear").onclick=function(){
+    if(!confirm("Clear every response you have typed in this lab? This cannot be undone.")) return;
+    store={}; save();
+    qs.forEach(function(it,i){
+      var ta=document.getElementById("lqQ"+i); if(ta) ta.value="";
+      var im=document.getElementById("lqQ"+i+"_img"); if(im){ im.removeAttribute("src"); im.style.display="none"; }
+      var fi=document.getElementById("lqQ"+i+"_f"); if(fi) fi.value="";
+    });
+    document.getElementById("lqOut").innerHTML="";
+    announce("All responses cleared.");
+  };
+
+  /* ---------- guard the simulator's Restart button ----------
+     Restart wipes the simulator record but not the responses typed here, which
+     would leave a submission whose prose describes a record that no longer exists.
+     A capture-phase listener runs ahead of the tool's own onclick, so one confirm
+     covers every variant of the handler. */
+  (function(){
+    var rb=document.getElementById("btnRestart")||document.getElementById("btnReset");
+    if(!rb||card.contains(rb)) return;
+    rb.addEventListener("click",function(ev){
+      if(rb.dataset.lqOk==="1"){ rb.dataset.lqOk=""; return; }
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      var ok=confirm(
+        "Restart the scenario?\n\n"+
+        "Everything you recorded in the simulator — readings, marks, logs, the "+
+        "submission sheet it built — is wiped and the run starts again.\n\n"+
+        "The answers you typed in the submission panel lower down are KEPT. If they "+
+        "describe readings you are about to erase, build your submission PDF first.");
+      if(ok){ rb.dataset.lqOk="1"; rb.click(); }
+    },true);
+  })();
+
+  /* ---------- harvest the simulator's own record ---------- */
+  var REC_SEL=".sheet, .result.show";
+  function collect(){
+    var raw=[];
+    Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
+      if(card.contains(s)) return;
+      if(!s.textContent.replace(/\s/g,"")) return;
+      raw.push(s);
+    });
+    return raw.filter(function(s){
+      return !raw.some(function(o){ return o!==s && o.contains(s); });
+    });
+  }
+
+  /* the module already prints the learner name in its own Learner block, and every
+     simulator sheet prints it again — four of them twice. Strip it from the clone. */
+  var NAMEKEY=/^(your\s+)?(name|learner(\s+name)?)\s*:?\s*$/i;
+  function stripDuplicateName(root){
+    Array.prototype.forEach.call(root.querySelectorAll(".learnerline"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    var rows=root.querySelectorAll("div,tr,p");
+    Array.prototype.forEach.call(rows,function(r){
+      var first=r.firstElementChild;
+      if(!first||r.children.length>3) return;
+      if(NAMEKEY.test((first.textContent||"").trim())){
+        if(r.parentNode) r.parentNode.removeChild(r);
+      }
+    });
+  }
+
+  function toolRecord(){
+    var found=collect();
+    if(!found.length){
+      var btns=document.querySelectorAll("button");
+      var hit=null;
+      Array.prototype.forEach.call(btns,function(b){
+        if(card.contains(b)||hit) return;
+        var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+        if(/print/.test(t)) return;
+        if(/^build submission sheet$/.test(t)) hit=b;
+      });
+      if(!hit){
+        Array.prototype.forEach.call(btns,function(b){
+          if(card.contains(b)||hit) return;
+          var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+          if(/print/.test(t)) return;
+          if(/build .*sheet|submission sheet|submit .*(map|answer|sheet|round|log)|^submit$/.test(t)) hit=b;
+        });
+      }
+      if(hit){ try{ hit.click(); }catch(e){} }
+      found=collect();
+    }
+    if(!found.length) return null;
+    var wrap=document.createElement("div");
+    found.forEach(function(s){
+      var c=s.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      });
+      stripDuplicateName(c);
+      wrap.appendChild(c);
+    });
+    return wrap.innerHTML;
+  }
+
+  /* ---------- assemble the one sheet ---------- */
+  function build(){
+    var name=document.getElementById("lqName").value.trim();
+    var coh=document.getElementById("lqCohort").value.trim();
+    var dt=document.getElementById("lqDate").value.trim();
+    var gaps=[];
+    if(!name) gaps.push("Your name");
+    if(!coh)  gaps.push("Cohort / section");
+
+    var h=''
+     +'<div class="lqsheet">'
+     +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
+     +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
+       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+     +'<h2>Learner</h2>'
+     +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Built</span><span class="v">'
+       +esc(new Date().toLocaleString())+'</span></div>';
+
+    var rec=LQ.nosim?null:toolRecord();
+    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
+    else if(!LQ.nosim){
+      gaps.push("The simulator record — work through the lab tool above and press its own "
+               +"“Build submission sheet” button before you build this PDF");
+    }else{
+      h+='<h2>Assessed on the floor</h2>'
+        +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
+        +'Observed and signed off by the instructor against the handout. '
+        +'The instructor signature below records that sign-off.</span></div>';
+    }
+
+    var curSec=null;
+    qs.forEach(function(it,i){
+      if(it.s!==curSec){ curSec=it.s; h+='<h2>'+esc(curSec||"Questions")+'</h2>'; }
+      var ta=document.getElementById("lqQ"+i);
+      var a=ta?ta.value.trim():"";
+      var im=store["lqQ"+i+"_img"];
+      if(!a&&!im) gaps.push("Q"+(i+1));
+      h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
+      if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
+      h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
+    });
+
+    if(gaps.length){
+      h+='<div class="lqgap"><b>Not yet filled in ('+gaps.length+'):</b> '+esc(gaps.join(", "))
+        +'.<br>This is a completeness check, not a grade. Fill them in and build again, '
+        +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
+    }else{
+      h+='<div class="lqgap ok">'
+        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+    }
+
+    h+='<div class="lqsign">Learner signature: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'Instructor verification: ______________________________'
+      +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
+      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
+
+    document.getElementById("lqOut").innerHTML=h;
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
+    return h;
+  }
+
+  document.getElementById("lqPreview").onclick=function(){
+    build();
+    var o=document.getElementById("lqOut");
+    if(o&&o.scrollIntoView) o.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* ---------- the one PDF ---------- */
+  function safeName(s){
+    return String(s||"").normalize?String(s||"").normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+      :String(s||"").replace(/[^\w\s-]/g,"").trim();
+  }
+  function fileTitle(){
+    var n=safeName(document.getElementById("lqName").value).split(/\s+/).filter(Boolean);
+    var last=n.length>1?n[n.length-1]:(n[0]||"Learner");
+    var first=n.length>1?n.slice(0,-1).join("_"):"";
+    var who=first?(last+"_"+first):last;
+    return who+"_"+String(LQ.lab||"").replace(/[^\d.]/g,"");
+  }
+
+  document.getElementById("lqBuild").onclick=function(){
+    var h=build();
+    /* this lab's images are now inside a PDF the learner holds, so they become the
+       first thing evicted when another lab needs room on the shared origin */
+    store._done=true; save();
+
+    var old=document.getElementById("lqPrint"); if(old) old.parentNode.removeChild(old);
+
+    /* The sheet goes inside a one-cell table whose thead repeats on every printed
+       page, so pages 2+ still carry the learner name, the lab and the set. */
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+      +esc(document.getElementById("lqName").value.trim()||"Name not entered")
+      +' · '+esc(LQ.title);
+    var pr=document.createElement("div"); pr.id="lqPrint";
+    pr.innerHTML='<table class="lqpage"><thead class="lqrhead"><tr><td class="lqrh">'
+      +runHead+'</td></tr></thead><tbody><tr><td class="lqbody">'+h+'</td></tr></tbody></table>';
+    document.body.appendChild(pr);
+
+    /* the browser suggests document.title as the Save-as-PDF filename */
+    var prevTitle=document.title;
+    document.title=fileTitle();
+    document.body.classList.add("lq-print");
+
+    var restored=false;
+    var done=function(){
+      if(restored) return; restored=true;
+      document.body.classList.remove("lq-print");
+      document.title=prevTitle;
+      var a=document.getElementById("lqPrint"); if(a&&a.parentNode) a.parentNode.removeChild(a);
+      window.removeEventListener("afterprint",done);
+      if(mq&&mq.removeListener) mq.removeListener(mqHandler);
+    };
+    var mq=window.matchMedia?window.matchMedia("print"):null;
+    var mqHandler=function(m){ if(!m.matches) done(); };
+    if(mq&&mq.addListener) mq.addListener(mqHandler);
+    window.addEventListener("afterprint",done);
+
+    setTimeout(function(){
+      window.print();
+      /* generous fallback: mobile print sheets are asynchronous, and tearing the
+         container out too early yields a blank PDF */
+      setTimeout(done,60000);
+    },80);
+  };
+})();
+</script>
+<!-- ===== end submission module ============================================= -->
+
+</body>
+</html>
