@@ -39,9 +39,10 @@ in the JavaScript, and always have been — a learner with the file on a USB sti
 Public hosting does not create that exposure, but it does make it trivially discoverable and puts it
 in reach of a search engine.
 
-If that matters for your graded gates, the mitigations are instructional rather than technical, and
-you already have them: rotate sets between adjacent stations, keep the set register, and lean on the
-verbal verification that 524.2.1, 524.3.3, 524.5.2 and 524.5.3 already build into their assessment.
+If that matters for the labs you assess on the floor, the mitigations are instructional rather than
+technical, and you already have them: rotate sets between adjacent stations, keep the set register,
+and lean on the verbal verification that GLAB 524.2.1, 524.3.3, 524.5.2 and 524.5.3 already build
+into their assessment.
 A learner who has read the source still has to explain their trace out loud.
 
 ### 3. URLs are guessable

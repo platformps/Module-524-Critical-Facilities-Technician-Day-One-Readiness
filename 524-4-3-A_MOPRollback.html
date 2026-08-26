@@ -183,7 +183,7 @@
 
   <header>
     <div class="brand">MOP EXECUTION PACKET</div>
-    <div class="sysname" id="sysname">524.4.3 · UCI 2227 · GLAB 524.4.3 · objective M4.3 · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="sysname" id="sysname">524.4.3 · UCI 2227 · GLAB 524.4.3 · objective 12 · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
     <div id="statusBadge" class="badge">Ready</div>
     <div>
@@ -240,7 +240,7 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
 
-const LAB={lab:"GLAB 524.4.3",obj:"M4.3",title:"MOP Rollback Execution Gate"};
+const LAB={lab:"GLAB 524.4.3",obj:"objective 12",title:"MOP Rollback Execution Gate"};
 
 const DOC={no:"MOP-2227-041",rev:"C",
   title:"Corrective maintenance — replacement of the faulty A-side rack power distribution unit in rack R-14, Hall B row 3",
@@ -355,10 +355,11 @@ const CONFIGS=[
 /* fixed integer derived from SET — the run is identical every time the file is opened */
 const RKEY=(Math.imul(SET+1,2654435761)^0x9E3779B9)>>>0;
 function labNo(){ return V.mode==="A"?"4.2":"4.3"; }
-function labName(){ return "Lab "+labNo(); }
-function labHead(){ return "Lab "+labNo()+" — MOP execution"; }
-function labTag(){ return "524."+labNo()+" &middot; Lab "+labNo()+" &middot; objective M"+labNo()+
-  " &middot; Module 4 &mdash; Procedure Discipline"; }
+function labObj(){ return V.mode==="A"?"11":"12"; }
+function labName(){ return "GLAB 524."+labNo(); }
+function labHead(){ return "GLAB 524."+labNo()+" — MOP execution"; }
+function labTag(){ return "GLAB 524."+labNo()+" &middot; objective "+labObj()+
+  " &middot; Lesson 524.4 &mdash; Procedure Discipline"; }
 
 const STEPS=[
  {n:1,dev:"rack",
@@ -1375,7 +1376,7 @@ function resetRun(){
   paint();
 }
 function showConsole(){
-  $("sysname").textContent="524."+labNo()+" · UCI 2227 · "+labName()+" · objective M"+labNo()+
+  $("sysname").textContent=labName()+" · UCI 2227 · objective "+labObj()+
     " · TRAINING SIMULATOR — not connected to any live plant";
   $("toolbar").classList.remove("hidden");
   $("mopView").classList.remove("hidden");

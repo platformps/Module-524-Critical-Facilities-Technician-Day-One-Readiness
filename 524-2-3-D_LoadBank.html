@@ -127,7 +127,7 @@
 
   <header>
     <div class="brand">GENERATOR LOAD-BANK CONSOLE</div>
-    <div class="sysname">GLAB 524.2.3 &middot; UCI 2227 · objective M2.3 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="sysname">GLAB 524.2.3 &middot; UCI 2227 · objective 6 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
     <div id="statusBadge" class="badge">Ready</div>
     <div>
@@ -243,7 +243,7 @@ function tile(name,val,unit,band,cls){
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
 /* ---------- this lab ---------- */
-const LAB={lab:"GLAB 524.2.3",obj:"M2.3",title:"Telemetry Simulation Audit",duration:24};
+const LAB={lab:"GLAB 524.2.3",obj:"objective 6",title:"Telemetry Simulation Audit",duration:24};
 const SCENARIOS=[{id:"A1"},{id:"A2"},{id:"A3"},{id:"A4"},{id:"A0"}];
 
 const S={learner:"",t:0,running:false,timer:null,speed:12,
