@@ -86,7 +86,9 @@ parts*: a learner runs one and hands in one PDF.
 | 524.5.3 | SBAR Turnover Verification Gate | `524-5-3-{A,B,C}_SBAR.html` | 3 | 7 |
 
 **524.1.2 and 524.1.4 have no simulator.** Both labs are assessed on the floor by the instructor;
-their tools capture the written record and photographs only, and their submission PDF says so.
+their tools capture the written record and photographs only, and their submission PDF says so — it
+prints an *Assessed on the floor* block instead of a simulator record, and no longer lists the
+missing simulator record as a gap.
 
 ---
 
@@ -159,6 +161,10 @@ set on every page, so an instructor can always confirm which key to mark against
 4. Enter name and cohort, press **Build submission PDF**, choose **Save as PDF**.
 5. Upload that one file to the matching Canvas assignment.
 
+The simulator sheet has its own **Print submission sheet** button, which prints the simulator record
+on its own — a valid-looking PDF with none of the handout answers in it. Pressing it now offers the
+full submission PDF first, and prints the simulator record alone only if the learner declines.
+
 The PDF carries the learner name, cohort, scenario set, the simulator's record and every question
 with its response, plus any photograph attached. The paper handout is an instruction sheet and is
 never handed in.
@@ -218,13 +224,25 @@ The submission panel in every file meets **WCAG 2.1 AA**: every field is program
 headings are real headings, images carry alt text, the completeness check announces through a live
 region, and focus is visible throughout.
 
-**The simulators above it are not there yet.** Known gaps, in priority order:
+**The simulators are reached by a shim, not rebuilt.** Submission module v2.1 adds a pass that runs
+over the simulator on load and after every re-render, so the three gaps below are closed without any
+of the sixteen simulators being touched:
 
-- **524.5.3 (SBAR) cannot currently be completed with a keyboard.** Its builder unlocks only after all
-  26 shift-log entries are opened, and those rows are not keyboard-reachable. Learners who need
-  keyboard access must be given an alternative route through this lab.
-- Simulator inputs use visual labels without programmatic association.
-- The eight canvas charts in LoadBank and ChillerFault have no text equivalent.
+- **524.5.3 (SBAR) can now be completed with a keyboard.** Every affordance the simulators drive
+  through a click handler on a plain `<div>`, `<tr>`, `<th>` or SVG node is found by the one thing
+  they all share — `cursor:pointer` — given a tab stop and a name, and wired so Enter and Space
+  dispatch the click the simulator is already listening for. 572 across the module. Only the
+  outermost element of a pointer subtree is taken, so a clickable row is one tab stop, not eight.
+- **Every simulator control now has an accessible name.** A bare `<label>` beside a single control is
+  bound to it; a grid cell is named from its row label and its column header — *"Step 1 · 25% ·
+  T+00:00, Frequency (Hz)"*; anything left over falls back to the block around it, then its
+  placeholder.
+- **The 36 canvas charts announce themselves.** Each takes `role="img"` and a name built from its own
+  heading and band description. That is a name and a description, not a data table — the underlying
+  readings are still only in the chart, and a learner who needs the numbers reads them from the
+  panels beside it.
+
+Verified across all 43 files: no console errors, no unnamed controls.
 
 `DESIGN-REVIEW.md` in the parent folder carries the full findings and a prioritised fix list.
 
