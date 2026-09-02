@@ -124,7 +124,7 @@
 
   <header>
     <div class="brand">FACILITY ALARM CONSOLE</div>
-    <div class="sysname">GLAB 524.5.2 &middot; UCI 2227 · objective 14 · Set A · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="sysname">GLAB 524.5.2 &middot; UCI 2227 · objective M5.2 · Set A · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
     <div id="statusBadge" class="badge">Ready</div>
     <div>
@@ -183,7 +183,7 @@ function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"
   .replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
 /* ---------- this lab ---------- */
-const LAB={lab:"GLAB 524.5.2",obj:"objective 14",title:"Twenty Alarms at Once",duration:6};
+const LAB={lab:"GLAB 524.5.2",obj:"M5.2",title:"Twenty Alarms at Once",duration:6};
 
 const CONFIGS=[{id:"C1"},{id:"C2"}];
 
@@ -221,10 +221,10 @@ function buildAlarms(v){
     {t:"03:14:03",sys:"Electrical",pt:"UPS-A",msg:"On battery — input failure",sev:"high"},
     {t:"03:14:04",sys:"Electrical",pt:"GEN-1",msg:"Start signal received",sev:"medium"},
     {t:"03:14:09",sys:"Electrical",pt:"GEN-1",msg:"Cranking",sev:"low"},
-    {t:"03:14:13",sys:"Electrical",pt:"GEN-1",msg:"Running — voltage and frequency stabilising",sev:"medium"},
+    {t:"03:14:13",sys:"Electrical",pt:"GEN-1",msg:"Running — voltage and frequency stabilizing",sev:"medium"},
     {t:"03:14:15",sys:"Electrical",pt:"ATS-1",msg:"Transfer to emergency source",sev:"high"},
     {t:"03:14:17",sys:"Electrical",pt:"UPS-A",msg:"Input restored — recharging",sev:"medium"},
-    {t:"03:14:24",sys:"Electrical",pt:"SB-1",msg:"Bus energised from emergency source",sev:"medium"},
+    {t:"03:14:24",sys:"Electrical",pt:"SB-1",msg:"Bus energized from emergency source",sev:"medium"},
     {t:"03:14:38",sys:"Network",pt:"BMS-P2",msg:"Controller comms retry",sev:"low"},
     {t:"03:14:51",sys:"Mechanical",pt:"CRAH-04",msg:"Restart after supply interruption",sev:"low"},
     {t:"03:15:02",sys:"Mechanical",pt:"CRAH-05",msg:"Restart after supply interruption",sev:"low"},
@@ -489,7 +489,7 @@ document.addEventListener("keydown",e=>{
 resetRun();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.5.2", "title": "Twenty Alarms at Once", "obj": 14, "handout": "GLAB 524.5.2 - Twenty Alarms at Once", "file": "524-5-2-A_AlarmFlood.html", "set": "A", "items": [{"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 1. Before the flood starts, open the simulated BMS and SCADA dashboard and read the current known-fault log. Write down what is already acknowledged, what work is in progress, and which sensors have already been reported faulty. Anything on this list that alarms later is an acknowledge, not an escalation. Escalating an alarm that three people already know about, twice a shift, is how a new technician stops being listened to. Record the known faults here."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 3. Apply triage question 1: is anyone in danger? Fire, smoke, gas, a person alarm. Life safety outranks everything on the screen, including the load. Answer this first, every time, and answer it before you start reasoning about the cascade. There is a natural pull towards the load, because that is what the facility exists for and it is what gets measured. If a smoke alarm and an uninterruptible power supply (UPS) failure arrive together, the smoke alarm is first. Record your answer and the alarm it relates to, or record explicitly that there is no life safety alarm in this flood."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 9. Confirm your parent event against the physical relationships. Does the timing make sense for how the plant actually works? A pump reporting low flow a few seconds after an upstream mechanical fault is physics, not a second fault. Cooling units noticing about forty seconds later is how long it takes warm water to reach them. Rack inlets noticing a minute after that is how long it takes the air to change. If an interval cannot be explained by how heat, water or electricity travel, that alarm is probably not a consequence. This step is Module 3 being paid back: you can only read this cascade because you know how the loop moves heat. Write your reasoning for at least three intervals."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 10. Look specifically for the second genuine event. Once the parent is identified there is a strong pull to assign everything else to it, and that pull is exactly what this step exists to resist. Ask of each remaining alarm: could this physically have been caused by the parent? An alarm on a system with no physical path back to the parent cannot be downstream of it. Record the second event, its timestamp, and why it cannot be downstream of the parent."}, {"s": "Part 1: Triaging the flood", "k": "image", "p": "Step 13. Capture the sorted timeline from the console — the alarm list sorted by time with your parent, consequence and noise marks visible — and paste it below. This is the evidence of your reasoning, not just your answer. Then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 14. Present your triage to your instructor. State the parent, the second event if there is one, and your escalation sentence. Then justify two alarms you chose to set aside, giving the reason each one cannot be downstream of the parent. Anyone can name the earliest alarm; justifying a decision to set something aside requires you to have actually reasoned about it. Note the two alarms you justified and what you said."}, {"s": "Part 2: Reflection", "k": "text", "p": "The four triage questions are asked in a fixed order: life safety, load at risk, knock-ons, already known. Explain what goes wrong if you answer question 2 before question 1, and give an example from your own flood where the order changed what you did first."}, {"s": "Part 2: Reflection", "k": "text", "p": "Take three consecutive alarms from your cascade and explain the interval between them in physical terms — what had to travel, and how far, for the second alarm to happen when it did. If any interval in your flood cannot be explained that way, say which one and what you concluded from it."}, {"s": "Part 2: Reflection", "k": "text", "p": "You were told there was a second genuine event. Describe how you would have found it if nobody had told you, and what specifically in your method would have surfaced it. Be honest if you only found it because you were looking for it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Alarm fatigue is a documented failure mode: when a console alarms constantly, operators stop reading it, and the one that mattered goes unread. It is a rational adaptation to a badly configured system, not laziness. Name one thing you can do about it at your level today, and one thing that can only be fixed at the system level."}]};</script>
+<script id="lqData">var LQ={"lab": "GLAB 524.5.2", "title": "Twenty Alarms at Once", "handout": "GLAB 524.5.2 - Twenty Alarms at Once", "file": "524-5-2-A_AlarmFlood.html", "set": "A", "items": [{"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 1. Before the flood starts, open the simulated BMS and SCADA dashboard and read the current known-fault log. Write down what is already acknowledged, what work is in progress, and which sensors have already been reported faulty. Anything on this list that alarms later is an acknowledge, not an escalation. Escalating an alarm that three people already know about, twice a shift, is how a new technician stops being listened to. Record the known faults here."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 3. Apply triage question 1: is anyone in danger? Fire, smoke, gas, a person alarm. Life safety outranks everything on the screen, including the load. Answer this first, every time, and answer it before you start reasoning about the cascade. There is a natural pull towards the load, because that is what the facility exists for and it is what gets measured. If a smoke alarm and an uninterruptible power supply (UPS) failure arrive together, the smoke alarm is first. Record your answer and the alarm it relates to, or record explicitly that there is no life safety alarm in this flood."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 9. Confirm your parent event against the physical relationships. Does the timing make sense for how the plant actually works? A pump reporting low flow a few seconds after an upstream mechanical fault is physics, not a second fault. Cooling units noticing about forty seconds later is how long it takes warm water to reach them. Rack inlets noticing a minute after that is how long it takes the air to change. If an interval cannot be explained by how heat, water or electricity travel, that alarm is probably not a consequence. This step is Module 3 being paid back: you can only read this cascade because you know how the loop moves heat. Write your reasoning for at least three intervals."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 10. Look specifically for the second genuine event. Once the parent is identified there is a strong pull to assign everything else to it, and that pull is exactly what this step exists to resist. Ask of each remaining alarm: could this physically have been caused by the parent? An alarm on a system with no physical path back to the parent cannot be downstream of it. Record the second event, its timestamp, and why it cannot be downstream of the parent."}, {"s": "Part 1: Triaging the flood", "k": "image", "p": "Step 13. Capture the sorted timeline from the console — the alarm list sorted by time with your parent, consequence and noise marks visible — and paste it below. This is the evidence of your reasoning, not just your answer. Then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 14. Present your triage to your instructor. State the parent, the second event if there is one, and your escalation sentence. Then justify two alarms you chose to set aside, giving the reason each one cannot be downstream of the parent. Anyone can name the earliest alarm; justifying a decision to set something aside requires you to have actually reasoned about it. Note the two alarms you justified and what you said."}, {"s": "Part 2: Reflection", "k": "text", "p": "The four triage questions are asked in a fixed order: life safety, load at risk, knock-ons, already known. Explain what goes wrong if you answer question 2 before question 1, and give an example from your own flood where the order changed what you did first."}, {"s": "Part 2: Reflection", "k": "text", "p": "Take three consecutive alarms from your cascade and explain the interval between them in physical terms — what had to travel, and how far, for the second alarm to happen when it did. If any interval in your flood cannot be explained that way, say which one and what you concluded from it."}, {"s": "Part 2: Reflection", "k": "text", "p": "You were told there was a second genuine event. Describe how you would have found it if nobody had told you, and what specifically in your method would have surfaced it. Be honest if you only found it because you were looking for it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Alarm fatigue is a documented failure mode: when a console alarms constantly, operators stop reading it, and the one that mattered goes unread. It is a rational adaptation to a badly configured system, not laziness. Name one thing you can do about it at your level today, and one thing that can only be fixed at the system level."}]};</script>
 <!-- ===== UCI 2227 · Submission module v2.0 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
@@ -500,14 +500,6 @@ resetRun();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
-
-     v2.1 — the two labs with no simulator no longer report a missing simulator
-     record; the date field persists instead of silently re-defaulting to today;
-     an image question with a caption but no photograph is reported as incomplete;
-     the completeness announcement is capped so it stays listenable; a keyboard
-     and screen-reader shim reaches the simulator's click-only affordances; the
-     simulator's own "Print submission sheet" button offers the full PDF first;
-     and a close-tab guard fires while storage is broken.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -595,7 +587,7 @@ resetRun();
     /* Everything harvested from the simulator arrives in the dark console palette:
        near-white text that would print invisibly, on backgrounds the browser drops
        by default. Flatten the whole print container to ink on paper first, then
-       re-assert the few greys that carry meaning. */
+       re-assert the few grays that carry meaning. */
     body.lq-print #lqPrint,body.lq-print #lqPrint *{
       color:#000!important;background-color:transparent!important;background-image:none!important;
       box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
@@ -662,6 +654,16 @@ resetRun();
       }
     }catch(e){}
     return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
   }
   function evictOtherImages(target){
     /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
@@ -833,10 +835,6 @@ resetRun();
     var el=document.getElementById(id);
     el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
   });
-  /* The date box is pre-filled with today, but nothing wrote that back to
-     storage, so a learner who started yesterday and reopened the tab today saw
-     the field silently move to today's date. Persist the default on first sight. */
-  if(!store.date){ store.date=document.getElementById("lqDate").value; save(); }
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
     if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
@@ -1012,10 +1010,6 @@ resetRun();
       var a=ta?ta.value.trim():"";
       var im=store["lqQ"+i+"_img"];
       if(!a&&!im) gaps.push("Q"+(i+1));
-      /* An image question exists for the photograph. A caption on its own used to
-         satisfy the completeness check, which is the one case where the check
-         said "complete" about a sheet the instructor cannot mark. */
-      else if(it.k==="image"&&!im) gaps.push("Q"+(i+1)+" — the photograph");
       h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
       if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
       h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
@@ -1038,15 +1032,9 @@ resetRun();
       +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
 
     document.getElementById("lqOut").innerHTML=h;
-    /* A sheet built early can have twenty gaps; reading all of them aloud buries
-       the count that matters. Name the first few, then say how many are left. */
-    if(gaps.length){
-      var head=gaps.slice(0,5), rest=gaps.length-head.length;
-      announce("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")
-        +" still blank: "+head.join(", ")+(rest>0?(", and "+rest+" more"):"")+".");
-    }else{
-      announce("Submission sheet built. Every question carries a response.");
-    }
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
     return h;
   }
 
@@ -1079,9 +1067,7 @@ resetRun();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    /* the right-hand span floats, so without a separator the two halves run
-       together in the PDF's text layer and in anything that copies from it */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span> '
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1115,231 +1101,6 @@ resetRun();
       setTimeout(done,60000);
     },80);
   };
-
-  /* ================= v2.1 additions ========================================
-     Everything below improves the simulator ABOVE this panel without touching
-     any of the sixteen simulators' own code. They all render through delegated
-     click handlers, so a synthesised click behaves exactly like a real one.
-     ====================================================================== */
-
-  /* ---------- close-tab guard while storage is broken ----------
-     Normally a refresh is harmless because every keystroke is persisted. Once
-     storage has failed, the only copy of the learner's work is the DOM. */
-  window.addEventListener("beforeunload",function(ev){
-    if(!storageBroken) return;
-    var typed=false;
-    for(var k in store){ if(/^lqQ/.test(k)&&String(store[k]).trim()){ typed=true; break; } }
-    if(!typed) return;
-    ev.preventDefault(); ev.returnValue="";
-    return "";
-  });
-
-  /* ---------- the simulator's own print button ----------
-     Each simulator sheet ends with "Print submission sheet", which prints the
-     simulator record alone. That is a valid-looking PDF that is missing every
-     handout answer, and Canvas takes one file. Offer the right one first.
-     Capture phase, so it runs ahead of the inline onclick. */
-  document.addEventListener("click",function(ev){
-    var b=ev.target&&ev.target.closest?ev.target.closest("button"):null;
-    if(!b||card.contains(b)||b.dataset.lqPrintOk==="1") return;
-    var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
-    if(!/print/.test(t)) return;
-    ev.preventDefault(); ev.stopPropagation();
-    var full=confirm(
-      "This button prints the simulator record on its own.\n\n"+
-      "The file Canvas expects is the full submission PDF: the simulator record "+
-      "AND every handout question with your response, in one document.\n\n"+
-      "OK — build the full submission PDF (recommended).\n"+
-      "Cancel — print the simulator record on its own anyway.");
-    if(full){
-      var out=document.getElementById("lqBuild");
-      if(out){ out.scrollIntoView({behavior:"smooth",block:"center"}); out.click(); }
-    }else{
-      /* HTMLElement.click() is a no-op while that same element's click is still
-         in progress, so re-dispatching from inside this handler would silently
-         do nothing. Defer it out of the current dispatch. */
-      setTimeout(function(){
-        b.dataset.lqPrintOk="1";
-        b.click();
-        setTimeout(function(){ b.dataset.lqPrintOk=""; },0);
-      },0);
-    }
-  },true);
-
-  /* ---------- keyboard and screen-reader shim for the simulator ----------
-     The simulators drive rows, zones, chips, document cards and one-line-diagram
-     symbols through click handlers on <tr>, <th>, <div> and SVG nodes. None of
-     those is focusable and none announces as anything, which is why 524.5.3
-     could not be completed with a keyboard at all.
-
-     Rewriting sixteen simulators is not the cheap fix. Every one of those
-     affordances already declares itself in exactly one way — cursor:pointer —
-     so find them by that, give each a tab stop and a name, and translate Enter
-     and Space into the click the simulator is already listening for.
-
-     Only the OUTERMOST element of a pointer subtree is taken: `cursor` inherits,
-     so a clickable <tr> would otherwise hand out one tab stop per cell. */
-  var A11Y_NATIVE={A:1,BUTTON:1,INPUT:1,SELECT:1,TEXTAREA:1,LABEL:1,SUMMARY:1,
-                   OPTION:1,DETAILS:1,AUDIO:1,VIDEO:1};
-  var A11Y_TABLE={TR:1,TH:1,TD:1,THEAD:1,TBODY:1};
-  var uid=0;
-
-  function ptr(el){
-    try{ return window.getComputedStyle(el).cursor==="pointer"; }catch(e){ return false; }
-  }
-  function nameFor(el){
-    var t=(el.textContent||"").replace(/\s+/g," ").trim();
-    if(!t&&el.parentNode&&el.parentNode.textContent)
-      t=(el.parentNode.textContent||"").replace(/\s+/g," ").trim();
-    if(t.length>120) t=t.slice(0,117)+"…";
-    return t;
-  }
-  function hasName(el){
-    return !!(el.getAttribute("aria-label")||el.getAttribute("aria-labelledby")
-             ||el.getAttribute("title"));
-  }
-  function clip(t){ t=(t||"").replace(/\s+/g," ").trim();
-    return t.length>120?t.slice(0,117)+"…":t; }
-  /* A data-entry grid cell is named by the row it is on and the column it is in,
-     which is what a sighted learner reads off the table. */
-  /* Not every table in the module declares a <thead>; several put their <th>
-     cells in the first row of the <tbody>. Take whichever is actually there. */
-  function headerRow(tbl){
-    var hr=tbl.querySelector("thead tr"); if(hr) return hr;
-    var rows=tbl.rows||[];
-    for(var i=0;i<rows.length&&i<3;i++) if(rows[i].querySelector("th")) return rows[i];
-    return null;
-  }
-  function cellName(f){
-    var td=f.closest?f.closest("td,th"):null; if(!td) return "";
-    var tr=td.parentElement, tbl=f.closest("table");
-    if(!tr||!tbl||!tr.children) return "";
-    var idx=Array.prototype.indexOf.call(tr.children,td), col="", row="", j;
-    var hr=headerRow(tbl);
-    if(hr&&hr!==tr&&hr.children[idx])
-      col=clip((hr.children[idx].textContent||"").replace(/[▲▼]/g,""));
-    for(j=0;j<tr.children.length;j++){
-      var c=tr.children[j];
-      if(c===td) break;
-      if(c.querySelector("input,select,textarea")) continue;
-      var t=clip(c.textContent);
-      if(t){ row=t; break; }
-    }
-    /* a grid whose rows carry no label still needs the two cells on one row to
-       announce differently from each other */
-    if(!row&&col&&typeof tr.rowIndex==="number") row="row "+(tr.rowIndex+1);
-    return clip([row,col].filter(Boolean).join(", "));
-  }
-  /* <div class="extrow"><div>1. Condenser water supply temperature</div><select>
-     — visually a labelled field, with no <label> anywhere in it. */
-  function blockName(f){
-    var p=f.parentElement, d;
-    for(d=0;d<2&&p;d++){
-      if(p.querySelectorAll("input,select,textarea").length===1){
-        var c=p.cloneNode(true);
-        Array.prototype.forEach.call(c.querySelectorAll("input,select,textarea"),
-          function(n){ if(n.parentNode) n.parentNode.removeChild(n); });
-        var t=clip(c.textContent);
-        if(t) return t;
-      }
-      p=p.parentElement;
-    }
-    return "";
-  }
-
-  function a11yPass(){
-    var app=document.getElementById("app"); if(!app) return;
-
-    /* 1 — clickable things nobody can tab to */
-    var all=app.querySelectorAll("*"), i, el;
-    for(i=0;i<all.length;i++){
-      el=all[i];
-      if(card.contains(el)) continue;
-      if(el.hasAttribute("tabindex")||el.dataset.lqA11y==="1") continue;
-      var tag=(el.tagName||"").toUpperCase();
-      if(A11Y_NATIVE[tag]) continue;
-      if(!ptr(el)) continue;
-      /* outermost only — a pointer parent already owns this affordance */
-      var p=el.parentElement;
-      if(p&&p!==app&&!card.contains(p)&&!A11Y_NATIVE[(p.tagName||"").toUpperCase()]&&ptr(p)) continue;
-      el.dataset.lqA11y="1";
-      el.setAttribute("tabindex","0");
-      /* a <tr> with role=button would flatten the row a screen reader is about to
-         read out; leave table semantics alone and give it the tab stop only */
-      if(!A11Y_TABLE[tag]&&!el.getAttribute("role")) el.setAttribute("role","button");
-      if(!hasName(el)){
-        var n=nameFor(el);
-        if(n) el.setAttribute("aria-label",n);
-      }
-    }
-
-    /* 2 — <label>Text</label><select> : visually a label, programmatically not one */
-    var labs=app.querySelectorAll("label:not([for])");
-    for(i=0;i<labs.length;i++){
-      var lb=labs[i]; if(card.contains(lb)) continue;
-      if(lb.querySelector("input,select,textarea")) continue;   /* wrapping label, already fine */
-      var box=lb.parentElement; if(!box) continue;
-      var ctrls=box.querySelectorAll("input,select,textarea");
-      if(ctrls.length!==1) continue;
-      var c=ctrls[0];
-      if(!c.id) c.id="lqA"+(++uid);
-      lb.setAttribute("for",c.id);
-    }
-
-    /* 3 — anything still nameless takes its name from the grid cell it sits in,
-       then the block around it, then, last, its own placeholder. A control already
-       wrapped in a <label> is named and is left alone. */
-    var ctl=app.querySelectorAll("input,select,textarea");
-    for(i=0;i<ctl.length;i++){
-      var f=ctl[i]; if(card.contains(f)) continue;
-      if(hasName(f)) continue;
-      if(f.closest&&f.closest("label")) continue;
-      if(f.id&&app.querySelector('label[for="'+f.id+'"]')) continue;
-      var nm=cellName(f)||blockName(f)||f.getAttribute("placeholder");
-      if(nm) f.setAttribute("aria-label",nm);
-    }
-
-    /* 4 — the telemetry charts are bare <canvas>: no role, no name, nothing to
-       announce. The chart's own heading and its band description are the text
-       equivalent already on the page, so bind them to the canvas. */
-    var cvs=app.querySelectorAll("canvas");
-    for(i=0;i<cvs.length;i++){
-      var cv=cvs[i]; if(card.contains(cv)||hasName(cv)) continue;
-      var boxc=cv.closest?cv.closest(".chartbox"):null, bits=[];
-      if(boxc){
-        var h=boxc.querySelector("h3"), s=boxc.querySelector(".sub");
-        if(h) bits.push((h.textContent||"").trim());
-        if(s) bits.push((s.textContent||"").trim());
-      }
-      cv.setAttribute("role","img");
-      cv.setAttribute("aria-label",
-        (bits.length?bits.join(". "):"Telemetry chart")
-        +". Trend chart; the same readings are available as numbers in the panels beside it.");
-    }
-  }
-
-  /* Enter and Space activate whatever the shim made focusable. Delegated, so it
-     survives the wholesale innerHTML rebuilds the simulators do on every render. */
-  document.addEventListener("keydown",function(ev){
-    if(ev.key!=="Enter"&&ev.key!==" "&&ev.key!=="Spacebar") return;
-    var el=ev.target;
-    if(!el||!el.dataset||el.dataset.lqA11y!=="1") return;
-    ev.preventDefault();
-    el.click();
-  });
-
-  /* Most views rebuild their whole subtree, so re-run after any mutation. */
-  var a11yQueued=false;
-  function a11ySoon(){
-    if(a11yQueued) return; a11yQueued=true;
-    setTimeout(function(){ a11yQueued=false; try{ a11yPass(); }catch(e){} },120);
-  }
-  a11ySoon();
-  if(window.MutationObserver){
-    var appEl=document.getElementById("app");
-    if(appEl) new MutationObserver(a11ySoon)
-      .observe(appEl,{childList:true,subtree:true});
-  }
 })();
 </script>
 <!-- ===== end submission module ============================================= -->

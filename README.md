@@ -1,7 +1,7 @@
 # UCI 2227 — Module 524 lab tools
 
 Forty-three self-contained HTML lab simulators for **Module 524: Critical Facilities Technician
-Day-One Readiness Immersion**. Each one runs a data-centre scenario, collects the learner's answers,
+Day-One Readiness Immersion**. Each one runs a data-center scenario, collects the learner's answers,
 and exports a single PDF for upload to Canvas.
 
 No build step. No dependencies. No network calls. Open a file in a browser and the lab starts.
@@ -11,7 +11,7 @@ No build step. No dependencies. No network calls. Open a file in a browser and t
 ## ⚠️ Read this before you push
 
 **On the GitHub Free plan, GitHub Pages only serves from a _public_ repository.** Making the repo
-private automatically unpublishes the site. Private Pages sites require an organisation account on
+private automatically unpublishes the site. Private Pages sites require an organization account on
 GitHub Enterprise Cloud. So assume from the outset that **anything you commit here is world-readable
 and search-engine indexable.**
 
@@ -39,10 +39,9 @@ in the JavaScript, and always have been — a learner with the file on a USB sti
 Public hosting does not create that exposure, but it does make it trivially discoverable and puts it
 in reach of a search engine.
 
-If that matters for the labs you assess on the floor, the mitigations are instructional rather than
-technical, and you already have them: rotate sets between adjacent stations, keep the set register,
-and lean on the verbal verification that GLAB 524.2.1, 524.3.3, 524.5.2 and 524.5.3 already build
-into their assessment.
+If that matters for your graded gates, the mitigations are instructional rather than technical, and
+you already have them: rotate sets between adjacent stations, keep the set register, and lean on the
+verbal verification that 524.2.1, 524.3.3, 524.5.2 and 524.5.3 already build into their assessment.
 A learner who has read the source still has to explain their trace out loud.
 
 ### 3. URLs are guessable
@@ -86,9 +85,7 @@ parts*: a learner runs one and hands in one PDF.
 | 524.5.3 | SBAR Turnover Verification Gate | `524-5-3-{A,B,C}_SBAR.html` | 3 | 7 |
 
 **524.1.2 and 524.1.4 have no simulator.** Both labs are assessed on the floor by the instructor;
-their tools capture the written record and photographs only, and their submission PDF says so — it
-prints an *Assessed on the floor* block instead of a simulator record, and no longer lists the
-missing simulator record as a gap.
+their tools capture the written record and photographs only, and their submission PDF says so.
 
 ---
 
@@ -161,10 +158,6 @@ set on every page, so an instructor can always confirm which key to mark against
 4. Enter name and cohort, press **Build submission PDF**, choose **Save as PDF**.
 5. Upload that one file to the matching Canvas assignment.
 
-The simulator sheet has its own **Print submission sheet** button, which prints the simulator record
-on its own — a valid-looking PDF with none of the handout answers in it. Pressing it now offers the
-full submission PDF first, and prints the simulator record alone only if the learner declines.
-
 The PDF carries the learner name, cohort, scenario set, the simulator's record and every question
 with its response, plus any photograph attached. The paper handout is an instruction sheet and is
 never handed in.
@@ -176,7 +169,7 @@ change the destination to *Save as PDF* in the dialogue itself.
 
 ---
 
-## Storage behaviour, and why it matters more when hosted
+## Storage behavior, and why it matters more when hosted
 
 Answers are kept in `localStorage` as the learner types, so a refresh or an accidental close does not
 lose the work.
@@ -220,31 +213,19 @@ storage before exporting.
 
 ## Accessibility
 
-The submission panel in every file meets **WCAG 2.1 AA**: every field is programmatically labelled,
+The submission panel in every file meets **WCAG 2.1 AA**: every field is programmatically labeled,
 headings are real headings, images carry alt text, the completeness check announces through a live
 region, and focus is visible throughout.
 
-**The simulators are reached by a shim, not rebuilt.** Submission module v2.1 adds a pass that runs
-over the simulator on load and after every re-render, so the three gaps below are closed without any
-of the sixteen simulators being touched:
+**The simulators above it are not there yet.** Known gaps, in priority order:
 
-- **524.5.3 (SBAR) can now be completed with a keyboard.** Every affordance the simulators drive
-  through a click handler on a plain `<div>`, `<tr>`, `<th>` or SVG node is found by the one thing
-  they all share — `cursor:pointer` — given a tab stop and a name, and wired so Enter and Space
-  dispatch the click the simulator is already listening for. 572 across the module. Only the
-  outermost element of a pointer subtree is taken, so a clickable row is one tab stop, not eight.
-- **Every simulator control now has an accessible name.** A bare `<label>` beside a single control is
-  bound to it; a grid cell is named from its row label and its column header — *"Step 1 · 25% ·
-  T+00:00, Frequency (Hz)"*; anything left over falls back to the block around it, then its
-  placeholder.
-- **The 36 canvas charts announce themselves.** Each takes `role="img"` and a name built from its own
-  heading and band description. That is a name and a description, not a data table — the underlying
-  readings are still only in the chart, and a learner who needs the numbers reads them from the
-  panels beside it.
+- **524.5.3 (SBAR) cannot currently be completed with a keyboard.** Its builder unlocks only after all
+  26 shift-log entries are opened, and those rows are not keyboard-reachable. Learners who need
+  keyboard access must be given an alternative route through this lab.
+- Simulator inputs use visual labels without programmatic association.
+- The eight canvas charts in LoadBank and ChillerFault have no text equivalent.
 
-Verified across all 43 files: no console errors, no unnamed controls.
-
-`DESIGN-REVIEW.md` in the parent folder carries the full findings and a prioritised fix list.
+`DESIGN-REVIEW.md` in the parent folder carries the full findings and a prioritized fix list.
 
 ---
 
@@ -256,7 +237,7 @@ marker, then the shared submission module.
 **Do not hand-edit the questions.** The question list in each `<script id="lqData">` block is
 generated together with the matching handout, and the two must stay in lockstep — the handout's
 `→ Answer this as Q7 in the lab tool` pointers are numbered from the same source. Editing one alone
-silently desynchronises them. Regenerate both.
+silently desynchronizes them. Regenerate both.
 
 The module is identical across all 43 files. A fix belongs in the shared source and gets re-injected,
 not patched in one file.
@@ -267,9 +248,9 @@ here and why adding one would break submissions inside Canvas.
 
 ---
 
-## Licence and attribution
+## License and attribution
 
-Per Scholas / UCI 2227 course material. Add your licence terms before making the repository public —
+Per Scholas / UCI 2227 course material. Add your license terms before making the repository public —
 an unlicensed public repo grants no reuse rights, which may or may not be what you intend.
 
 Sources: [GitHub Pages limits](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits) ·

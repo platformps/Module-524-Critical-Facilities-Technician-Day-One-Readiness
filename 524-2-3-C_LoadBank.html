@@ -127,7 +127,7 @@
 
   <header>
     <div class="brand">GENERATOR LOAD-BANK CONSOLE</div>
-    <div class="sysname">GLAB 524.2.3 &middot; UCI 2227 · objective 6 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="sysname">GLAB 524.2.3 &middot; UCI 2227 · objective M2.3 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
     <div id="statusBadge" class="badge">Ready</div>
     <div>
@@ -243,7 +243,7 @@ function tile(name,val,unit,band,cls){
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
 /* ---------- this lab ---------- */
-const LAB={lab:"GLAB 524.2.3",obj:"objective 6",title:"Telemetry Simulation Audit",duration:24};
+const LAB={lab:"GLAB 524.2.3",obj:"M2.3",title:"Telemetry Simulation Audit",duration:24};
 const SCENARIOS=[{id:"A1"},{id:"A2"},{id:"A3"},{id:"A4"},{id:"A0"}];
 
 const S={learner:"",t:0,running:false,timer:null,speed:12,
@@ -276,7 +276,7 @@ function genSample(t,v){
   let oil=55+noise(0.45)-stepIdx*0.25;
   if(v==="A4"&&t>=20){ oil=55-0.25*5-(14*(1-Math.exp(-(t-20)/1.6)))+noise(0.4); }
 
-  const baseRate=68.1+loadPct*3.256;              // litres/hr
+  const baseRate=68.1+loadPct*3.256;              // liters/hr
   const rate=(v==="A2"? baseRate*1.18 : baseRate)+noise(5.3);
   return {load,loadPct,stepIdx,hz,volts,coolant,oil,rate,
           baselineRate:baseRate};
@@ -399,7 +399,7 @@ function renderGen(){
       <div class="chartbox"><h3>Frequency</h3><div class="sub">Nominal 60.0 Hz · alarm band 58.8 – 61.2 Hz · dashed lines are load steps</div><canvas id="cHz"></canvas></div>
       <div class="chartbox"><h3>Coolant temperature</h3><div class="sub">Alarm at 105 °C · dashed lines are load steps</div><canvas id="cCo"></canvas></div>
       <div class="chartbox"><h3>Oil pressure</h3><div class="sub">Alarm at 30 psi · dashed lines are load steps</div><canvas id="cOil"></canvas></div>
-      <div class="chartbox"><h3>Fuel consumption rate</h3><div class="sub">Grey line is the rate recorded at the same load in the previous test</div><canvas id="cFu"></canvas></div>`;
+      <div class="chartbox"><h3>Fuel consumption rate</h3><div class="sub">Gray line is the rate recorded at the same load in the previous test</div><canvas id="cFu"></canvas></div>`;
     $("baseFields").innerHTML=BASEFIELDS.map(f=>
       `<div class="fld"><label>${f[1]} (${f[2]})</label><input type="text" id="${f[0]}" placeholder="—" style="font-family:var(--mono)"></div>`).join("");
     $("logTable").innerHTML=
@@ -492,7 +492,7 @@ $("setTag").textContent="Set "+SETLETTER;
 resetRun();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.2.3", "title": "Telemetry Simulation Audit", "obj": 6, "handout": "GLAB 524.2.3 - Telemetry Simulation Audit", "file": "524-2-3-C_LoadBank.html", "set": "C", "items": [{"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 1. Log in to the simulated BMS and SCADA terminal and open the generator control interface — the 524.2.3 file your instructor gives you opens straight into the lab. Record below the machine rating and the load step schedule shown on the console. Do not start the run yet."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 3. Write down, before you start, what each parameter should do. Frequency should dip at each load step and recover. Coolant should rise and then plateau once the engine is at temperature. Oil pressure should hold. Fuel rate should track load and sit close to the previous test at the same load. Committing to the expected shape in writing is what makes a departure from it visible."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 5. Watch the interval between the steps, not only the moment of the step. Every parameter moves when load is applied — that is normal and it is not the finding. The question is what happens in the twenty or thirty seconds afterwards. Record, for each step, whether each parameter returned to where it started."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 6. Note anything that does not return to where it started, anything that keeps climbing when it should have flattened, and anything that sits consistently above or below the previous test at the same load. Those three shapes are the only ones you are looking for. Write down every candidate at this stage; you will narrow them down at step 8."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 8. Narrow your candidates to one. For each candidate you are discarding, write one sentence saying why it is normal behaviour. This step is where false positives are caught, and a false positive counts against you in the assessment."}, {"s": "Part 1: Auditing the load-bank run", "k": "image", "p": "Step 10. Capture the console trace for the parameter you have identified, showing the whole run window and the load steps. This is the evidence you will present."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 11. State in one line whether you believe the run should have been halted, and why or why not. Take a position and support it from your own logged readings."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain the difference between an alarm and a trend, and say why a technician is required to sit through a load-bank test that the console is already monitoring."}, {"s": "Part 2: Reflection", "k": "text", "p": "You discarded at least one parameter as normal. Name one, describe what it did during the run, and explain how you satisfied yourself it was normal rather than simply unremarkable."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose you had not recorded a baseline before the run. Which of the six parameters would still have been judgeable, and which would have become impossible to assess? Explain why."}, {"s": "Part 2: Reflection", "k": "text", "p": "The pass criteria for this lab count a false positive against you. Explain, in terms of what happens in a real control room, why flagging an extra parameter is treated as a failure rather than as caution."}]};</script>
+<script id="lqData">var LQ={"lab": "GLAB 524.2.3", "title": "Telemetry Simulation Audit", "handout": "GLAB 524.2.3 - Telemetry Simulation Audit", "file": "524-2-3-C_LoadBank.html", "set": "C", "items": [{"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 1. Log in to the simulated BMS and SCADA terminal and open the generator control interface — the 524.2.3 file your instructor gives you opens straight into the lab. Record below the machine rating and the load step schedule shown on the console. Do not start the run yet."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 3. Write down, before you start, what each parameter should do. Frequency should dip at each load step and recover. Coolant should rise and then plateau once the engine is at temperature. Oil pressure should hold. Fuel rate should track load and sit close to the previous test at the same load. Committing to the expected shape in writing is what makes a departure from it visible."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 5. Watch the interval between the steps, not only the moment of the step. Every parameter moves when load is applied — that is normal and it is not the finding. The question is what happens in the twenty or thirty seconds afterwards. Record, for each step, whether each parameter returned to where it started."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 6. Note anything that does not return to where it started, anything that keeps climbing when it should have flattened, and anything that sits consistently above or below the previous test at the same load. Those three shapes are the only ones you are looking for. Write down every candidate at this stage; you will narrow them down at step 8."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 8. Narrow your candidates to one. For each candidate you are discarding, write one sentence saying why it is normal behavior. This step is where false positives are caught, and a false positive counts against you in the assessment."}, {"s": "Part 1: Auditing the load-bank run", "k": "image", "p": "Step 10. Capture the console trace for the parameter you have identified, showing the whole run window and the load steps. This is the evidence you will present."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 11. State in one line whether you believe the run should have been halted, and why or why not. Take a position and support it from your own logged readings."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain the difference between an alarm and a trend, and say why a technician is required to sit through a load-bank test that the console is already monitoring."}, {"s": "Part 2: Reflection", "k": "text", "p": "You discarded at least one parameter as normal. Name one, describe what it did during the run, and explain how you satisfied yourself it was normal rather than simply unremarkable."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose you had not recorded a baseline before the run. Which of the six parameters would still have been judgeable, and which would have become impossible to assess? Explain why."}, {"s": "Part 2: Reflection", "k": "text", "p": "The pass criteria for this lab count a false positive against you. Explain, in terms of what happens in a real control room, why flagging an extra parameter is treated as a failure rather than as caution."}]};</script>
 <!-- ===== UCI 2227 · Submission module v2.0 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
@@ -503,14 +503,6 @@ resetRun();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
-
-     v2.1 — the two labs with no simulator no longer report a missing simulator
-     record; the date field persists instead of silently re-defaulting to today;
-     an image question with a caption but no photograph is reported as incomplete;
-     the completeness announcement is capped so it stays listenable; a keyboard
-     and screen-reader shim reaches the simulator's click-only affordances; the
-     simulator's own "Print submission sheet" button offers the full PDF first;
-     and a close-tab guard fires while storage is broken.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -598,7 +590,7 @@ resetRun();
     /* Everything harvested from the simulator arrives in the dark console palette:
        near-white text that would print invisibly, on backgrounds the browser drops
        by default. Flatten the whole print container to ink on paper first, then
-       re-assert the few greys that carry meaning. */
+       re-assert the few grays that carry meaning. */
     body.lq-print #lqPrint,body.lq-print #lqPrint *{
       color:#000!important;background-color:transparent!important;background-image:none!important;
       box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
@@ -665,6 +657,16 @@ resetRun();
       }
     }catch(e){}
     return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
   }
   function evictOtherImages(target){
     /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
@@ -836,10 +838,6 @@ resetRun();
     var el=document.getElementById(id);
     el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
   });
-  /* The date box is pre-filled with today, but nothing wrote that back to
-     storage, so a learner who started yesterday and reopened the tab today saw
-     the field silently move to today's date. Persist the default on first sight. */
-  if(!store.date){ store.date=document.getElementById("lqDate").value; save(); }
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
     if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
@@ -1015,10 +1013,6 @@ resetRun();
       var a=ta?ta.value.trim():"";
       var im=store["lqQ"+i+"_img"];
       if(!a&&!im) gaps.push("Q"+(i+1));
-      /* An image question exists for the photograph. A caption on its own used to
-         satisfy the completeness check, which is the one case where the check
-         said "complete" about a sheet the instructor cannot mark. */
-      else if(it.k==="image"&&!im) gaps.push("Q"+(i+1)+" — the photograph");
       h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
       if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
       h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
@@ -1041,15 +1035,9 @@ resetRun();
       +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
 
     document.getElementById("lqOut").innerHTML=h;
-    /* A sheet built early can have twenty gaps; reading all of them aloud buries
-       the count that matters. Name the first few, then say how many are left. */
-    if(gaps.length){
-      var head=gaps.slice(0,5), rest=gaps.length-head.length;
-      announce("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")
-        +" still blank: "+head.join(", ")+(rest>0?(", and "+rest+" more"):"")+".");
-    }else{
-      announce("Submission sheet built. Every question carries a response.");
-    }
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
     return h;
   }
 
@@ -1082,9 +1070,7 @@ resetRun();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    /* the right-hand span floats, so without a separator the two halves run
-       together in the PDF's text layer and in anything that copies from it */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span> '
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1118,231 +1104,6 @@ resetRun();
       setTimeout(done,60000);
     },80);
   };
-
-  /* ================= v2.1 additions ========================================
-     Everything below improves the simulator ABOVE this panel without touching
-     any of the sixteen simulators' own code. They all render through delegated
-     click handlers, so a synthesised click behaves exactly like a real one.
-     ====================================================================== */
-
-  /* ---------- close-tab guard while storage is broken ----------
-     Normally a refresh is harmless because every keystroke is persisted. Once
-     storage has failed, the only copy of the learner's work is the DOM. */
-  window.addEventListener("beforeunload",function(ev){
-    if(!storageBroken) return;
-    var typed=false;
-    for(var k in store){ if(/^lqQ/.test(k)&&String(store[k]).trim()){ typed=true; break; } }
-    if(!typed) return;
-    ev.preventDefault(); ev.returnValue="";
-    return "";
-  });
-
-  /* ---------- the simulator's own print button ----------
-     Each simulator sheet ends with "Print submission sheet", which prints the
-     simulator record alone. That is a valid-looking PDF that is missing every
-     handout answer, and Canvas takes one file. Offer the right one first.
-     Capture phase, so it runs ahead of the inline onclick. */
-  document.addEventListener("click",function(ev){
-    var b=ev.target&&ev.target.closest?ev.target.closest("button"):null;
-    if(!b||card.contains(b)||b.dataset.lqPrintOk==="1") return;
-    var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
-    if(!/print/.test(t)) return;
-    ev.preventDefault(); ev.stopPropagation();
-    var full=confirm(
-      "This button prints the simulator record on its own.\n\n"+
-      "The file Canvas expects is the full submission PDF: the simulator record "+
-      "AND every handout question with your response, in one document.\n\n"+
-      "OK — build the full submission PDF (recommended).\n"+
-      "Cancel — print the simulator record on its own anyway.");
-    if(full){
-      var out=document.getElementById("lqBuild");
-      if(out){ out.scrollIntoView({behavior:"smooth",block:"center"}); out.click(); }
-    }else{
-      /* HTMLElement.click() is a no-op while that same element's click is still
-         in progress, so re-dispatching from inside this handler would silently
-         do nothing. Defer it out of the current dispatch. */
-      setTimeout(function(){
-        b.dataset.lqPrintOk="1";
-        b.click();
-        setTimeout(function(){ b.dataset.lqPrintOk=""; },0);
-      },0);
-    }
-  },true);
-
-  /* ---------- keyboard and screen-reader shim for the simulator ----------
-     The simulators drive rows, zones, chips, document cards and one-line-diagram
-     symbols through click handlers on <tr>, <th>, <div> and SVG nodes. None of
-     those is focusable and none announces as anything, which is why 524.5.3
-     could not be completed with a keyboard at all.
-
-     Rewriting sixteen simulators is not the cheap fix. Every one of those
-     affordances already declares itself in exactly one way — cursor:pointer —
-     so find them by that, give each a tab stop and a name, and translate Enter
-     and Space into the click the simulator is already listening for.
-
-     Only the OUTERMOST element of a pointer subtree is taken: `cursor` inherits,
-     so a clickable <tr> would otherwise hand out one tab stop per cell. */
-  var A11Y_NATIVE={A:1,BUTTON:1,INPUT:1,SELECT:1,TEXTAREA:1,LABEL:1,SUMMARY:1,
-                   OPTION:1,DETAILS:1,AUDIO:1,VIDEO:1};
-  var A11Y_TABLE={TR:1,TH:1,TD:1,THEAD:1,TBODY:1};
-  var uid=0;
-
-  function ptr(el){
-    try{ return window.getComputedStyle(el).cursor==="pointer"; }catch(e){ return false; }
-  }
-  function nameFor(el){
-    var t=(el.textContent||"").replace(/\s+/g," ").trim();
-    if(!t&&el.parentNode&&el.parentNode.textContent)
-      t=(el.parentNode.textContent||"").replace(/\s+/g," ").trim();
-    if(t.length>120) t=t.slice(0,117)+"…";
-    return t;
-  }
-  function hasName(el){
-    return !!(el.getAttribute("aria-label")||el.getAttribute("aria-labelledby")
-             ||el.getAttribute("title"));
-  }
-  function clip(t){ t=(t||"").replace(/\s+/g," ").trim();
-    return t.length>120?t.slice(0,117)+"…":t; }
-  /* A data-entry grid cell is named by the row it is on and the column it is in,
-     which is what a sighted learner reads off the table. */
-  /* Not every table in the module declares a <thead>; several put their <th>
-     cells in the first row of the <tbody>. Take whichever is actually there. */
-  function headerRow(tbl){
-    var hr=tbl.querySelector("thead tr"); if(hr) return hr;
-    var rows=tbl.rows||[];
-    for(var i=0;i<rows.length&&i<3;i++) if(rows[i].querySelector("th")) return rows[i];
-    return null;
-  }
-  function cellName(f){
-    var td=f.closest?f.closest("td,th"):null; if(!td) return "";
-    var tr=td.parentElement, tbl=f.closest("table");
-    if(!tr||!tbl||!tr.children) return "";
-    var idx=Array.prototype.indexOf.call(tr.children,td), col="", row="", j;
-    var hr=headerRow(tbl);
-    if(hr&&hr!==tr&&hr.children[idx])
-      col=clip((hr.children[idx].textContent||"").replace(/[▲▼]/g,""));
-    for(j=0;j<tr.children.length;j++){
-      var c=tr.children[j];
-      if(c===td) break;
-      if(c.querySelector("input,select,textarea")) continue;
-      var t=clip(c.textContent);
-      if(t){ row=t; break; }
-    }
-    /* a grid whose rows carry no label still needs the two cells on one row to
-       announce differently from each other */
-    if(!row&&col&&typeof tr.rowIndex==="number") row="row "+(tr.rowIndex+1);
-    return clip([row,col].filter(Boolean).join(", "));
-  }
-  /* <div class="extrow"><div>1. Condenser water supply temperature</div><select>
-     — visually a labelled field, with no <label> anywhere in it. */
-  function blockName(f){
-    var p=f.parentElement, d;
-    for(d=0;d<2&&p;d++){
-      if(p.querySelectorAll("input,select,textarea").length===1){
-        var c=p.cloneNode(true);
-        Array.prototype.forEach.call(c.querySelectorAll("input,select,textarea"),
-          function(n){ if(n.parentNode) n.parentNode.removeChild(n); });
-        var t=clip(c.textContent);
-        if(t) return t;
-      }
-      p=p.parentElement;
-    }
-    return "";
-  }
-
-  function a11yPass(){
-    var app=document.getElementById("app"); if(!app) return;
-
-    /* 1 — clickable things nobody can tab to */
-    var all=app.querySelectorAll("*"), i, el;
-    for(i=0;i<all.length;i++){
-      el=all[i];
-      if(card.contains(el)) continue;
-      if(el.hasAttribute("tabindex")||el.dataset.lqA11y==="1") continue;
-      var tag=(el.tagName||"").toUpperCase();
-      if(A11Y_NATIVE[tag]) continue;
-      if(!ptr(el)) continue;
-      /* outermost only — a pointer parent already owns this affordance */
-      var p=el.parentElement;
-      if(p&&p!==app&&!card.contains(p)&&!A11Y_NATIVE[(p.tagName||"").toUpperCase()]&&ptr(p)) continue;
-      el.dataset.lqA11y="1";
-      el.setAttribute("tabindex","0");
-      /* a <tr> with role=button would flatten the row a screen reader is about to
-         read out; leave table semantics alone and give it the tab stop only */
-      if(!A11Y_TABLE[tag]&&!el.getAttribute("role")) el.setAttribute("role","button");
-      if(!hasName(el)){
-        var n=nameFor(el);
-        if(n) el.setAttribute("aria-label",n);
-      }
-    }
-
-    /* 2 — <label>Text</label><select> : visually a label, programmatically not one */
-    var labs=app.querySelectorAll("label:not([for])");
-    for(i=0;i<labs.length;i++){
-      var lb=labs[i]; if(card.contains(lb)) continue;
-      if(lb.querySelector("input,select,textarea")) continue;   /* wrapping label, already fine */
-      var box=lb.parentElement; if(!box) continue;
-      var ctrls=box.querySelectorAll("input,select,textarea");
-      if(ctrls.length!==1) continue;
-      var c=ctrls[0];
-      if(!c.id) c.id="lqA"+(++uid);
-      lb.setAttribute("for",c.id);
-    }
-
-    /* 3 — anything still nameless takes its name from the grid cell it sits in,
-       then the block around it, then, last, its own placeholder. A control already
-       wrapped in a <label> is named and is left alone. */
-    var ctl=app.querySelectorAll("input,select,textarea");
-    for(i=0;i<ctl.length;i++){
-      var f=ctl[i]; if(card.contains(f)) continue;
-      if(hasName(f)) continue;
-      if(f.closest&&f.closest("label")) continue;
-      if(f.id&&app.querySelector('label[for="'+f.id+'"]')) continue;
-      var nm=cellName(f)||blockName(f)||f.getAttribute("placeholder");
-      if(nm) f.setAttribute("aria-label",nm);
-    }
-
-    /* 4 — the telemetry charts are bare <canvas>: no role, no name, nothing to
-       announce. The chart's own heading and its band description are the text
-       equivalent already on the page, so bind them to the canvas. */
-    var cvs=app.querySelectorAll("canvas");
-    for(i=0;i<cvs.length;i++){
-      var cv=cvs[i]; if(card.contains(cv)||hasName(cv)) continue;
-      var boxc=cv.closest?cv.closest(".chartbox"):null, bits=[];
-      if(boxc){
-        var h=boxc.querySelector("h3"), s=boxc.querySelector(".sub");
-        if(h) bits.push((h.textContent||"").trim());
-        if(s) bits.push((s.textContent||"").trim());
-      }
-      cv.setAttribute("role","img");
-      cv.setAttribute("aria-label",
-        (bits.length?bits.join(". "):"Telemetry chart")
-        +". Trend chart; the same readings are available as numbers in the panels beside it.");
-    }
-  }
-
-  /* Enter and Space activate whatever the shim made focusable. Delegated, so it
-     survives the wholesale innerHTML rebuilds the simulators do on every render. */
-  document.addEventListener("keydown",function(ev){
-    if(ev.key!=="Enter"&&ev.key!==" "&&ev.key!=="Spacebar") return;
-    var el=ev.target;
-    if(!el||!el.dataset||el.dataset.lqA11y!=="1") return;
-    ev.preventDefault();
-    el.click();
-  });
-
-  /* Most views rebuild their whole subtree, so re-run after any mutation. */
-  var a11yQueued=false;
-  function a11ySoon(){
-    if(a11yQueued) return; a11yQueued=true;
-    setTimeout(function(){ a11yQueued=false; try{ a11yPass(); }catch(e){} },120);
-  }
-  a11ySoon();
-  if(window.MutationObserver){
-    var appEl=document.getElementById("app");
-    if(appEl) new MutationObserver(a11ySoon)
-      .observe(appEl,{childList:true,subtree:true});
-  }
 })();
 </script>
 <!-- ===== end submission module ============================================= -->

@@ -191,7 +191,7 @@
 
   <header>
     <div class="brand">SINGLE-LINE DIAGRAM WORKSTATION</div>
-    <div class="sysname">GLAB 524.2.1 &middot; UCI 2227 · objective 4 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
+    <div class="sysname">GLAB 524.2.1 &middot; UCI 2227 · objective M2.1 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
     <div id="statusBadge" class="badge">Ready</div>
     <div>
@@ -295,7 +295,7 @@ function tile(name,val,unit,band,cls){
 }
 
 /* ---------- this lab ---------- */
-const LAB={lab:"GLAB 524.2.1",obj:"objective 4",title:"Power Path Tracing",duration:75};
+const LAB={lab:"GLAB 524.2.1",obj:"M2.1",title:"Power Path Tracing",duration:75};
 
 const SETUPS=[
   {id:"P1", target:"R-107", atsA:"n", atsB:"n",
@@ -566,7 +566,7 @@ function buildSLD(){
     <path d="M960 626 H1285" stroke="#17293a" stroke-width="1.5"/>
     <text class="tblock" x="974" y="618">SINGLE-LINE DIAGRAM — CRITICAL POWER</text>
     <text class="tblock" x="974" y="648">SHEET E-101   REV C   SCALE: NONE</text>
-    <text class="tblock" x="974" y="668">UNLABELLED TRAINING PRINT</text>
+    <text class="tblock" x="974" y="668">UNLABELED TRAINING PRINT</text>
     <text class="tblock" x="974" y="688">ISSUE: TRAINING</text>
     <text class="tblock" x="974" y="712">ONE LINE SHOWN = THREE PHASES</text>
     <text class="tblock" x="974" y="732">NOT FOR CONSTRUCTION OR SWITCHING</text>
@@ -584,20 +584,20 @@ const LEGEND=[
   [`<path class="bus busmv" d="M8 23 H66"/>`,"Medium voltage bus","A heavy line. Switchgear bus at 13.8 kV."],
   [`<path class="bus" d="M8 23 H66"/>`,"Low voltage bus","A lighter line. Switchboard bus at 480 V."],
   [symCB(37,23),"Circuit breaker, closed","A square on the conductor, with the line running through it."],
-  [symCBopen(37,23),"Circuit breaker, open","The contact is drawn swung clear. Nothing below it is energised."],
+  [symCBopen(37,23),"Circuit breaker, open","The contact is drawn swung clear. Nothing below it is energized."],
   [`<g transform="translate(37,23) scale(0.42) translate(-37,-23)">${symATS(37,23,"n")}</g>`,"Automatic transfer switch (ATS)","Two source terminals at the top and one arm. The arm shows which source it is sitting on."],
   [`<g transform="translate(37,23) scale(0.5) translate(-37,-23)">${symUPS(37,23)}</g>`,"Uninterruptible power supply (UPS)","Rectifier and inverter in one box, drawn with the alternating and direct current marks."],
   [symSSW(37,23),"Static bypass","A solid-state switch inside the UPS. It carries the load only if the inverter drops out."],
   [symKnife(37,23),"Maintenance bypass, open","A manual route around the UPS, drawn open. It is not a delivery path today."],
   [`<g transform="translate(37,23) scale(0.5) translate(-37,-23)">${symPDU(37,23)}</g>`,"Power distribution unit (PDU)","A dashed enclosure with a transformer inside: 480 V in, 415 V out, 240 V line to neutral."],
   [`<g transform="translate(37,23) scale(0.62) translate(-37,-23)">${symRPP(37,23)}</g>`,"Remote power panel (RPP)","A panelboard out on the floor, feeding the racks near it."],
-  [symRack(37,23),"Rack position","One cabinet position. These are the only things labelled on this print."],
+  [symRack(37,23),"Rack position","One cabinet position. These are the only things labeled on this print."],
   [`<g transform="translate(37,23) scale(0.62) translate(-37,-23)">${symTie(37,15)}</g>`,"Normally open bus tie","It joins the A and B boards, and it is drawn open. It joins nothing until somebody closes it."]
 ];
 function legendHTML(){
   return `<div class="name">Legend sheet — read this before you trace</div>
     <p style="color:var(--dim);font-size:12.5px;line-height:1.5;margin:8px 0 0">
-    The drawing is unlabelled on purpose. Every designation on it is recoverable from the symbols,
+    The drawing is unlabeled on purpose. Every designation on it is recoverable from the symbols,
     the voltage levels and the position in the chain. Work out what a thing is before you click it.</p>
     <div class="lgrid">`+
     LEGEND.map(r=>`<div class="lgrow">
@@ -617,7 +617,7 @@ function say(kind,html){
 function clickNode(id){
   if(!S.legendSeen){
     openLegend(true);
-    say("stop","<b>Open the legend sheet first.</b> The symbols on this print are not labelled, and guessing them costs about ten minutes and a restart. It is open now — read it, then trace.");
+    say("stop","<b>Open the legend sheet first.</b> The symbols on this print are not labeled, and guessing them costs about ten minutes and a restart. It is open now — read it, then trace.");
     return;
   }
   if(!S.trace){
@@ -830,8 +830,8 @@ function renderView(){
       <div>
         <div class="msgbar" id="msg">Read the plant status, open the <b>Legend</b>, then trace from the live source down to the assigned rack.</div>
         <div class="chartbox">
-          <h3>Single-line diagram — sheet E-101, unlabelled training print</h3>
-          <div class="sub">One line drawn stands for all three phases. Designations appear only on the devices you have traced through. Rack positions are labelled because they are labelled on the floor.</div>
+          <h3>Single-line diagram — sheet E-101, unlabeled training print</h3>
+          <div class="sub">One line drawn stands for all three phases. Designations appear only on the devices you have traced through. Rack positions are labeled because they are labeled on the floor.</div>
           <div id="sldWrap"></div>
         </div>
         <div class="tile hidden" id="legendPanel" style="margin-top:14px"></div>
@@ -949,7 +949,7 @@ resetRun(); startClock();
 
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.2.1", "title": "Power Path Tracing", "obj": 4, "handout": "GLAB 524.2.1 - Power Path Tracing", "file": "524-2-1-C_PathTrace.html", "set": "C", "items": [{"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 1. Collect your drawing packet, legend sheet, component list worksheet and two highlighters. Open the 524.2.1 file your instructor gives you — it opens straight into the lab. Record the rack you have been assigned. Everything you write from here relates to that one rack."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 2. Read the legend block before you mark anything on the drawing. Work through every symbol on the sheet and say to yourself what each one is. Pay particular attention to the difference between a breaker drawn closed and a breaker drawn open, and to the difference between a two-winding transformer symbol and a UPS symbol. Learners who skip this step lose ten minutes later on. List below any symbol that appears on your drawing but is not covered by the legend, then raise your hand."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 3. Read the plant condition statement at the top of the drawing before you trace. It tells you whether the utility feeds are live, whether the generators are running or in standby, which source each transfer switch is sitting on, and whether the bus tie is open. Copy that condition statement into your worksheet in your own words. If you trace without reading it, you will trace the wrong plant."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 4. Find the start of your path and mark it. On a normal utility supply that is the utility service entrance at the top of the drawing; if the plant condition says the utility supply has been lost, your path starts at the running generator instead. Write the voltage at that starting point next to it, taken from the drawing and not from memory. On the utility route, note also what sits immediately below the service entrance — the utility metering set, a CT (current transformer) and PT (potential transformer) arrangement that measures but does not switch."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 6. Mark every transformer you pass and record the voltage on both sides of it. Voltage changes at a transformer and nowhere else. On a utility path, if you cannot say where the medium voltage becomes 480 V, you do not yet understand the drawing well enough to work on it. On a path fed from a running generator there is no substation transformer and no medium voltage at all — record that explicitly rather than leaving the column blank."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 7. Find where the generator connects to the system and mark it. Identify which transfer switch it feeds, and mark which side of that transfer switch is the normal source and which is the emergency source. Note whether the switch is currently sitting on normal or on emergency. If there is more than one generator, note whether both are on the board or whether one is out of service."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 10. Continue through the PDU to the RPP and on to your assigned rack position. Record the voltage on both sides of the PDU. The PDU contains a transformer, so this is the last place on your path where the voltage changes — the second such place on a utility path, and the only one on a path fed from a generator. Note both the line-to-line and the line-to-neutral value if the drawing gives them."}, {"s": "Part 1: Tracing the delivery path", "k": "image", "p": "Step 11. Highlight the complete path in one colour, from the service entrance to the rack, in one continuous line. Then highlight in your second colour every device you considered and rejected, and write one or two words beside each saying why you rejected it. The rejections are as much a part of the answer as the path."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 12. Complete the component list worksheet. One line per node, in delivery order, with the device type and the voltage at that stage. Count the nodes and write the total at the foot of the list. A finished worksheet reads as a sequence a stranger could follow with a finger on the drawing."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 13. Identify every normally open device on the drawing, whether or not you went near it. State below whether your path crossed the bus tie at any point, and confirm in writing that your path does not depend on any normally open device being closed. Answer this honestly. A path that only works if somebody closes the tie is not a path, it is a request, and the person who has to approve it is asleep."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 14. Look for the dead end. Somewhere on this drawing there is at least one route that appears to head towards the racks and does not deliver. Find it, mark it, and record below which device stops it."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 16. Answer the three upstream questions in the lab tool. They ask about points on your own completed path: what is immediately upstream of this node. Record your three answers below, then walk your trace out loud to your instructor. They will choose points at random and ask you what is upstream. Answer from the path, not from the drawing. Then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Voltage changes at a transformer and nowhere else. List every point on your path where the voltage changed, give the value before and after, and explain what would go wrong if a technician assumed the rack voltage was the same as the switchboard voltage."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain, in your own words, why a path that depends on somebody closing a normally open bus tie is not a valid answer to the question “what feeds this rack?”. Say what a normally open device is actually there to do."}, {"s": "Part 2: Reflection", "k": "text", "p": "Something is dead at the rack you traced. Walk your path backwards and state the first three things you would look at, in that order, and why that order and not another."}, {"s": "Part 2: Reflection", "k": "text", "p": "You rejected at least one route while tracing. Describe one rejected route, say exactly which device stopped it, and say what on the drawing would have had to be different for that route to have been the right answer."}]};</script>
+<script id="lqData">var LQ={"lab": "GLAB 524.2.1", "title": "Power Path Tracing", "handout": "GLAB 524.2.1 - Power Path Tracing", "file": "524-2-1-C_PathTrace.html", "set": "C", "items": [{"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 1. Collect your drawing packet, legend sheet, component list worksheet and two highlighters. Open the 524.2.1 file your instructor gives you — it opens straight into the lab. Record the rack you have been assigned. Everything you write from here relates to that one rack."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 2. Read the legend block before you mark anything on the drawing. Work through every symbol on the sheet and say to yourself what each one is. Pay particular attention to the difference between a breaker drawn closed and a breaker drawn open, and to the difference between a two-winding transformer symbol and a UPS symbol. Learners who skip this step lose ten minutes later on. List below any symbol that appears on your drawing but is not covered by the legend, then raise your hand."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 3. Read the plant condition statement at the top of the drawing before you trace. It tells you whether the utility feeds are live, whether the generators are running or in standby, which source each transfer switch is sitting on, and whether the bus tie is open. Copy that condition statement into your worksheet in your own words. If you trace without reading it, you will trace the wrong plant."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 4. Find the start of your path and mark it. On a normal utility supply that is the utility service entrance at the top of the drawing; if the plant condition says the utility supply has been lost, your path starts at the running generator instead. Write the voltage at that starting point next to it, taken from the drawing and not from memory. On the utility route, note also what sits immediately below the service entrance — the utility metering set, a CT (current transformer) and PT (potential transformer) arrangement that measures but does not switch."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 6. Mark every transformer you pass and record the voltage on both sides of it. Voltage changes at a transformer and nowhere else. On a utility path, if you cannot say where the medium voltage becomes 480 V, you do not yet understand the drawing well enough to work on it. On a path fed from a running generator there is no substation transformer and no medium voltage at all — record that explicitly rather than leaving the column blank."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 7. Find where the generator connects to the system and mark it. Identify which transfer switch it feeds, and mark which side of that transfer switch is the normal source and which is the emergency source. Note whether the switch is currently sitting on normal or on emergency. If there is more than one generator, note whether both are on the board or whether one is out of service."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 10. Continue through the PDU to the RPP and on to your assigned rack position. Record the voltage on both sides of the PDU. The PDU contains a transformer, so this is the last place on your path where the voltage changes — the second such place on a utility path, and the only one on a path fed from a generator. Note both the line-to-line and the line-to-neutral value if the drawing gives them."}, {"s": "Part 1: Tracing the delivery path", "k": "image", "p": "Step 11. Highlight the complete path in one color, from the service entrance to the rack, in one continuous line. Then highlight in your second color every device you considered and rejected, and write one or two words beside each saying why you rejected it. The rejections are as much a part of the answer as the path."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 12. Complete the component list worksheet. One line per node, in delivery order, with the device type and the voltage at that stage. Count the nodes and write the total at the foot of the list. A finished worksheet reads as a sequence a stranger could follow with a finger on the drawing."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 13. Identify every normally open device on the drawing, whether or not you went near it. State below whether your path crossed the bus tie at any point, and confirm in writing that your path does not depend on any normally open device being closed. Answer this honestly. A path that only works if somebody closes the tie is not a path, it is a request, and the person who has to approve it is asleep."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 14. Look for the dead end. Somewhere on this drawing there is at least one route that appears to head towards the racks and does not deliver. Find it, mark it, and record below which device stops it."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 16. Answer the three upstream questions in the lab tool. They ask about points on your own completed path: what is immediately upstream of this node. Record your three answers below, then walk your trace out loud to your instructor. They will choose points at random and ask you what is upstream. Answer from the path, not from the drawing. Then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Voltage changes at a transformer and nowhere else. List every point on your path where the voltage changed, give the value before and after, and explain what would go wrong if a technician assumed the rack voltage was the same as the switchboard voltage."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain, in your own words, why a path that depends on somebody closing a normally open bus tie is not a valid answer to the question “what feeds this rack?”. Say what a normally open device is actually there to do."}, {"s": "Part 2: Reflection", "k": "text", "p": "Something is dead at the rack you traced. Walk your path backwards and state the first three things you would look at, in that order, and why that order and not another."}, {"s": "Part 2: Reflection", "k": "text", "p": "You rejected at least one route while tracing. Describe one rejected route, say exactly which device stopped it, and say what on the drawing would have had to be different for that route to have been the right answer."}]};</script>
 <!-- ===== UCI 2227 · Submission module v2.0 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
@@ -960,14 +960,6 @@ resetRun(); startClock();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
-
-     v2.1 — the two labs with no simulator no longer report a missing simulator
-     record; the date field persists instead of silently re-defaulting to today;
-     an image question with a caption but no photograph is reported as incomplete;
-     the completeness announcement is capped so it stays listenable; a keyboard
-     and screen-reader shim reaches the simulator's click-only affordances; the
-     simulator's own "Print submission sheet" button offers the full PDF first;
-     and a close-tab guard fires while storage is broken.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -1055,7 +1047,7 @@ resetRun(); startClock();
     /* Everything harvested from the simulator arrives in the dark console palette:
        near-white text that would print invisibly, on backgrounds the browser drops
        by default. Flatten the whole print container to ink on paper first, then
-       re-assert the few greys that carry meaning. */
+       re-assert the few grays that carry meaning. */
     body.lq-print #lqPrint,body.lq-print #lqPrint *{
       color:#000!important;background-color:transparent!important;background-image:none!important;
       box-shadow:none!important;text-shadow:none!important;border-color:#bbb!important}
@@ -1122,6 +1114,16 @@ resetRun(); startClock();
       }
     }catch(e){}
     return out;
+  }
+  function usedBytes(){
+    var n=0;
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf("uci2227:")===0) n+=(localStorage.getItem(k)||"").length;
+      }
+    }catch(e){}
+    return n;
   }
   function evictOtherImages(target){
     /* returns bytes freed. Prefers labs whose PDF has already been built, then oldest. */
@@ -1293,10 +1295,6 @@ resetRun(); startClock();
     var el=document.getElementById(id);
     el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
   });
-  /* The date box is pre-filled with today, but nothing wrote that back to
-     storage, so a learner who started yesterday and reopened the tab today saw
-     the field silently move to today's date. Persist the default on first sight. */
-  if(!store.date){ store.date=document.getElementById("lqDate").value; save(); }
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
     if(ta) ta.oninput=function(){ store[id]=ta.value; save(); };
@@ -1472,10 +1470,6 @@ resetRun(); startClock();
       var a=ta?ta.value.trim():"";
       var im=store["lqQ"+i+"_img"];
       if(!a&&!im) gaps.push("Q"+(i+1));
-      /* An image question exists for the photograph. A caption on its own used to
-         satisfy the completeness check, which is the one case where the check
-         said "complete" about a sheet the instructor cannot mark. */
-      else if(it.k==="image"&&!im) gaps.push("Q"+(i+1)+" — the photograph");
       h+='<div class="lqa"><div class="q"><span class="qn">Q'+(i+1)+'.</span>'+esc(it.p)+'</div>';
       if(im) h+='<img src="'+im+'" alt="Attachment for question '+(i+1)+'">';
       h+='<div class="a'+((!a&&!im)?" blank":"")+'">'+(a?esc(a):"— not answered —")+'</div></div>';
@@ -1498,15 +1492,9 @@ resetRun(); startClock();
       +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
 
     document.getElementById("lqOut").innerHTML=h;
-    /* A sheet built early can have twenty gaps; reading all of them aloud buries
-       the count that matters. Name the first few, then say how many are left. */
-    if(gaps.length){
-      var head=gaps.slice(0,5), rest=gaps.length-head.length;
-      announce("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")
-        +" still blank: "+head.join(", ")+(rest>0?(", and "+rest+" more"):"")+".");
-    }else{
-      announce("Submission sheet built. Every question carries a response.");
-    }
+    announce(gaps.length
+      ? ("Submission sheet built. "+gaps.length+" item"+(gaps.length===1?"":"s")+" still blank: "+gaps.join(", ")+".")
+      : "Submission sheet built. Every question carries a response.");
     return h;
   }
 
@@ -1539,9 +1527,7 @@ resetRun(); startClock();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    /* the right-hand span floats, so without a separator the two halves run
-       together in the PDF's text layer and in anything that copies from it */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span> '
+    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1575,231 +1561,6 @@ resetRun(); startClock();
       setTimeout(done,60000);
     },80);
   };
-
-  /* ================= v2.1 additions ========================================
-     Everything below improves the simulator ABOVE this panel without touching
-     any of the sixteen simulators' own code. They all render through delegated
-     click handlers, so a synthesised click behaves exactly like a real one.
-     ====================================================================== */
-
-  /* ---------- close-tab guard while storage is broken ----------
-     Normally a refresh is harmless because every keystroke is persisted. Once
-     storage has failed, the only copy of the learner's work is the DOM. */
-  window.addEventListener("beforeunload",function(ev){
-    if(!storageBroken) return;
-    var typed=false;
-    for(var k in store){ if(/^lqQ/.test(k)&&String(store[k]).trim()){ typed=true; break; } }
-    if(!typed) return;
-    ev.preventDefault(); ev.returnValue="";
-    return "";
-  });
-
-  /* ---------- the simulator's own print button ----------
-     Each simulator sheet ends with "Print submission sheet", which prints the
-     simulator record alone. That is a valid-looking PDF that is missing every
-     handout answer, and Canvas takes one file. Offer the right one first.
-     Capture phase, so it runs ahead of the inline onclick. */
-  document.addEventListener("click",function(ev){
-    var b=ev.target&&ev.target.closest?ev.target.closest("button"):null;
-    if(!b||card.contains(b)||b.dataset.lqPrintOk==="1") return;
-    var t=(b.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
-    if(!/print/.test(t)) return;
-    ev.preventDefault(); ev.stopPropagation();
-    var full=confirm(
-      "This button prints the simulator record on its own.\n\n"+
-      "The file Canvas expects is the full submission PDF: the simulator record "+
-      "AND every handout question with your response, in one document.\n\n"+
-      "OK — build the full submission PDF (recommended).\n"+
-      "Cancel — print the simulator record on its own anyway.");
-    if(full){
-      var out=document.getElementById("lqBuild");
-      if(out){ out.scrollIntoView({behavior:"smooth",block:"center"}); out.click(); }
-    }else{
-      /* HTMLElement.click() is a no-op while that same element's click is still
-         in progress, so re-dispatching from inside this handler would silently
-         do nothing. Defer it out of the current dispatch. */
-      setTimeout(function(){
-        b.dataset.lqPrintOk="1";
-        b.click();
-        setTimeout(function(){ b.dataset.lqPrintOk=""; },0);
-      },0);
-    }
-  },true);
-
-  /* ---------- keyboard and screen-reader shim for the simulator ----------
-     The simulators drive rows, zones, chips, document cards and one-line-diagram
-     symbols through click handlers on <tr>, <th>, <div> and SVG nodes. None of
-     those is focusable and none announces as anything, which is why 524.5.3
-     could not be completed with a keyboard at all.
-
-     Rewriting sixteen simulators is not the cheap fix. Every one of those
-     affordances already declares itself in exactly one way — cursor:pointer —
-     so find them by that, give each a tab stop and a name, and translate Enter
-     and Space into the click the simulator is already listening for.
-
-     Only the OUTERMOST element of a pointer subtree is taken: `cursor` inherits,
-     so a clickable <tr> would otherwise hand out one tab stop per cell. */
-  var A11Y_NATIVE={A:1,BUTTON:1,INPUT:1,SELECT:1,TEXTAREA:1,LABEL:1,SUMMARY:1,
-                   OPTION:1,DETAILS:1,AUDIO:1,VIDEO:1};
-  var A11Y_TABLE={TR:1,TH:1,TD:1,THEAD:1,TBODY:1};
-  var uid=0;
-
-  function ptr(el){
-    try{ return window.getComputedStyle(el).cursor==="pointer"; }catch(e){ return false; }
-  }
-  function nameFor(el){
-    var t=(el.textContent||"").replace(/\s+/g," ").trim();
-    if(!t&&el.parentNode&&el.parentNode.textContent)
-      t=(el.parentNode.textContent||"").replace(/\s+/g," ").trim();
-    if(t.length>120) t=t.slice(0,117)+"…";
-    return t;
-  }
-  function hasName(el){
-    return !!(el.getAttribute("aria-label")||el.getAttribute("aria-labelledby")
-             ||el.getAttribute("title"));
-  }
-  function clip(t){ t=(t||"").replace(/\s+/g," ").trim();
-    return t.length>120?t.slice(0,117)+"…":t; }
-  /* A data-entry grid cell is named by the row it is on and the column it is in,
-     which is what a sighted learner reads off the table. */
-  /* Not every table in the module declares a <thead>; several put their <th>
-     cells in the first row of the <tbody>. Take whichever is actually there. */
-  function headerRow(tbl){
-    var hr=tbl.querySelector("thead tr"); if(hr) return hr;
-    var rows=tbl.rows||[];
-    for(var i=0;i<rows.length&&i<3;i++) if(rows[i].querySelector("th")) return rows[i];
-    return null;
-  }
-  function cellName(f){
-    var td=f.closest?f.closest("td,th"):null; if(!td) return "";
-    var tr=td.parentElement, tbl=f.closest("table");
-    if(!tr||!tbl||!tr.children) return "";
-    var idx=Array.prototype.indexOf.call(tr.children,td), col="", row="", j;
-    var hr=headerRow(tbl);
-    if(hr&&hr!==tr&&hr.children[idx])
-      col=clip((hr.children[idx].textContent||"").replace(/[▲▼]/g,""));
-    for(j=0;j<tr.children.length;j++){
-      var c=tr.children[j];
-      if(c===td) break;
-      if(c.querySelector("input,select,textarea")) continue;
-      var t=clip(c.textContent);
-      if(t){ row=t; break; }
-    }
-    /* a grid whose rows carry no label still needs the two cells on one row to
-       announce differently from each other */
-    if(!row&&col&&typeof tr.rowIndex==="number") row="row "+(tr.rowIndex+1);
-    return clip([row,col].filter(Boolean).join(", "));
-  }
-  /* <div class="extrow"><div>1. Condenser water supply temperature</div><select>
-     — visually a labelled field, with no <label> anywhere in it. */
-  function blockName(f){
-    var p=f.parentElement, d;
-    for(d=0;d<2&&p;d++){
-      if(p.querySelectorAll("input,select,textarea").length===1){
-        var c=p.cloneNode(true);
-        Array.prototype.forEach.call(c.querySelectorAll("input,select,textarea"),
-          function(n){ if(n.parentNode) n.parentNode.removeChild(n); });
-        var t=clip(c.textContent);
-        if(t) return t;
-      }
-      p=p.parentElement;
-    }
-    return "";
-  }
-
-  function a11yPass(){
-    var app=document.getElementById("app"); if(!app) return;
-
-    /* 1 — clickable things nobody can tab to */
-    var all=app.querySelectorAll("*"), i, el;
-    for(i=0;i<all.length;i++){
-      el=all[i];
-      if(card.contains(el)) continue;
-      if(el.hasAttribute("tabindex")||el.dataset.lqA11y==="1") continue;
-      var tag=(el.tagName||"").toUpperCase();
-      if(A11Y_NATIVE[tag]) continue;
-      if(!ptr(el)) continue;
-      /* outermost only — a pointer parent already owns this affordance */
-      var p=el.parentElement;
-      if(p&&p!==app&&!card.contains(p)&&!A11Y_NATIVE[(p.tagName||"").toUpperCase()]&&ptr(p)) continue;
-      el.dataset.lqA11y="1";
-      el.setAttribute("tabindex","0");
-      /* a <tr> with role=button would flatten the row a screen reader is about to
-         read out; leave table semantics alone and give it the tab stop only */
-      if(!A11Y_TABLE[tag]&&!el.getAttribute("role")) el.setAttribute("role","button");
-      if(!hasName(el)){
-        var n=nameFor(el);
-        if(n) el.setAttribute("aria-label",n);
-      }
-    }
-
-    /* 2 — <label>Text</label><select> : visually a label, programmatically not one */
-    var labs=app.querySelectorAll("label:not([for])");
-    for(i=0;i<labs.length;i++){
-      var lb=labs[i]; if(card.contains(lb)) continue;
-      if(lb.querySelector("input,select,textarea")) continue;   /* wrapping label, already fine */
-      var box=lb.parentElement; if(!box) continue;
-      var ctrls=box.querySelectorAll("input,select,textarea");
-      if(ctrls.length!==1) continue;
-      var c=ctrls[0];
-      if(!c.id) c.id="lqA"+(++uid);
-      lb.setAttribute("for",c.id);
-    }
-
-    /* 3 — anything still nameless takes its name from the grid cell it sits in,
-       then the block around it, then, last, its own placeholder. A control already
-       wrapped in a <label> is named and is left alone. */
-    var ctl=app.querySelectorAll("input,select,textarea");
-    for(i=0;i<ctl.length;i++){
-      var f=ctl[i]; if(card.contains(f)) continue;
-      if(hasName(f)) continue;
-      if(f.closest&&f.closest("label")) continue;
-      if(f.id&&app.querySelector('label[for="'+f.id+'"]')) continue;
-      var nm=cellName(f)||blockName(f)||f.getAttribute("placeholder");
-      if(nm) f.setAttribute("aria-label",nm);
-    }
-
-    /* 4 — the telemetry charts are bare <canvas>: no role, no name, nothing to
-       announce. The chart's own heading and its band description are the text
-       equivalent already on the page, so bind them to the canvas. */
-    var cvs=app.querySelectorAll("canvas");
-    for(i=0;i<cvs.length;i++){
-      var cv=cvs[i]; if(card.contains(cv)||hasName(cv)) continue;
-      var boxc=cv.closest?cv.closest(".chartbox"):null, bits=[];
-      if(boxc){
-        var h=boxc.querySelector("h3"), s=boxc.querySelector(".sub");
-        if(h) bits.push((h.textContent||"").trim());
-        if(s) bits.push((s.textContent||"").trim());
-      }
-      cv.setAttribute("role","img");
-      cv.setAttribute("aria-label",
-        (bits.length?bits.join(". "):"Telemetry chart")
-        +". Trend chart; the same readings are available as numbers in the panels beside it.");
-    }
-  }
-
-  /* Enter and Space activate whatever the shim made focusable. Delegated, so it
-     survives the wholesale innerHTML rebuilds the simulators do on every render. */
-  document.addEventListener("keydown",function(ev){
-    if(ev.key!=="Enter"&&ev.key!==" "&&ev.key!=="Spacebar") return;
-    var el=ev.target;
-    if(!el||!el.dataset||el.dataset.lqA11y!=="1") return;
-    ev.preventDefault();
-    el.click();
-  });
-
-  /* Most views rebuild their whole subtree, so re-run after any mutation. */
-  var a11yQueued=false;
-  function a11ySoon(){
-    if(a11yQueued) return; a11yQueued=true;
-    setTimeout(function(){ a11yQueued=false; try{ a11yPass(); }catch(e){} },120);
-  }
-  a11ySoon();
-  if(window.MutationObserver){
-    var appEl=document.getElementById("app");
-    if(appEl) new MutationObserver(a11ySoon)
-      .observe(appEl,{childList:true,subtree:true});
-  }
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
