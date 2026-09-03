@@ -73,7 +73,7 @@ parts*: a learner runs one and hands in one PDF.
 | 524.1.4 | Stop-Work Roleplay and Escalation Log | `524-1-4_StopWork.html` | 1 | 14 |
 | 524.2.1 | Power Path Tracing | `524-2-1-{A,B,C}_PathTrace.html` | 3 | 16 |
 | 524.2.2 | Which Source Is Carrying the Load? | `524-2-2-{A,B}_SourceID.html` | 2 | 16 |
-| 524.2.3 | Generator Load-Bank Telemetry Audit | `524-2-3-{A,B,C,D,E}_LoadBank.html` | 5 | 11 |
+| 524.2.3 | Telemetry Simulation Audit | `524-2-3-{A,B,C,D,E}_LoadBank.html` | 5 | 11 |
 | 524.3.1 | Map the Thermodynamic Loops | `524-3-1-{A,B,C}_LoopMap.html` | 3 | 13 |
 | 524.3.2 | Thermal Envelope Audit | `524-3-2-{A,B,C}_ThermalAudit.html` | 3 | 11 |
 | 524.3.3 | Chiller Loop Fault Diagnosis | `524-3-3-{A,B,C,D}_ChillerFault.html` | 4 | 17 |
@@ -85,7 +85,14 @@ parts*: a learner runs one and hands in one PDF.
 | 524.5.3 | SBAR Turnover Verification Gate | `524-5-3-{A,B,C}_SBAR.html` | 3 | 7 |
 
 **524.1.2 and 524.1.4 have no simulator.** Both labs are assessed on the floor by the instructor;
-their tools capture the written record and photographs only, and their submission PDF says so.
+their tools carry the lab's packet (work order, one-line and lockout log; escalation matrix, incident
+report and escalation log), the written record and photographs, and their submission PDF says so.
+
+**Packets live inside the tools.** Every paper item a handout names — legend sheet and worksheet,
+baseline sheet, RCA tree and fix ticket, Level of Risk matrix, the MOP field copy and tracking log, the
+known-fault log, the shift log and SBAR template — is behind a **Packet** button in the tool (a
+**Packet ↗** popup in 524.1.1 and 524.5.1). Each packet prints on its own, and any field a packet asks the
+learner to fill is captured into the submission PDF.
 
 ---
 
@@ -153,7 +160,7 @@ set on every page, so an instructor can always confirm which key to mark against
 ## How a learner submits
 
 1. Open the lab URL the instructor gives them. It opens straight into the scenario.
-2. Work the simulator, then press its own **Build submission sheet**.
+2. Work the simulator (and the **Packet**, where the handout sends you there), then press its own **Build submission sheet**.
 3. Answer every question in the **Lab submission** panel underneath.
 4. Enter name and cohort, press **Build submission PDF**, choose **Save as PDF**.
 5. Upload that one file to the matching Canvas assignment.
@@ -219,11 +226,13 @@ region, and focus is visible throughout.
 
 **The simulators above it are not there yet.** Known gaps, in priority order:
 
-- **524.5.3 (SBAR) cannot currently be completed with a keyboard.** Its builder unlocks only after all
-  26 shift-log entries are opened, and those rows are not keyboard-reachable. Learners who need
-  keyboard access must be given an alternative route through this lab.
-- Simulator inputs use visual labels without programmatic association.
+- Simulator inputs in several families still use visual labels without programmatic association
+  (the packet fields, the submission panel, and Round's inputs are all labeled).
 - The eight canvas charts in LoadBank and ChillerFault have no text equivalent.
+
+Closed on 3 September 2026: 524.5.3 (SBAR) can now be completed with a keyboard — the 26 log rows,
+the sort headers, filter chips and the four confirmation ticks are focusable and operable with Enter
+or Space — and 524.5.2's headers, chips and ticks likewise.
 
 `DESIGN-REVIEW.md` in the parent folder carries the full findings and a prioritized fix list.
 
@@ -240,7 +249,15 @@ generated together with the matching handout, and the two must stay in lockstep 
 silently desynchronizes them. Regenerate both.
 
 The module is identical across all 43 files. A fix belongs in the shared source and gets re-injected,
-not patched in one file.
+not patched in one file. **`7_Record/regen_lq.py` does both** — it rebuilds every `lqData` block from
+the matching handout and re-injects the module — so the workflow after any edit is: change the handout
+or the module source, run the script, re-test.
+
+**The `window.lqRecord()` hook.** A simulator whose record lives inside a pane that gets repainted
+defines `window.lqRecord = () => sheetHTML()` — a function that builds the sheet from state and returns
+an HTML string (or `null`, optionally setting `window.lqRecordReason`). The module calls it first, so
+the PDF carries the record whichever pane the learner is looking at; the `.result.show` harvest and
+the auto-click of **Build submission sheet** remain as the fallback for the simulators that need neither.
 
 See `docs/adr/` in the parent folder for why the submission model is shaped the way it is —
 particularly `0002-print-to-pdf-not-a-bundled-library.md`, which explains why there is no PDF library

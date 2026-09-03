@@ -154,6 +154,38 @@
     .seg .sv,.seg .sv em{color:#000;text-shadow:none}
     .sheet .ctx,.note{color:#333}
   }
+
+  /* ---------- packet (equipment specification index + component checklist), printable ---------- */
+  .packet{background:#fbfaf6;color:#111;border:1px solid #c9c4b4;border-radius:9px;padding:22px 26px;
+    margin-bottom:16px;font-family:var(--sans);font-size:13px;line-height:1.5}
+  .packet h2{font-size:17px;margin:0 0 2px;color:#111}
+  .packet h3{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#345;margin:20px 0 8px;font-weight:700}
+  .packet .pkmeta{font-size:12px;color:#555;margin-bottom:12px}
+  .packet p{margin:0 0 10px;color:#222}
+  .packet table{font-size:12.5px}
+  .packet th{color:#345;border-bottom:1px solid #999;font-size:10px}
+  .packet td{border-bottom:1px solid #ddd;color:#111;vertical-align:top;padding:7px 8px}
+  .packet td.mono,.packet .mono{font-family:var(--mono)}
+  .packet input[type=text],.packet textarea{background:#fff;color:#111;border:1px solid #b9b3a3;border-radius:4px;
+    padding:5px 7px;font-size:12.5px;width:100%;font-family:inherit}
+  .packet textarea{min-height:48px;resize:vertical}
+  .packet label.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .packet label{display:block;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:#345;font-weight:700;margin:0 0 4px}
+  .packet .pkbtns{display:flex;gap:9px;margin-top:16px;align-items:center}
+  .packet .pkbtns button{background:#fff;color:#111;border-color:#999}
+  .packet .pkbtns button:hover{background:#eee}
+  .packet .pkfoot{font-size:11px;color:#666;margin-top:16px;border-top:1px solid #ccc;padding-top:8px}
+  @media print{
+    body.pk-print{background:#fff!important;color:#000!important;overflow:visible!important;height:auto!important}
+    body.pk-print>*{display:none!important}
+    body.pk-print>#packetPane{display:block!important}
+    body.pk-print .packet{border:0;padding:0;background:#fff;color:#000;border-radius:0}
+    body.pk-print .packet *{color:#000!important;background:transparent!important;box-shadow:none!important}
+    body.pk-print .packet input[type=text],body.pk-print .packet textarea{border:0;border-bottom:1px solid #888;border-radius:0;resize:none}
+    body.pk-print .packet .pkbtns,body.pk-print .noprint{display:none!important}
+    body.pk-print .packet tr{page-break-inside:avoid;break-inside:avoid}
+    body.pk-print .packet thead{display:table-header-group}
+  }
 </style>
 </head>
 <body>
@@ -171,17 +203,19 @@
   </header>
 
   <div class="toolbar" id="toolbar">
-    <button id="btnAll" class="primary">Show all sets</button>
+    <button id="btnAll" class="primary">Show all positions</button>
     <button id="btnOne">One at a time</button>
+    <button id="btnPacket" title="Equipment specification index and component checklist, readable and printable here">Packet</button>
     <button id="btnSheet">Submission sheet</button>
     <button id="btnRestart">Restart</button>
     <span class="spacer"></span>
-    <span class="counter" id="posn">8 sets</span>
+    <span class="counter" id="posn">8 positions</span>
     <span class="counter" id="elapsed">T+00:00</span>
   </div>
 
   <main>
     <div class="wrap">
+      <section id="packetPane" class="hidden" aria-label="Equipment specification index and component checklist"></section>
       <section id="setsView">
         <div class="prthdr" id="prtHdr"></div>
         <div class="navchips noprint hidden" id="navchips"></div>
@@ -241,7 +275,7 @@ const COMPS=[["ups","Uninterruptible power supply (UPS)"],["ats","Automatic tran
 const PDU_FLA=225000/(Math.sqrt(3)*208);   // 624.5 A at 225 kVA, 208 V three-phase
 const PDU_PF=0.98;
 
-const S={learner:"",t:0,mode:"all",cur:0,sets:[],roleOpts:[],timer:null};
+const S={learner:"",t:0,mode:"all",sheetOpen:false,cur:0,sets:[],roleOpts:[],timer:null,packet:{chk:{}}};
 const $=id=>document.getElementById(id);
 let V=SETLISTS[SET];
 
@@ -556,7 +590,7 @@ function setCardHTML(s,i){
   const opts=s.inds.map((t,j)=>`<option value="${j}">${t}</option>`).join("");
   const pduQ=s.pduQ?`
     <div class="qrow">
-      <div class="fld"><label>5a · Phase imbalance on ${s.pduQ.tag} — highest phase against the average, per cent</label>
+      <div class="fld"><label>5a · Phase imbalance on ${s.pduQ.tag} — the greatest deviation from the mean as a percentage of the mean</label>
         <input type="number" step="0.1" id="q${i}_imb" placeholder="e.g. 4.8"></div>
       <div class="fld"><label>5b · Is either side of the 2N pair above 50% of its 225 kVA rating?</label>
         <select id="q${i}_50"><option value="">— choose —</option>
@@ -568,7 +602,7 @@ function setCardHTML(s,i){
     <div class="ctx">${s.ctx}</div>
     <div class="pnls">${s.panels.map(panelHTML).join("")}</div>
     <div class="qa">
-      <div class="qhdr">Set ${s.pid} — your reading</div>
+      <div class="qhdr">Position ${s.pid} — your reading</div>
       <div class="qrow">
         <div class="fld"><label>1 · Where is the load being carried from?</label>
           <select id="q${i}_src"><option value="">— choose —</option>
@@ -584,7 +618,7 @@ function setCardHTML(s,i){
       </div>
       <div class="qrow">
         <label class="chk"><input type="checkbox" id="q${i}_esc">
-          4 · Flag this set for escalation</label>
+          4 · Flag this position for escalation</label>
         <div class="fld"><label>Reason for the flag</label>
           <input type="text" id="q${i}_why" placeholder="Why you are flagging it"></div>
       </div>
@@ -603,7 +637,7 @@ function rolesHTML(){
   </div>
   <div class="submit noprint">
     <h3>Your submission</h3>
-    <div class="sub">Builds a printable record of everything you have entered across the eight sets. Question 3 is read by your instructor when the group reviews the lab — it is the question that matters most, so write it in full.</div>
+    <div class="sub">Builds a printable record of everything you have entered across the eight positions and in the packet checklist. Question 3 is read by your instructor when the group reviews the lab — it is the question that matters most, so write it in full.</div>
     <div class="fld" style="margin-bottom:12px"><label>Your name</label>
       <input type="text" id="learnerName" style="width:280px" autocomplete="off"></div>
     <button class="primary" id="btnSubmit">Build submission sheet</button>
@@ -614,7 +648,7 @@ function renderSets(){
   $("submitArea").innerHTML=rolesHTML();
   $("navchips").innerHTML=S.sets.map((s,i)=>
     `<div class="nc ${i===S.cur?"on":""}" data-i="${i}">${s.pid}</div>`).join("")+
-    `<span style="width:10px"></span><button id="btnPrev">Previous set</button><button id="btnNext">Next set</button>`;
+    `<span style="width:10px"></span><button id="btnPrev">Previous position</button><button id="btnNext">Next position</button>`;
   $("navchips").onclick=e=>{
     const c=e.target.closest(".nc"); if(!c)return;
     S.cur=+c.dataset.i; applyMode();
@@ -627,17 +661,22 @@ function renderSets(){
     $("prtHdr").innerHTML=`<h2>UCI 2227 — ${LAB.lab} · ${LAB.title}</h2>
       <div class="ctx">${esc(S.learner||"—")}</div>`;
   });
-  $("btnSubmit").onclick=()=>setMode("sheet");
+  $("btnSubmit").onclick=()=>showSheet();
   $("prtHdr").innerHTML=`<h2>UCI 2227 — ${LAB.lab} · ${LAB.title}</h2>
     <div class="ctx">${esc(S.learner||"—")}</div>`;
 }
 function setMode(m){ S.mode=m; applyMode(); }
+/* The sheet is shown alongside the position cards and the roles panel — never instead of
+   them — so building it (by the button, or by the submission module) leaves the learner
+   exactly where they were. */
+function showSheet(){
+  S.sheetOpen=true; buildSheet(); applyMode();
+  const a=$("sheetArea"); if(a&&a.scrollIntoView) a.scrollIntoView({block:"start"});
+}
 function applyMode(){
-  const one=S.mode==="one", sheet=S.mode==="sheet";
+  const one=S.mode==="one";
   $("navchips").classList.toggle("hidden",!one);
-  $("setsArea").classList.toggle("hidden",sheet);
-  $("sheetArea").classList.toggle("hidden",!sheet);
-  $("submitArea").classList.toggle("hidden",sheet);
+  $("sheetArea").classList.toggle("hidden",!S.sheetOpen);
   S.sets.forEach((s,i)=>{
     const c=$("card"+i); if(!c)return;
     c.classList.toggle("hidden",one&&i!==S.cur);
@@ -648,17 +687,25 @@ function applyMode(){
       c.classList.toggle("done",!!val("q"+c.dataset.i+"_src"));
     });
   }
-  if(sheet) buildSheet();
   $("btnAll").className=S.mode==="all"?"primary":"";
   $("btnOne").className=one?"primary":"";
-  $("btnSheet").className=sheet?"primary":"";
-  $("posn").textContent=one?("Set "+(S.cur+1)+" of "+S.sets.length):(S.sets.length+" sets");
+  $("btnSheet").className=S.sheetOpen?"primary":"";
+  $("posn").textContent=one?("Position "+(S.cur+1)+" of "+S.sets.length):(S.sets.length+" positions");
 }
 function val(id){const e=$(id);return e?e.value:"";}
 function chk(id){const e=$(id);return !!(e&&e.checked);}
 
 /* ---------- submission sheet ---------- */
 function buildSheet(){
+  $("sheetArea").innerHTML=sheetHTML(false);
+  const pb=$("btnPrint"); if(pb) pb.onclick=()=>window.print();
+  $("statusBadge").textContent="Sheet built"; $("statusBadge").className="badge run";
+}
+/* The submission module calls this when the learner presses Build submission PDF. It
+   rebuilds the record from the current entries whatever mode is showing, and does not
+   change the visible panes. */
+window.lqRecord=function(){ return sheetHTML(true); };
+function sheetHTML(forRecord){
   const missing=[];
   if(!S.learner) missing.push("Your name");
   const rows=S.sets.map((s,i)=>{
@@ -688,13 +735,14 @@ function buildSheet(){
   };
   COMPS.forEach(c=>{ if(!val("role_"+c[0])) missing.push("Functional role for the "+c[1]); });
   const now=new Date();
-  $("sheetArea").innerHTML=`<div class="setcard sheet result show" style="margin-top:0">
+  const chkRows=COMPS.map(c=>{ if(!pkChkFilled(c[0])) missing.push("Packet checklist line for the "+c[1]); return c; });
+  return `<div class="setcard sheet result show" style="margin-top:0">
     <h2>${LAB.lab} — ${LAB.title}</h2>
-    <div class="ctx">UCI 2227 · objective ${LAB.obj} · submission sheet<br>
-      Name ${esc(S.learner||"________________")} ·
+    <div class="ctx">UCI 2227 · objective ${LAB.obj} · submission sheet · Set ${"ABCDEFGH".charAt(SET)}<br>
       completed ${now.toLocaleDateString()} ${now.toLocaleTimeString()} · time at console ${fmtElapsed(S.t)}</div>
+    ${forRecord?"":`<div class="ctx learnerline"><b>Name</b> <span>${esc(S.learner||"________________")}</span></div>`}
     <table>
-      <thead><tr><th>Set</th><th>Panels</th>
+      <thead><tr><th>Position</th><th>Panels</th>
         <th>Source called</th><th>Deciding indicator</th>
         <th>What the other indicators do not tell me</th>
         <th>Imbalance / 50% check</th><th>Escalation</th></tr></thead>
@@ -706,15 +754,127 @@ function buildSheet(){
       <b>STS role:</b> ${role("sts")}<br>
       <b>PDU role:</b> ${role("pdu")}
     </div>
+    ${packetRecordHTML()}
     ${missing.length?`<div class="missing"><b>Not yet filled in:</b><br>`+
       missing.map(m=>"· "+esc(m)).join("<br>")+
-      `<br><br>This is a completeness check only. Go back and fill these in, or hand the sheet in as it stands and explain the gaps to your instructor.</div>`:""}
-    <div class="closing">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
-    <div style="margin-top:14px" class="noprint"><button id="btnPrint">Print submission sheet</button></div>
-    <div class="ctx" style="margin-top:12px">Learner signature ________________________ &nbsp;&nbsp;
-      Date ________________</div>
+      `<br><br>This is a completeness check only. Go back and fill these in, or build the PDF as it stands and explain the gaps to your instructor.</div>`:""}
+    <div class="closing">This record is embedded in your submission PDF.</div>
+    ${forRecord?"":`<div style="margin-top:14px" class="noprint"><button id="btnPrint">Print submission sheet</button></div>`}
   </div>`;
-  $("btnPrint").onclick=()=>window.print();
+}
+
+/* ---------- packet: equipment specification index + component checklist ----------
+   Lives in #packetPane, which is never repainted. Reference rows are derived from the
+   same panel constants the front panels are drawn from, so the index cannot disagree
+   with the packet. Checklist entries are held in S.packet and written into the sheet. */
+const PK_KINDS=[
+  {id:"ups",name:"Uninterruptible power supply (UPS)",rating:"500 kVA / 450 kW double conversion",
+   volts:"480 V in · 480 V out · 60 Hz",fla:(500000/(Math.sqrt(3)*480)).toFixed(0)+" A at full load",
+   notes:"Battery string nominal 540 V DC, float about 546–550 V; on discharge the reading falls through the low 500s. Runtime field reads minutes at present load; it reads - - - when the inverter is not carrying the load."},
+  {id:"ats",name:"Automatic transfer switch (ATS)",rating:"1600 A · 480 V · 3 pole",
+   volts:"Source 1 utility · Source 2 generator",fla:"1600 A frame",
+   notes:"Position is a contactor position, sensed mechanically. Available lamps come from the voltage sensing relays; the delays shown are the normal-to-emergency and retransfer timers."},
+  {id:"sts",name:"Static transfer switch (STS)",rating:"400 A · 208 V · load-end switch",
+   volts:"Source A / Source B, both at 208 V",fla:"400 A frame",
+   notes:"Both sources must already be live for it to do anything; transfer window a few milliseconds. The transfer counter is cumulative since commissioning."},
+  {id:"gen",name:"Standby diesel generator",rating:"1,500 kW standby · 1,875 kVA at 0.8 PF",
+   volts:"480 V · 60 Hz · 1,800 rpm",fla:(1875000/(Math.sqrt(3)*480)).toFixed(0)+" A at 1,875 kVA",
+   notes:"Ready to load only when running at speed and voltage with the control switch in AUTO. Run hours are engine hours since new."},
+  {id:"pdu",name:"Power distribution unit (PDU)",rating:"225 kVA · 480 V in / 208 V out",
+   volts:"208 V three-phase output",fla:PDU_FLA.toFixed(1)+" A per phase full-load current",
+   notes:"Full-load current = 225,000 VA ÷ (√3 × 208 V) = "+PDU_FLA.toFixed(1)+" A. The output kW figure on the panel assumes a power factor of "+PDU_PF+". Percentage of rating = mean phase current ÷ "+PDU_FLA.toFixed(1)+" A."}
+];
+function pkTags(kind){
+  const want={ups:"UPS",ats:"ATS",sts:"STS",gen:"GENERATOR",pdu:"PDU"}[kind];
+  const tags=[]; S.sets.forEach(s=>s.panels.forEach(p=>{ if(p.kind===want&&tags.indexOf(p.tag)<0) tags.push(p.tag); }));
+  return tags;
+}
+function pkChk(id,k){ const c=S.packet.chk[id]; return c&&c[k]?c[k]:""; }
+function pkChkFilled(id){ return ["role","shows","not"].some(k=>pkChk(id,k).trim()); }
+function packetHTML(){
+  const specRows=PK_KINDS.map(k=>`<tr>
+      <td><b>${esc(k.name)}</b><br><span class="mono" style="font-size:11px;color:#555">${esc(pkTags(k.id).join(" · ")||"—")}</span></td>
+      <td>${esc(k.rating)}</td><td>${esc(k.volts)}</td><td class="mono">${esc(k.fla)}</td><td style="font-size:12px">${esc(k.notes)}</td></tr>`).join("");
+  const chkRows=COMPS.map(c=>`<tr>
+      <td style="width:190px"><b>${esc(c[1])}</b></td>
+      <td><label class="vh" for="pk_role_${c[0]}">Role — one sentence (Step 2)</label>
+          <textarea id="pk_role_${c[0]}" data-pk="${c[0]}" data-k="role">${esc(pkChk(c[0],"role"))}</textarea></td>
+      <td><label class="vh" for="pk_shows_${c[0]}">What state its display shows</label>
+          <textarea id="pk_shows_${c[0]}" data-pk="${c[0]}" data-k="shows">${esc(pkChk(c[0],"shows"))}</textarea></td>
+      <td><label class="vh" for="pk_not_${c[0]}">What it does NOT tell you</label>
+          <textarea id="pk_not_${c[0]}" data-pk="${c[0]}" data-k="not">${esc(pkChk(c[0],"not"))}</textarea></td>
+    </tr>`).join("");
+  return `<div class="packet" id="packetPaper">
+    <h2>${LAB.lab} — Equipment specification index and component checklist</h2>
+    <div class="pkmeta">${esc(LAB.title)} · Set ${"ABCDEFGH".charAt(SET)} · eight positions P1–P8 across Halls A–D</div>
+    <p>This packet is the paper that used to be issued with the status display packet. The eight positions and their
+      front panels are on the console. The specification index gives you the nameplate ratings the arithmetic in
+      Steps 9 and 10 needs; the checklist is where you commit to what each component does before you read a single
+      panel (Step 2). Everything you type here is written into your submission sheet. <b>Print packet</b> gives you a
+      paper copy to carry to the MIR.</p>
+
+    <h3>Equipment specification index — nameplate ratings</h3>
+    <table><thead><tr><th>Equipment (tags in this packet)</th><th>Rating</th><th>Voltage</th><th>Full-load current</th><th>Notes</th></tr></thead>
+    <tbody>${specRows}</tbody></table>
+    <p style="margin-top:10px;font-size:12px;color:#444">Worked figures for the PDUs: mean of the three phase currents; imbalance = greatest deviation from
+      that mean ÷ mean × 100; percentage of rating = mean ÷ ${PDU_FLA.toFixed(1)} A × 100. A side of a 2N pair above 50 % can no longer take the whole load alone.</p>
+
+    <h3>Component checklist — one line per component type</h3>
+    <p>Write each sentence from your own head, not from the glossary. If two role sentences could be swapped without either becoming wrong, one of them is not specific enough.</p>
+    <table><thead><tr><th>Component</th><th>Role</th><th>What state its display shows</th><th>What it does NOT tell you</th></tr></thead>
+    <tbody>${chkRows}</tbody></table>
+
+    <div class="pkbtns noprint">
+      <button type="button" id="btnPrintPacket">Print packet</button>
+      <button type="button" id="btnClosePacket">Close packet</button>
+      <span style="font-size:12px;color:#555">Your entries here are carried into the submission sheet automatically.</span>
+    </div>
+    <div class="pkfoot">UCI 2227 · ${LAB.lab} ${esc(LAB.title)} · Equipment specification index and component checklist · Set ${"ABCDEFGH".charAt(SET)}</div>
+  </div>`;
+}
+function renderPacket(){
+  const p=$("packetPane"); if(!p) return;
+  p.innerHTML=packetHTML();
+  p.oninput=e=>{
+    const t=e.target; if(!t||!t.dataset.pk) return;
+    S.packet.chk[t.dataset.pk]=S.packet.chk[t.dataset.pk]||{};
+    S.packet.chk[t.dataset.pk][t.dataset.k]=t.value;
+  };
+  $("btnPrintPacket").onclick=printPacket;
+  $("btnClosePacket").onclick=()=>togglePacket(false);
+}
+function togglePacket(force){
+  const p=$("packetPane");
+  const open=typeof force==="boolean"?force:p.classList.contains("hidden");
+  p.classList.toggle("hidden",!open);
+  $("btnPacket").classList.toggle("primary",open);
+  if(open&&p.scrollIntoView) p.scrollIntoView({block:"start"});
+}
+function printPacket(){
+  /* print only the packet: lift the pane to <body>, print, put it back where it was */
+  const p=$("packetPane"), parent=p.parentNode, next=p.nextSibling;
+  const wasHidden=p.classList.contains("hidden");
+  p.classList.remove("hidden");
+  document.body.appendChild(p);
+  document.body.classList.add("pk-print");
+  const restore=()=>{
+    if(!document.body.classList.contains("pk-print")) return;
+    document.body.classList.remove("pk-print");
+    parent.insertBefore(p,next);
+    if(wasHidden) p.classList.add("hidden");
+    window.removeEventListener("afterprint",restore);
+  };
+  window.addEventListener("afterprint",restore);
+  try{ window.print(); }catch(e){}
+  setTimeout(restore,1500);
+}
+function packetRecordHTML(){
+  const cell=v=>esc((v||"").trim())||"—";
+  return `<h3 style="font-size:12px;margin:16px 0 6px;color:var(--blue);letter-spacing:1px;text-transform:uppercase">Packet — Equipment specification index and component checklist</h3>
+    <div class="ctx">Specification index used: PDU 225 kVA · 480 V in / 208 V out · ${PDU_FLA.toFixed(1)} A per phase full-load current; UPS 500 kVA / 450 kW; ATS 1600 A 480 V; STS 400 A 208 V; generator 1,500 kW standby.</div>
+    <table><thead><tr><th>Component</th><th>Role</th><th>What state its display shows</th><th>What it does NOT tell you</th></tr></thead><tbody>`+
+    COMPS.map(c=>`<tr><td>${esc(c[1])}</td><td>${cell(pkChk(c[0],"role"))}</td><td>${cell(pkChk(c[0],"shows"))}</td><td>${cell(pkChk(c[0],"not"))}</td></tr>`).join("")+
+    `</tbody></table>`;
 }
 
 /* ---------- clock ---------- */
@@ -729,14 +889,17 @@ function resetRun(){
   S.t=0; S.cur=0;
   S.sets=buildSets();
   S.roleOpts=shuffled(ROLES);
-  renderSets(); setMode("all"); startClock();
+  S.sheetOpen=false; S.packet={chk:{}};
+  $("sheetArea").innerHTML="";
+  renderSets(); renderPacket(); togglePacket(false); setMode("all"); startClock();
   $("statusBadge").textContent="Reading"; $("statusBadge").className="badge";
 }
 
 /* ---------- wiring ---------- */
 $("btnAll").onclick=()=>setMode("all");
 $("btnOne").onclick=()=>setMode("one");
-$("btnSheet").onclick=()=>setMode("sheet");
+$("btnSheet").onclick=()=>showSheet();
+$("btnPacket").onclick=()=>togglePacket();
 $("btnRestart").onclick=resetRun;
 document.addEventListener("keydown",e=>{
   if(S.mode==="one"&&!$("setsView").classList.contains("hidden")
@@ -751,8 +914,10 @@ $("setTag").textContent="Set "+"ABCDEFGH".charAt(SET);
 resetRun();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.2.2", "title": "Which Source Is Carrying the Load?", "handout": "GLAB 524.2.2 - Which Source Is Carrying the Load?", "file": "524-2-2-B_SourceID.html", "set": "B", "items": [{"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 1. Collect the status packet, the component checklist, the equipment specification index and the component functional diagnosis sheet. Open the 524.2.2 file your instructor gives you — it opens straight into the lab. Check that your packet has eight sets before you start."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 2. Before you look at any set, write one sentence for each of the four component types on the component checklist: what a UPS does, what an ATS does, what an STS does, what a PDU does. Do this from your own head, not from the glossary. If two of your sentences could be swapped without either becoming wrong, one of them is not specific enough. Rewrite it."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 4. For each set, record on your diagnosis sheet whether the load is on utility, on battery or on generator. One of those three, for every set. Where a set has more than one piece of equipment in it, be clear about which piece of equipment you are answering for."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 5. For each set, state which specific indicator told you. Name it precisely: not “the UPS”, but “the ON BATTERY lamp lit with input volts at zero”. A general impression is not an indicator."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 6. For each set, state what the other indicators do NOT tell you. This is the step that separates memorising indicators from understanding them. For example: the ATS position tells you which source is selected; it does not tell you that source is healthy. Write one sentence of that shape for every set. If you can write that sentence, you have the objective."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 7. Find the set where the UPS is on static bypass. Flag it and mark it as an escalation on your diagnosis sheet. Write in one sentence why it is an escalation, in terms a shift lead would act on. Note also what the runtime field on that unit is showing, and what that tells you."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 8. Do not confuse static bypass with maintenance bypass. Where a unit is on maintenance bypass the load sits on the external wrap-around and the UPS output reads 0 V. Record which set that is and state whether it is an escalation or a planned condition, and why."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 9. Work every PDU set. For each PDU, take the three per-phase currents, calculate the mean, and express the greatest deviation from that mean as a percentage of the mean. That is your phase imbalance figure. Record it for each PDU."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 10. For each PDU, divide the mean phase current by the full-load current from the specification index to get the percentage of rating. Flag any side of a 2N pair that exceeds 50%. A 2N pair is two complete independent systems, and the promise of 2N is that either side can carry the whole load alone. If one side is already above half its rating, that promise has gone, whatever the label on the door says."}, {"s": "Part 1: Reading the eight sets", "k": "image", "p": "Step 11. Go to the MIR rack and read the physical UPS and rack PDU displays. Find on the metal the same fields you have been reading on paper: input volts, output volts, load percentage, the lamp cluster, the per-phase currents. Note any field that appears on the physical panel but not in the packet, and any that appears in the packet but not on the metal."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 12. Complete the component functional diagnosis sheet: one line per set, eight lines, each with the live source, the deciding indicator, what the other indicators do not tell you, and any escalation. Then read your own eight lines back and check that no two sets have been given the same reasoning. If two lines read identically, you have pattern-matched rather than diagnosed one of them."}, {"s": "Part 1: Reading the eight sets", "k": "text", "p": "Step 13. Identify the two sets you found hardest and be ready to say why in the group review. The review works the ambiguous sets on the screen together, and it is worth more if you have already committed to an answer. Record the two set numbers below and, for each, the one indicator that made it hard to call. Then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose a transfer switch showed position SOURCE 2, the generator source, while the generator itself read 0 rpm and 0 V in manual. Explain what the transfer switch position actually measures, why it can be correct and useless at the same time, and what the load would really be running on."}, {"s": "Part 2: Reflection", "k": "text", "p": "A UPS front panel reads NORMAL and the load is up, and the static bypass indicator is lit. Explain the difference between the load being supported and the load being protected, and say what would happen at the next supply disturbance. Say why nothing on the data hall floor would look any different."}, {"s": "Part 2: Reflection", "k": "text", "p": "Two sets can both have the load on utility and get there by different routes — one through the inverter, one through an external wrap-around with the unit isolated. Explain how you would tell them apart, and why only one of them is a finding."}, {"s": "Part 2: Reflection", "k": "text", "p": "If you found one side of a 2N pair above 50% of its rating, state what would happen if the other side of that pair failed, and write the one sentence you would put in the shift log so an engineer could act on it without calling you."}]};</script>
-<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+<script id="lqData">
+var LQ={"lab": "GLAB 524.2.2", "title": "Which Source Is Carrying the Load?", "handout": "GLAB 524.2.2 - Which Source Is Carrying the Load?", "file": "524-2-2-B_SourceID.html", "set": "B", "items": [{"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 1. Open the 524.2.2 file your instructor gives you — it opens straight into the lab. The eight positions are on screen; the equipment specification index and the component checklist are behind the Packet button. Check that you can see all eight positions before you start."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 2. Before you look at any set, write one sentence for each of the four component types on the component checklist: what a UPS does, what an ATS does, what an STS does, what a PDU does. Do this from your own head, not from the glossary. If two of your sentences could be swapped without either becoming wrong, one of them is not specific enough. Rewrite it."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 4. For each set, record on your diagnosis sheet whether the load is on utility, on battery or on generator. One of those three, for every set. Where a set has more than one piece of equipment in it, be clear about which piece of equipment you are answering for."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 5. For each set, state which specific indicator told you. Name it precisely: not “the UPS”, but “the ON BATTERY lamp lit with input volts at zero”. A general impression is not an indicator."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 6. For each set, state what the other indicators do NOT tell you. This is the step that separates memorising indicators from understanding them. For example: the ATS position tells you which source is selected; it does not tell you that source is healthy. Write one sentence of that shape for every set. If you can write that sentence, you have the objective."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 7. Find the set where the UPS is on static bypass. Flag it and mark it as an escalation on your diagnosis sheet. Write in one sentence why it is an escalation, in terms a shift lead would act on. Note also what the runtime field on that unit is showing, and what that tells you."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 8. Do not confuse static bypass with maintenance bypass. Where a unit is on maintenance bypass the load sits on the external wrap-around and the UPS output reads 0 V. Record which set that is and state whether it is an escalation or a planned condition, and why."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 9. Work every PDU set. For each PDU, take the three per-phase currents, calculate the mean, and express the greatest deviation from that mean as a percentage of the mean. That is your phase imbalance figure. Record it for each PDU."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 10. For each PDU, divide the mean phase current by the full-load current from the specification index to get the percentage of rating. Flag any side of a 2N pair that exceeds 50%. A 2N pair is two complete independent systems, and the promise of 2N is that either side can carry the whole load alone. If one side is already above half its rating, that promise has gone, whatever the label on the door says."}, {"s": "Part 1: Reading the eight positions", "k": "image", "p": "Step 11. Go to the MIR rack and read the physical UPS and rack PDU displays. Find on the metal the same fields you have been reading on paper: input volts, output volts, load percentage, the lamp cluster, the per-phase currents. Note any field that appears on the physical panel but not in the packet, and any that appears in the packet but not on the metal."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 12. Complete the component functional diagnosis sheet: one line per set, eight lines, each with the live source, the deciding indicator, what the other indicators do not tell you, and any escalation. Then read your own eight lines back and check that no two sets have been given the same reasoning. If two lines read identically, you have pattern-matched rather than diagnosed one of them."}, {"s": "Part 1: Reading the eight positions", "k": "text", "p": "Step 13. Identify the two sets you found hardest and be ready to say why in the group review. The review works the ambiguous sets on the screen together, and it is worth more if you have already committed to an answer. Record the two set numbers in the lab tool and, for each, the one indicator that made it hard to call. Enter your name and cohort in the lab tool, then press Build submission PDF and save the file — that single PDF is what you hand in."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose a transfer switch showed position SOURCE 2, the generator source, while the generator itself read 0 rpm and 0 V in manual. Explain what the transfer switch position actually measures, why it can be correct and useless at the same time, and what the load would really be running on."}, {"s": "Part 2: Reflection", "k": "text", "p": "A UPS front panel reads NORMAL and the load is up, and the static bypass indicator is lit. Explain the difference between the load being supported and the load being protected, and say what would happen at the next supply disturbance. Say why nothing on the data hall floor would look any different."}, {"s": "Part 2: Reflection", "k": "text", "p": "Two sets can both have the load on utility and get there by different routes — one through the inverter, one through an external wrap-around with the unit isolated. Explain how you would tell them apart, and why only one of them is a finding."}, {"s": "Part 2: Reflection", "k": "text", "p": "If you found one side of a 2N pair above 50% of its rating, state what would happen if the other side of that pair failed, and write the one sentence you would put in the shift log so an engineer could act on it without calling you."}]};
+</script>
+<!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
      Self-contained. No external libraries. Safe to re-inject (idempotent).
@@ -762,6 +927,12 @@ resetRun();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
+     v2.1 — window.lqRecord() hook: a simulator can hand the module its record
+     directly, so the harvest no longer depends on which pane is showing; loose
+     `.sheet` tiles outside a `.result.show` are ignored; the learner name is
+     copied into the simulator's own name field before the harvest; the
+     completeness banner and the Set line respect no-simulator / single-set labs;
+     the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -1000,6 +1171,8 @@ resetRun();
     return LQ.set||"—";
   }
 
+  function hasSet(){ var l=setLetter(); return !!l&&l!=="—"; }
+
   /* ---------- downscale an image before it goes anywhere near storage ----------
      A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
      about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
@@ -1046,7 +1219,8 @@ resetRun();
    +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
    +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
    +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
-   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<b>What is saved:</b> everything you type in this panel is kept in this browser as you type, so a refresh will not lose your answers. '
+   +(LQ.nosim?'':'<b>What is not:</b> the simulator above starts again on a refresh — if you refresh mid-lab, work the simulator again before you build the PDF.')+'</p>'
    +'<div id="lqStoreErr" role="alert"></div>'
    +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
    +'<div class="lqid">'
@@ -1166,7 +1340,21 @@ resetRun();
   })();
 
   /* ---------- harvest the simulator's own record ---------- */
-  var REC_SEL=".sheet, .result.show";
+  var REC_SEL=".result.show, .result.show .sheet";
+  function syncSimName(){
+    /* the simulator keeps its own name field; the learner is told to fill the
+       module's. Copy across so the harvested record never reports the name blank. */
+    try{
+      var n=document.getElementById("lqName"); if(!n||!n.value.trim()) return;
+      var sim=document.getElementById("learnerName")||document.getElementById("learner")
+            ||document.querySelector('input[name="learnerName"]');
+      if(sim&&!card.contains(sim)&&!sim.value.trim()){
+        sim.value=n.value.trim();
+        sim.dispatchEvent(new Event("input",{bubbles:true}));
+        sim.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }catch(e){}
+  }
   function collect(){
     var raw=[];
     Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
@@ -1196,7 +1384,33 @@ resetRun();
     });
   }
 
+  function cleanClone(s){
+    var c=s.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    stripDuplicateName(c);
+    /* paper-era close line some simulators still print under their sheet */
+    Array.prototype.forEach.call(c.querySelectorAll("p,div,span,small"),function(n){
+      if(n.children.length===0&&/hand this sheet to your instructor/i.test(n.textContent||"")){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      }
+    });
+    return c;
+  }
   function toolRecord(){
+    syncSimName();
+    /* Preferred path: the simulator hands over its record itself. A simulator
+       defines window.lqRecord() to (re)build its sheet from its current state and
+       return the element or an HTML string — so the harvest no longer depends on
+       which pane or tab happens to be showing when the learner presses the button. */
+    if(typeof window.lqRecord==="function"){
+      try{
+        var r=window.lqRecord();
+        if(typeof r==="string"&&r.replace(/\s/g,"")) return r;
+        if(r&&r.nodeType===1&&r.textContent.replace(/\s/g,"")) return cleanClone(r).innerHTML;
+      }catch(e){}
+    }
     var found=collect();
     if(!found.length){
       var btns=document.querySelectorAll("button");
@@ -1220,14 +1434,7 @@ resetRun();
     }
     if(!found.length) return null;
     var wrap=document.createElement("div");
-    found.forEach(function(s){
-      var c=s.cloneNode(true);
-      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
-        if(n.parentNode) n.parentNode.removeChild(n);
-      });
-      stripDuplicateName(c);
-      wrap.appendChild(c);
-    });
+    found.forEach(function(s){ wrap.appendChild(cleanClone(s)); });
     return wrap.innerHTML;
   }
 
@@ -1244,21 +1451,24 @@ resetRun();
      +'<div class="lqsheet">'
      +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
      +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
-       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+       +(hasSet()?' · Set '+esc(setLetter()):'')+' · submission sheet</div>'
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
-     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
+       +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
      +'<div class="lqrow"><span class="k">Built</span><span class="v">'
        +esc(new Date().toLocaleString())+'</span></div>';
 
-    var rec=LQ.nosim?null:toolRecord();
-    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
-    else if(!LQ.nosim){
-      gaps.push("The simulator record — work through the lab tool above and press its own "
-               +"“Build submission sheet” button before you build this PDF");
-    }else{
+    /* a response tool (nosim) can still carry an in-tool packet record via window.lqRecord() */
+    var rec=(LQ.nosim&&typeof window.lqRecord!=="function")?null:toolRecord();
+    if(rec){ h+='<h2>'+(LQ.nosim?'Packet record':'Simulator record')+'</h2>'+rec; }
+    if(!rec&&!LQ.nosim){
+      var why=(typeof window.lqRecordReason==="string"&&window.lqRecordReason)?" ("+window.lqRecordReason+")":"";
+      gaps.push("The simulator record — the lab tool above has nothing to record yet"+why
+               +". Work through the lab, then build this PDF again");
+    }else if(LQ.nosim){
       h+='<h2>Assessed on the floor</h2>'
         +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
         +'Observed and signed off by the instructor against the handout. '
@@ -1283,7 +1493,8 @@ resetRun();
         +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
     }else{
       h+='<div class="lqgap ok">'
-        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+        +'<b>Complete.</b> Every question on this sheet carries a response'
+        +(LQ.nosim?'.':' and the simulator record is attached.')+'</div>';
     }
 
     h+='<div class="lqsign">Learner signature: ______________________________'
@@ -1329,7 +1540,7 @@ resetRun();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+    var runHead='<span class="r">'+esc(LQ.lab)+(hasSet()?' · Set '+esc(setLetter()):'')+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1366,6 +1577,5 @@ resetRun();
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
-
 </body>
 </html>

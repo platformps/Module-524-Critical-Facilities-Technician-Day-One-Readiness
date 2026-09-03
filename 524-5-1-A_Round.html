@@ -171,6 +171,7 @@
     <button id="btnPane_fuel">Fuel</button>
     <button id="btnPane_therm">Thermal</button>
     <button id="btnPane_log">Shift log</button>
+    <button id="btnPacket" title="Opens the Round Route Packet (route, check sheet) in its own window, so it can sit beside this console">Packet ↗</button>
     <span class="spacer"></span>
     <span class="counter" id="progress">Station 1 of 12</span>
     <span class="counter" id="elapsed">T+00:00</span>
@@ -301,7 +302,7 @@ const STATIONS=[
 const S={ci:SET,learner:"",t:0,running:false,timer:null,speed:12,
   series:{},alarms:[],sortKey:"time",sortDir:1,filters:new Set(),acked:new Set(),marks:{},
   pane:"prev",prevAck:false,prevAckAt:"",idx:0,draft:{},stnLog:{},leakRec:{},leakAt:{},
-  fuelRec:{},thermCap:{},thermRec:{},log:[],shortcuts:0,routeMsg:"",routeMsgKind:"block",find:[{},{},{},{}],handover:"",fuelMsg:"",thermMsg:""};
+  fuelRec:{},thermCap:{},thermRec:{},log:[],shortcuts:0,routeMsg:"",routeMsgKind:"block",find:[{},{},{},{}],handover:"",fuelMsg:"",thermMsg:"",rkey:0,sheetBuilt:false};
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let V=CONFIGS[SET];
@@ -676,7 +677,7 @@ function renderStationCard(){
       <div class="rl">${esc(r.label)}</div>
       <div class="rv">${n2(r.truth,r.dp)}<span class="unit" style="font-size:13px;color:var(--dim);margin-left:4px">${esc(r.unit)}</span></div>
       <div class="rh">instrument indication — write it into your log</div>
-      <input type="text" id="rd_${i}" placeholder="value" value="${esc(d["r"+i]||"")}">
+      <input type="text" id="rd_${i}" aria-label="${esc(r.label)} (${esc(r.unit)}) — value you are logging" placeholder="value" value="${esc(d["r"+i]||"")}">
     </div>`).join("");
   body.innerHTML=`
     <h3>${s.id} · ${esc(s.name)}</h3>
@@ -684,24 +685,24 @@ function renderStationCard(){
     ${req.ok?"":'<div class="blockmsg">'+esc(req.msg)+"</div>"}
     <div class="readgrid">${cells}</div>
     <div class="fld" style="margin-bottom:10px">
-      <label>What you observed here — plain words, what a stranger would need</label>
+      <label for="stObs">What you observed here — plain words, what a stranger would need</label>
       <textarea id="stObs" rows="2" placeholder="e.g. Both sets in auto, no leaks under either skid, day tank sight glasses match the gauges.">${esc(d.obs||"")}</textarea>
     </div>
     <div class="fldrow">
-      <div class="fld"><label>Deviation tag</label>
+      <div class="fld"><label for="stTag">Deviation tag</label>
         <select id="stTag">
           <option value="">— choose —</option>
           <option value="norm" ${d.tag==="norm"?"selected":""}>Within normal — nothing to carry</option>
           <option value="dev" ${d.tag==="dev"?"selected":""}>Deviation — something here goes in the findings</option>
         </select></div>
-      <div class="fld"><label>Could not check</label>
+      <div class="fld"><label for="stNa">Could not check</label>
         <select id="stNa">
           <option value="" ${!d.na?"selected":""}>Everything at this station was checked</option>
           <option value="1" ${d.na?"selected":""}>Something here could not be checked</option>
         </select></div>
     </div>
     <div class="fld ${d.na?"":"hidden"}" id="naWrap" style="margin-bottom:12px">
-      <label>Could not check — what, and why (required)</label>
+      <label for="stNaWhy">Could not check — what, and why (required)</label>
       <textarea id="stNaWhy" rows="2" placeholder="e.g. the item could not be reached or read — say what it was, why, and what you did instead.">${esc(d.nawhy||"")}</textarea>
     </div>
     <button class="primary" id="btnDone">Complete station and log</button>`;
@@ -733,6 +734,7 @@ function completeStation(){
   logIt(s.id+" "+s.name,"Observation",d.obs,d.tag,"");
   if(d.na) logIt(s.id+" "+s.name,"Could not check",d.nawhy,"na","Recorded as not checked with a reason.");
   S.idx++;
+  if(S.idx>=STATIONS.length) stopRun(true);
   S.routeMsgKind="info";
   S.routeMsg="<b>"+s.id+" logged at "+stamp+".</b>"+(S.idx<STATIONS.length?" Next station: "+STATIONS[S.idx].id+" · "+esc(STATIONS[S.idx].name)+".":" That is the whole route.");
   render(); renderRoute();
@@ -746,7 +748,7 @@ function renderLeak(){
     const rec=S.leakRec[z.id]||"";
     return `<tr><td class="mono">${z.id}</td><td>${esc(z.loc)}</td>
       <td style="text-align:center"><span class="led ${cls}"></span></td>
-      <td><select data-z="${z.id}" style="width:100%">
+      <td><select data-z="${z.id}" id="lk_${z.id}" aria-label="State you are recording for ${z.id} ${esc(z.loc)}" style="width:100%">
         <option value="">— not recorded —</option>
         <option value="normal" ${rec==="normal"?"selected":""}>Normal — cable healthy, no water</option>
         <option value="fault" ${rec==="fault"?"selected":""}>Fault — cable open, zone unmonitored</option>
@@ -762,7 +764,7 @@ function renderLeak(){
       <canvas id="leakMap"></canvas>
       <div class="legend">
         <span><span class="led n"></span> &nbsp;Green — normal. Cable healthy, no water.</span>
-        <span><span class="led f"></span> &nbsp;Amber — cable fault. The sensing cable is open somewhere along the run. The zone is unmonitored. Nothing is wet.</span>
+        <span><span class="led f"></span> &nbsp;Amber — cable fault. The sensing cable is open somewhere along the run. The zone is unmonitored. Water state unknown — the segment cannot report.</span>
         <span><span class="led a"></span> &nbsp;Red — alarm. Water detected on the cable.</span>
       </div>
       <div class="tiny">Record the lamp you can see against each segment. The legend above is the panel legend, printed on the door of the panel.</div>
@@ -803,12 +805,12 @@ function renderFuel(){
       </div>
       <div class="prevbox">Previous round, ${esc(D.prev.fuelAt)}: <span class="mono">${f.prev.toLocaleString("en-GB")} ${f.unit}</span>
         (${n2(f.prev/f.cap*100,1)} %). Expected change since then: <span class="mono">0 ${f.unit}</span> — no generator run on load and no transfer logged.</div>
-      <div class="fld" style="margin-bottom:8px"><label>Reading you are logging (${f.unit})</label>
-        <input type="text" data-fv="${f.id}" value="${esc(rec.v||"")}" placeholder="value from the gauge"></div>
-      <div class="fld" style="margin-bottom:8px"><label>Difference against the previous round (${f.unit}, signed)</label>
-        <input type="text" data-fd="${f.id}" value="${esc(rec.d||"")}" placeholder="this reading minus last reading"></div>
-      <div class="fld" style="margin-bottom:10px"><label>Against the expected trend</label>
-        <select data-ft="${f.id}">
+      <div class="fld" style="margin-bottom:8px"><label for="fv_${f.id}">${esc(f.name)} — reading you are logging (${f.unit})</label>
+        <input type="text" id="fv_${f.id}" data-fv="${f.id}" value="${esc(rec.v||"")}" placeholder="value from the gauge"></div>
+      <div class="fld" style="margin-bottom:8px"><label for="fd_${f.id}">${esc(f.name)} — difference against the previous round (${f.unit}, signed)</label>
+        <input type="text" id="fd_${f.id}" data-fd="${f.id}" value="${esc(rec.d||"")}" placeholder="this reading minus last reading"></div>
+      <div class="fld" style="margin-bottom:10px"><label for="ft_${f.id}">${esc(f.name)} — against the expected trend</label>
+        <select id="ft_${f.id}" data-ft="${f.id}">
           <option value="">— choose —</option>
           <option value="as" ${rec.tr==="as"?"selected":""}>As expected — inside gauge repeatability</option>
           <option value="below" ${rec.tr==="below"?"selected":""}>Below the expected trend</option>
@@ -873,12 +875,12 @@ function renderTherm(){
                 :`<div class="prevbox" style="text-align:center;padding:22px 10px">No capture taken at this point yet.</div>`}
           <div class="prevbox">Previous round, ${esc(D.prev.thermAt)}: <span class="mono">${esc(D.prev.therm.filter(p=>p.id===c.id)[0].t)} °C</span></div>
           <button data-cap="${c.id}" class="${cap?"":"primary"}" style="margin-bottom:10px">${cap?"Capture again":"Capture"}</button>
-          <div class="fld" style="margin-bottom:8px"><label>Spot temperature (°C)</label>
-            <input type="text" data-tv="${c.id}" ${cap?"":"disabled"} value="${esc(rec.v||"")}" placeholder="from the capture"></div>
-          <div class="fld" style="margin-bottom:8px"><label>Difference against the mean of the other two phases (°C, signed)</label>
-            <input type="text" data-td="${c.id}" ${cap?"":"disabled"} value="${esc(rec.d||"")}" placeholder="this phase minus the mean of the other two"></div>
-          <div class="fld" style="margin-bottom:10px"><label>Assessment</label>
-            <select data-ta="${c.id}" ${cap?"":"disabled"}>
+          <div class="fld" style="margin-bottom:8px"><label for="tv_${c.id}">${esc(c.id)} ${esc(c.ph)} — spot temperature (°C)</label>
+            <input type="text" id="tv_${c.id}" data-tv="${c.id}" ${cap?"":"disabled"} value="${esc(rec.v||"")}" placeholder="from the capture"></div>
+          <div class="fld" style="margin-bottom:8px"><label for="td_${c.id}">${esc(c.id)} ${esc(c.ph)} — difference against the mean of the other two phases (°C, signed)</label>
+            <input type="text" id="td_${c.id}" data-td="${c.id}" ${cap?"":"disabled"} value="${esc(rec.d||"")}" placeholder="this phase minus the mean of the other two"></div>
+          <div class="fld" style="margin-bottom:10px"><label for="ta_${c.id}">${esc(c.id)} ${esc(c.ph)} — assessment</label>
+            <select id="ta_${c.id}" data-ta="${c.id}" ${cap?"":"disabled"}>
               <option value="">— choose —</option>
               <option value="ok" ${rec.a==="ok"?"selected":""}>Within normal spread — under 10 °C above its neighbors</option>
               <option value="out" ${rec.a==="out"?"selected":""}>Outlier — 10 °C or more above its neighbors</option>
@@ -943,13 +945,13 @@ function renderLog(){
   const findRows=[0,1,2,3].map(i=>{
     const f=S.find[i]||{};
     return `<div class="findrow">
-      <select data-fi="${i}">${opts.map(o=>`<option value="${o.v}" ${f.item===o.v?"selected":""}>${esc(o.l)}</option>`).join("")}</select>
-      <select data-fu="${i}">
+      <select data-fi="${i}" aria-label="Finding ${i+1} — logged item">${opts.map(o=>`<option value="${o.v}" ${f.item===o.v?"selected":""}>${esc(o.l)}</option>`).join("")}</select>
+      <select data-fu="${i}" aria-label="Finding ${i+1} — urgency">
         <option value="">— urgency —</option>
         <option value="now" ${f.urg==="now"?"selected":""}>Escalate now</option>
         <option value="carry" ${f.urg==="carry"?"selected":""}>Carry to handover</option>
       </select>
-      <input type="text" data-fn="${i}" value="${esc(f.note||"")}" placeholder="one line: what it is and why that urgency">
+      <input type="text" data-fn="${i}" aria-label="Finding ${i+1} — one line note" value="${esc(f.note||"")}" placeholder="one line: what it is and why that urgency">
     </div>`;
   }).join("");
   el.innerHTML=`
@@ -966,17 +968,17 @@ function renderLog(){
     <div class="submit noprint">
       <h3>Findings and escalation routing</h3>
       <div class="sub">For each thing you are raising, pick the logged item it came from, decide whether it goes now or goes to the handover, and write one line saying what it is and why you routed it that way. Use as many rows as you need and leave the rest blank.</div>
-      <div class="fld" style="margin-bottom:14px"><label>Your name</label>
+      <div class="fld" style="margin-bottom:14px"><label for="learnerName">Your name</label>
         <input type="text" id="learnerName" placeholder="first and last name" style="width:260px" value="${esc(S.learner||"")}"></div>
       ${findRows}
       <div class="fld" style="margin:12px 0">
-        <label>Your handover sentence — what the next shift needs, in the order they need it</label>
+        <label for="hoText">Your handover sentence — what the next shift needs, in the order they need it</label>
         <textarea id="hoText" rows="3" placeholder="Round complete, all twelve stations. Write what the next shift needs, in the order they need it.">${esc(S.handover||"")}</textarea>
       </div>
       <button class="primary" id="btnSubmit">Build submission sheet</button>
       <div class="tiny" style="margin-top:12px">Keep this log. It is the input to the SBAR handover gate in GLAB 524.5.3, where SBAR means Situation, Background, Assessment, Recommendation. You cannot write a handover from memory, and you will be asked to.</div>
     </div>
-    <div class="result" id="roundResult"></div>`;
+    <div class="result${S.sheetBuilt?" show":""}" id="roundResult">${S.sheetBuilt?sheetHTML():""}</div>`;
   el.querySelectorAll("select[data-fi]").forEach(s=>s.onchange=e=>{
     const i=+e.target.dataset.fi; S.find[i]=S.find[i]||{}; S.find[i].item=e.target.value;});
   el.querySelectorAll("select[data-fu]").forEach(s=>s.onchange=e=>{
@@ -1001,7 +1003,7 @@ function stampNow(){
 function urgWord(u){return u==="now"?"Escalate now":u==="carry"?"Carry to handover":"not recorded";}
 function trendWord(t){return t==="as"?"as expected":t==="below"?"below the expected trend":t==="above"?"above the expected trend":"not recorded";}
 function sRow(k,v){return `<div class="sheetrow"><span>${k}</span><span>${v}</span></div>`;}
-function buildSheet(){
+function sheetHTML(){
   const miss=[];
   if(!S.prevAck) miss.push("previous round record not acknowledged");
   STATIONS.forEach(s=>{ if(!S.stnLog[s.id]) miss.push(s.id+" "+s.name+" — station not logged"); });
@@ -1020,6 +1022,7 @@ function buildSheet(){
     if(!f.urg) miss.push("finding "+(i+1)+" — no urgency recorded");
     if(!String(f.note||"").trim()) miss.push("finding "+(i+1)+" — no note written");
   });
+  if(!S.find.some(f=>f&&(f.item||f.urg||String(f.note||"").trim()))) miss.push("no findings routed — every finding on the route must be raised and given an urgency");
   if(!String(S.handover||"").trim()) miss.push("handover sentence");
 
   const stnRows=STATIONS.map(s=>{
@@ -1062,9 +1065,7 @@ function buildSheet(){
       <td>${urgWord(f.urg)}</td><td class="small">${esc(f.note||"")}</td></tr>`;
   }).join("");
 
-  const r=$("roundResult");
-  r.className="result show";
-  r.innerHTML=`<div class="sheet">
+  return `<div class="sheet">
     <h3>GLAB 524.5.1 — Full Facility Round · submission sheet</h3>
     ${sRow("Your name",esc(S.learner||"—"))}
     ${sRow("Completed",stampNow())}
@@ -1112,12 +1113,18 @@ function buildSheet(){
 
     ${miss.length?`<h4>Fields still blank</h4><div class="small">${miss.map(m=>"— "+esc(m)).join("<br>")}</div>`:""}
 
-    <div class="small" style="margin-top:16px">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
-    <div class="row noprint" style="margin-top:12px"><button class="primary" id="btnPrintSheet">Print submission sheet</button></div>
+    <div class="small" style="margin-top:16px">This record is embedded in your submission PDF.</div>
   </div>`;
-  const pb=$("btnPrintSheet"); if(pb) pb.onclick=()=>window.print();
-  logIt("Submission","Submission sheet built",stampNow(),"norm","");
 }
+function buildSheet(){
+  S.sheetBuilt=true;
+  logIt("Submission","Submission sheet built",stampNow(),"norm","");
+  const r=$("roundResult");
+  if(r){ r.className="result show"; r.innerHTML=sheetHTML(); }
+}
+/* The submission module calls this when the learner presses Build submission PDF.
+   It builds the record from state, from any pane, without touching the visible pane. */
+window.lqRecord=function(){ return D?sheetHTML():null; };
 
 /* ---------- run loop ---------- */
 function pushSeries(){
@@ -1147,8 +1154,9 @@ function stopRun(done){
 }
 function resetRun(){
   stopRun(false);
-  rnd=mulberry32((1013904223 + SET*2654435761)>>>0);
-  S.t=0; S.series={}; S.acked=new Set(); S.marks={}; S.filters=new Set();
+  S.rkey=(1013904223 + SET*2654435761)>>>0;
+  rnd=mulberry32(S.rkey);
+  S.t=0; S.sheetBuilt=false; S.series={}; S.acked=new Set(); S.marks={}; S.filters=new Set();
   S.prevAck=false; S.prevAckAt=""; S.idx=0; S.draft={}; S.stnLog={};
   S.leakRec={}; S.leakAt={}; S.fuelRec={}; S.thermCap={}; S.thermRec={};
   S.log=[]; S.shortcuts=0; S.routeMsg=""; S.routeMsgKind="block"; S.fuelMsg=""; S.thermMsg="";
@@ -1164,6 +1172,13 @@ function resetRun(){
 /* ---------- boot ---------- */
 PANES.forEach(p=>{ $("btnPane_"+p).onclick=()=>setPane(p); });
 $("btnRestart").onclick=resetRun;
+/* Round Route Packet — reference copy, opened in its own window so it can sit beside the console.
+   Source is embedded below in #packetSrc; nothing is fetched. */
+$("btnPacket").onclick=()=>{
+  const w=window.open("","glab5251_packet","width=1240,height=900,resizable=yes,scrollbars=yes");
+  if(!w){alert("The browser blocked the packet window. Allow pop-ups for this file and press Packet again.");return;}
+  w.document.open(); w.document.write($("packetSrc").textContent); w.document.close(); w.focus();
+};
 window.addEventListener("resize",()=>{
   if(S.pane==="leak"&&$("leakMap"))drawLeakMap($("leakMap"));
   if(S.pane==="fuel")renderFuel();
@@ -1171,9 +1186,232 @@ window.addEventListener("resize",()=>{
 });
 resetRun();
 </script>
+<!-- ===== GLAB 524.5.1 Round Route Packet — embedded reference copy (3_Handouts/524-5-1_Round_Route_Packet.html).
+     Opened by the Packet toolbar button in a separate window. Inert here: type="text/html" is never executed. ===== -->
+<script type="text/html" id="packetSrc"><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GLAB 524.5.1 — Round Route Packet — UCI 2227</title>
+<style>
+  :root{
+    --ink:#12232e; --mut:#5a6b78; --line:#c3ced7; --blue:#1a3a5c;
+    --accent:#0b6ea8; --route:#0b6ea8; --paper:#fff; --soft:#f2f6f9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:#e9eef2;color:var(--ink);
+       font:13px/1.5 Arial,Helvetica,sans-serif}
+  .sheet{background:var(--paper);max-width:1180px;margin:0 auto 22px;padding:26px 30px;
+         border:1px solid var(--line);border-radius:4px}
+  h1{font-size:22px;color:var(--blue);margin:0 0 2px}
+  h2{font-size:15px;color:var(--blue);margin:26px 0 8px;
+     border-bottom:1px solid var(--line);padding-bottom:4px}
+  .eyebrow{font:600 10px/1 Arial;letter-spacing:.10em;text-transform:uppercase;
+           color:var(--accent);margin:0 0 8px}
+  .lede{color:var(--mut);margin:0 0 16px;max-width:82ch}
+  table{border-collapse:collapse;width:100%;margin:8px 0 4px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--blue);color:#fff;font-size:11px;letter-spacing:.04em;
+     text-transform:uppercase;font-weight:600}
+  .cover td:first-child{width:190px;background:var(--soft);font-weight:600}
+  .fill{color:var(--mut);font-style:italic}
+  .st{background:var(--soft);font-weight:700;color:var(--blue);width:58px;text-align:center}
+  .val{width:120px}.tm{width:78px}
+  .note{background:var(--soft);border-left:3px solid var(--accent);padding:10px 14px;margin:14px 0}
+  .note strong{color:var(--blue)}
+  .bad{border-left-color:#c8501e}
+  svg{width:100%;height:auto;border:1px solid var(--line);background:#fff}
+  .foot{color:var(--mut);font-size:11px;margin-top:18px;border-top:1px solid var(--line);padding-top:8px}
+  code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:12px}
+  .bar{max-width:1180px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;color:var(--mut);font-size:12px}
+  .bar button{font:600 13px Arial;padding:7px 14px;border-radius:4px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+  .bar button:hover{background:#095a89}
+  @media print{
+    body{background:#fff;padding:0}
+    .bar{display:none}
+    .sheet{border:0;margin:0;max-width:none;padding:14mm;page-break-after:always}
+    .sheet:last-child{page-break-after:auto}
+    @page{size:A4 portrait;margin:8mm}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <button onclick="window.print()">Print packet</button>
+  <span>Reference copy opened from the lab tool. Keep this window beside the console; your readings, findings and handover sentence are entered in the console, not here — the console record is what goes into your submission PDF.</span>
+</div>
+
+<section class="sheet">
+  <p class="eyebrow">UCI 2227 · Module 524 · Lesson 524.5 — Shift Ops &amp; Handoffs</p>
+  <h1>GLAB 524.5.1 — Round Route Packet</h1>
+  <p class="lede">Twelve stations, walked in this order, every time. A round is a comparison instrument:
+  it only works if the thing you are comparing against was collected the same way. Record
+  <strong>actual values with times</strong>, never ticks — <em>Fuel OK</em> is worthless;
+  <em>1,840 litres at 09:15</em> can be compared against every previous round.</p>
+
+  <table class="cover">
+    <tr><td>Route</td><td><strong>ROUND ROUTE — ST01 to ST12, in order</strong></td></tr>
+    <tr><td>Order</td><td>Walk the defined order, not the order that is convenient today. Record at the
+        same points every time so consecutive rounds are directly comparable.</td></tr>
+    <tr><td>Before you start</td><td><strong>Read the previous shift's round record at the desk.</strong>
+        It takes ninety seconds and it is the only thing that makes your own round mean anything.</td></tr>
+    <tr><td>Learner name</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Round started</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Round completed</td><td class="fill">&nbsp;</td></tr>
+  </table>
+
+  <h2>From the previous shift record — what am I watching for?</h2>
+  <table>
+    <tr class="sheetrow"><td style="height:26px">1.</td></tr>
+    <tr class="sheetrow"><td style="height:26px">2.</td></tr>
+    <tr class="sheetrow"><td style="height:26px">3.</td></tr>
+  </table>
+
+  <h2>The route, in order</h2>
+  <svg viewBox="0 0 1140 240" role="img" aria-label="Round route sequence, station ST01 through ST12">
+    <defs>
+      <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#0b6ea8"/>
+      </marker>
+      <style>
+        .lnk{stroke:#0b6ea8;stroke-width:2.4;fill:none}
+        .node{fill:#e8f1f7;stroke:#1a3a5c;stroke-width:1.6}
+        .nid{font:700 12px Arial;fill:#1a3a5c}
+        .nnm{font:10.5px Arial;fill:#12232e}
+        .cap{font:600 10px Arial;fill:#5a6b78;letter-spacing:.05em}
+      </style>
+    </defs>
+
+    <!-- row 1: ST01..ST06 -->
+    <g>
+      <path class="lnk" marker-end="url(#a2)" d="M155,52 H185"/>
+      <path class="lnk" marker-end="url(#a2)" d="M335,52 H365"/>
+      <path class="lnk" marker-end="url(#a2)" d="M515,52 H545"/>
+      <path class="lnk" marker-end="url(#a2)" d="M695,52 H725"/>
+      <path class="lnk" marker-end="url(#a2)" d="M875,52 H905"/>
+      <!-- wrap down -->
+      <path class="lnk" marker-end="url(#a2)" d="M1055,80 V110 H60 V138"/>
+      <!-- row 2 -->
+      <path class="lnk" marker-end="url(#a2)" d="M155,166 H185"/>
+      <path class="lnk" marker-end="url(#a2)" d="M335,166 H365"/>
+      <path class="lnk" marker-end="url(#a2)" d="M515,166 H545"/>
+      <path class="lnk" marker-end="url(#a2)" d="M695,166 H725"/>
+      <path class="lnk" marker-end="url(#a2)" d="M875,166 H905"/>
+    </g>
+
+    <g>
+      <rect class="node" x="25"   y="28" width="130" height="48" rx="4"/><text class="nid" x="34" y="46">ST01</text><text class="nnm" x="34" y="64">Main switchgear</text>
+      <rect class="node" x="205"  y="28" width="130" height="48" rx="4"/><text class="nid" x="214" y="46">ST02</text><text class="nnm" x="214" y="64">UPS-A</text>
+      <rect class="node" x="385"  y="28" width="130" height="48" rx="4"/><text class="nid" x="394" y="46">ST03</text><text class="nnm" x="394" y="64">UPS-B</text>
+      <rect class="node" x="565"  y="28" width="130" height="48" rx="4"/><text class="nid" x="574" y="46">ST04</text><text class="nnm" x="574" y="64">PDU rows</text>
+      <rect class="node" x="745"  y="28" width="130" height="48" rx="4"/><text class="nid" x="754" y="46">ST05</text><text class="nnm" x="754" y="64">Generator yard</text>
+      <rect class="node" x="925"  y="28" width="130" height="48" rx="4"/><text class="nid" x="934" y="46">ST06</text><text class="nnm" x="934" y="64">Fuel farm</text>
+
+      <rect class="node" x="25"   y="142" width="130" height="48" rx="4"/><text class="nid" x="34" y="160">ST07</text><text class="nnm" x="34" y="178">Mechanical yard</text>
+      <rect class="node" x="205"  y="142" width="130" height="48" rx="4"/><text class="nid" x="214" y="160">ST08</text><text class="nnm" x="214" y="178">Pump room</text>
+      <rect class="node" x="385"  y="142" width="130" height="48" rx="4"/><text class="nid" x="394" y="160">ST09</text><text class="nnm" x="394" y="178">Hall A</text>
+      <rect class="node" x="565"  y="142" width="130" height="48" rx="4"/><text class="nid" x="574" y="160">ST10</text><text class="nnm" x="574" y="178">Hall B</text>
+      <rect class="node" x="745"  y="142" width="130" height="48" rx="4"/><text class="nid" x="754" y="160">ST11</text><text class="nnm" x="754" y="178">Leak detection panel</text>
+      <rect class="node" x="925"  y="142" width="130" height="48" rx="4"/><text class="nid" x="934" y="160">ST12</text><text class="nnm" x="934" y="178">BMS desk</text>
+    </g>
+    <text class="cap" x="25" y="220">SEQUENCE ONLY — STATION POSITIONS ARE SITE-SPECIFIC. THE ORDER IS WHAT MATTERS.</text>
+  </svg>
+
+  <p class="foot">UCI 2227 — GLAB 524.5.1 Round Route Packet · Stations ST01–ST12</p>
+</section>
+
+<section class="sheet">
+  <p class="eyebrow">GLAB 524.5.1 · Round route</p>
+  <h1>Round check sheet</h1>
+  <p class="lede">Write values in the moment. Reconstructing from memory at the desk produces plausible
+  fiction. Record the time on every entry — <em>this morning</em> is not a timestamp anyone can work with.</p>
+
+  <table>
+    <thead><tr><th class="st">St</th><th>Station and what you read</th>
+      <th class="val">Value</th><th class="tm">Time</th><th class="val">vs previous</th></tr></thead>
+    <tbody>
+      <tr><td class="st" rowspan="2">ST01</td><td>Incomer A ammeter (A)</td><td></td><td></td><td></td></tr>
+      <tr><td>Switchroom ambient (°C) · <strong>IR: CB-101 lugs, phase A / B / C</strong></td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST02</td><td>UPS-A output load (%)</td><td></td><td></td><td></td></tr>
+      <tr><td>UPS-A battery autonomy (min)</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST03</td><td>UPS-B output load (%)</td><td></td><td></td><td></td></tr>
+      <tr><td>UPS-B battery autonomy (min)</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST04</td><td>PDU-03 load (%)</td><td></td><td></td><td></td></tr>
+      <tr><td>PDU-07 load (%) · <strong>IR: PDU-03 subfeed F2 lugs, phase A / B / C</strong></td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST05</td><td>GEN-1 jacket water heater (°C)</td><td></td><td></td><td></td></tr>
+      <tr><td>GEN-2 starting battery (V dc) · <strong>day tanks DT1 and DT2</strong></td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST06</td><td>Transfer pump hour meter (h)</td><td></td><td></td><td></td></tr>
+      <tr><td>Bund water level (mm) · <strong>bulk tank gauge</strong></td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST07</td><td>Chilled water supply (°C)</td><td></td><td></td><td></td></tr>
+      <tr><td>CT-2 basin level (mm)</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST08</td><td>P-2 discharge pressure (kPa)</td><td></td><td></td><td></td></tr>
+      <tr><td>P-2 bearing temperature (°C) — listen as well as look</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST09</td><td>Hall A cold aisle temperature (°C)</td><td></td><td></td><td></td></tr>
+      <tr><td>Hall A containment differential (Pa) — at the marked point</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST10</td><td>Hall B cold aisle temperature (°C)</td><td></td><td></td><td></td></tr>
+      <tr><td>Hall B containment differential (Pa) — at the marked point</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST11</td><td>Panel supply (V dc)</td><td></td><td></td><td></td></tr>
+      <tr><td>Segments not in normal state (count) — <strong>record all nine segments</strong></td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST12</td><td>Active alarms (count)</td><td></td><td></td><td></td></tr>
+      <tr><td>Oldest unacknowledged alarm (min)</td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note bad">
+    <strong>A leak segment showing FAULT is not the same as showing NO LEAK.</strong> A faulted segment is a
+    blind spot — that stretch of floor is no longer monitored and it will not alarm when water arrives.
+    Record every segment at ST11, including the normal ones.
+  </div>
+
+  <h2>Not checked, and why</h2>
+  <p class="lede">A locked room or a blocked access point is a finding, not an omission. Record it.</p>
+  <table>
+    <thead><tr><th style="width:22%">Station / location</th><th>Why it could not be checked</th><th class="tm">Time</th></tr></thead>
+    <tbody>
+      <tr><td style="height:30px"></td><td></td><td></td></tr>
+      <tr><td style="height:30px"></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Findings — and which cannot wait for the handover</h2>
+  <table>
+    <thead><tr><th style="width:20%">Where</th><th>What you observed (describe, do not diagnose)</th>
+      <th class="tm">Time</th><th style="width:15%">Escalate now?</th></tr></thead>
+    <tbody>
+      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
+      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
+      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
+      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>Some findings wait for the handover and some do not.</strong> A connection running twenty
+    degrees above its neighbors does not wait. Decide for each finding and mark it.
+  </div>
+
+  <p class="foot">Keep this sheet — its findings are the input to the SBAR gate, GLAB 524.5.3, this afternoon.</p>
+</section>
+
+</body>
+</html></script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 524.5.1 - Full Facility Round", "file": "524-5-1-A_Round.html", "set": "A", "items": [{"s": "Part 1: Walking the round", "k": "text", "p": "Step 1. Open the previous shift round record before you leave the desk and read all of it, including entries that look routine. Write down the two or three things it tells you to watch: an open work order, a note left at a particular station, a value that was already drifting. Acknowledge the record in the lab tool. The route will not unlock until you have, and that is deliberate — ninety seconds of reading is the only thing that makes your own numbers mean anything."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 4. At ST01, main switchgear room, take the three assigned infrared captures on the MSB-A CB-101 outgoing lugs — phase A, phase B and phase C. Log each temperature next to the other two phases of the same connection. The differential between phases on an evenly loaded three-phase joint is the whole diagnosis, and it takes four extra words to record. Paste your switchgear thermal captures here."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 5. At ST04, PDU rows, take the three assigned infrared captures on the PDU-03 subfeed F2 lugs, again phase by phase. A power distribution unit (PDU) subfeed carries hall load, so a hot lug here has a direct route to the floor. Heat at a connection means resistance, resistance means a loosening or corroding joint, and that joint is on its way to an arcing fault. Paste your PDU thermal captures here."}, {"s": "Part 1: Walking the round", "k": "text", "p": "Step 12. Escalate now any finding that does not wait. State it in one sentence containing the measurement, the comparison, the location and what you are asking for, in this shape: “[device and location] reading [value] against [the values it is compared with], [the size of the difference] — requesting [the action you want] before [the deadline].” Write your escalation sentence here."}, {"s": "Part 2: Reflection", "k": "text", "p": "Of the findings on your route, which traveled to the handover and which did not wait? Explain where you drew the line and what makes that line sit where it does rather than one finding further along. A technician who escalates everything will be ignored by the fourth call; a technician who escalates nothing hands over the one thing that mattered in a sentence nobody reads."}, {"s": "Part 2: Reflection", "k": "text", "p": "A leak detection segment showing CABLE FAULT is not showing “no leak”. Explain, in your own words, what that segment is actually telling you about the floor it covers, and what a next shift would wrongly assume if your log recorded it as “not in alarm”."}, {"s": "Part 2: Reflection", "k": "text", "p": "A fuel finding is only visible because a previous shift wrote down a number. Describe exactly what the previous record bought you here, and what your own fuel entries will or will not buy the shift that follows you. Be specific about which words in your entry carry the comparison."}, {"s": "Part 2: Reflection", "k": "text", "p": "Pick the weakest entry in your own log — the one that would be least useful to someone arriving cold at 2am. Quote it, say what is missing, and rewrite it to the standard you would want to receive."}]};</script>
-<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+<script id="lqData">
+var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 524.5.1 - Full Facility Round", "file": "524-5-1-A_Round.html", "set": "A", "items": [{"s": "Part 1: Walking the round", "k": "text", "p": "Step 1. Open the previous shift round record before you leave the desk and read all of it, including entries that look routine. Write down the two or three things it tells you to watch: an open work order, a note left at a particular station, a value that was already drifting. Acknowledge the record in the lab tool. The route will not unlock until you have, and that is deliberate — ninety seconds of reading is the only thing that makes your own numbers mean anything."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 4. At ST01, main switchgear room, take the three assigned infrared captures on the MSB-A CB-101 outgoing lugs — phase A, phase B and phase C. Log each temperature next to the other two phases of the same connection. The differential between phases on an evenly loaded three-phase joint is the whole diagnosis, and it takes four extra words to record. Paste your switchgear thermal captures in the lab tool."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 5. At ST04, PDU rows, take the three assigned infrared captures on the PDU-03 subfeed F2 lugs, again phase by phase. A power distribution unit (PDU) subfeed carries hall load, so a hot lug here has a direct route to the floor. Heat at a connection means resistance, resistance means a loosening or corroding joint, and that joint is on its way to an arcing fault. Paste your PDU thermal captures in the lab tool."}, {"s": "Part 1: Walking the round", "k": "text", "p": "Step 12. Escalate now any finding that does not wait. State it in one sentence containing the measurement, the comparison, the location and what you are asking for, in this shape: “[device and location] reading [value] against [the values it is compared with], [the size of the difference] — requesting [the action you want] before [the deadline].” Write your escalation sentence in the lab tool."}, {"s": "Part 2: Reflection", "k": "text", "p": "Of the findings on your route, which travelled to the handover and which did not wait? Explain where you drew the line and what makes that line sit where it does rather than one finding further along. A technician who escalates everything will be ignored by the fourth call; a technician who escalates nothing hands over the one thing that mattered in a sentence nobody reads."}, {"s": "Part 2: Reflection", "k": "text", "p": "A leak detection segment showing CABLE FAULT is not showing “no leak”. Explain, in your own words, what that segment is actually telling you about the floor it covers, and what a next shift would wrongly assume if your log recorded it as “not in alarm”."}, {"s": "Part 2: Reflection", "k": "text", "p": "A fuel finding is only visible because a previous shift wrote down a number. Describe exactly what the previous record bought you here, and what your own fuel entries will or will not buy the shift that follows you. Be specific about which words in your entry carry the comparison."}, {"s": "Part 2: Reflection", "k": "text", "p": "Pick the weakest entry in your own log — the one that would be least useful to someone arriving cold at 2am. Quote it, say what is missing, and rewrite it to the standard you would want to receive."}]};
+</script>
+<!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
      Self-contained. No external libraries. Safe to re-inject (idempotent).
@@ -1183,6 +1421,12 @@ resetRun();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
+     v2.1 — window.lqRecord() hook: a simulator can hand the module its record
+     directly, so the harvest no longer depends on which pane is showing; loose
+     `.sheet` tiles outside a `.result.show` are ignored; the learner name is
+     copied into the simulator's own name field before the harvest; the
+     completeness banner and the Set line respect no-simulator / single-set labs;
+     the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -1421,6 +1665,8 @@ resetRun();
     return LQ.set||"—";
   }
 
+  function hasSet(){ var l=setLetter(); return !!l&&l!=="—"; }
+
   /* ---------- downscale an image before it goes anywhere near storage ----------
      A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
      about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
@@ -1467,7 +1713,8 @@ resetRun();
    +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
    +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
    +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
-   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<b>What is saved:</b> everything you type in this panel is kept in this browser as you type, so a refresh will not lose your answers. '
+   +(LQ.nosim?'':'<b>What is not:</b> the simulator above starts again on a refresh — if you refresh mid-lab, work the simulator again before you build the PDF.')+'</p>'
    +'<div id="lqStoreErr" role="alert"></div>'
    +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
    +'<div class="lqid">'
@@ -1587,7 +1834,21 @@ resetRun();
   })();
 
   /* ---------- harvest the simulator's own record ---------- */
-  var REC_SEL=".sheet, .result.show";
+  var REC_SEL=".result.show, .result.show .sheet";
+  function syncSimName(){
+    /* the simulator keeps its own name field; the learner is told to fill the
+       module's. Copy across so the harvested record never reports the name blank. */
+    try{
+      var n=document.getElementById("lqName"); if(!n||!n.value.trim()) return;
+      var sim=document.getElementById("learnerName")||document.getElementById("learner")
+            ||document.querySelector('input[name="learnerName"]');
+      if(sim&&!card.contains(sim)&&!sim.value.trim()){
+        sim.value=n.value.trim();
+        sim.dispatchEvent(new Event("input",{bubbles:true}));
+        sim.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }catch(e){}
+  }
   function collect(){
     var raw=[];
     Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
@@ -1617,7 +1878,33 @@ resetRun();
     });
   }
 
+  function cleanClone(s){
+    var c=s.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    stripDuplicateName(c);
+    /* paper-era close line some simulators still print under their sheet */
+    Array.prototype.forEach.call(c.querySelectorAll("p,div,span,small"),function(n){
+      if(n.children.length===0&&/hand this sheet to your instructor/i.test(n.textContent||"")){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      }
+    });
+    return c;
+  }
   function toolRecord(){
+    syncSimName();
+    /* Preferred path: the simulator hands over its record itself. A simulator
+       defines window.lqRecord() to (re)build its sheet from its current state and
+       return the element or an HTML string — so the harvest no longer depends on
+       which pane or tab happens to be showing when the learner presses the button. */
+    if(typeof window.lqRecord==="function"){
+      try{
+        var r=window.lqRecord();
+        if(typeof r==="string"&&r.replace(/\s/g,"")) return r;
+        if(r&&r.nodeType===1&&r.textContent.replace(/\s/g,"")) return cleanClone(r).innerHTML;
+      }catch(e){}
+    }
     var found=collect();
     if(!found.length){
       var btns=document.querySelectorAll("button");
@@ -1641,14 +1928,7 @@ resetRun();
     }
     if(!found.length) return null;
     var wrap=document.createElement("div");
-    found.forEach(function(s){
-      var c=s.cloneNode(true);
-      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
-        if(n.parentNode) n.parentNode.removeChild(n);
-      });
-      stripDuplicateName(c);
-      wrap.appendChild(c);
-    });
+    found.forEach(function(s){ wrap.appendChild(cleanClone(s)); });
     return wrap.innerHTML;
   }
 
@@ -1665,21 +1945,24 @@ resetRun();
      +'<div class="lqsheet">'
      +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
      +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
-       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+       +(hasSet()?' · Set '+esc(setLetter()):'')+' · submission sheet</div>'
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
-     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
+       +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
      +'<div class="lqrow"><span class="k">Built</span><span class="v">'
        +esc(new Date().toLocaleString())+'</span></div>';
 
-    var rec=LQ.nosim?null:toolRecord();
-    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
-    else if(!LQ.nosim){
-      gaps.push("The simulator record — work through the lab tool above and press its own "
-               +"“Build submission sheet” button before you build this PDF");
-    }else{
+    /* a response tool (nosim) can still carry an in-tool packet record via window.lqRecord() */
+    var rec=(LQ.nosim&&typeof window.lqRecord!=="function")?null:toolRecord();
+    if(rec){ h+='<h2>'+(LQ.nosim?'Packet record':'Simulator record')+'</h2>'+rec; }
+    if(!rec&&!LQ.nosim){
+      var why=(typeof window.lqRecordReason==="string"&&window.lqRecordReason)?" ("+window.lqRecordReason+")":"";
+      gaps.push("The simulator record — the lab tool above has nothing to record yet"+why
+               +". Work through the lab, then build this PDF again");
+    }else if(LQ.nosim){
       h+='<h2>Assessed on the floor</h2>'
         +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
         +'Observed and signed off by the instructor against the handout. '
@@ -1704,7 +1987,8 @@ resetRun();
         +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
     }else{
       h+='<div class="lqgap ok">'
-        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+        +'<b>Complete.</b> Every question on this sheet carries a response'
+        +(LQ.nosim?'.':' and the simulator record is attached.')+'</div>';
     }
 
     h+='<div class="lqsign">Learner signature: ______________________________'
@@ -1750,7 +2034,7 @@ resetRun();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+    var runHead='<span class="r">'+esc(LQ.lab)+(hasSet()?' · Set '+esc(setLetter()):'')+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1787,6 +2071,5 @@ resetRun();
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
-
 </body>
 </html>

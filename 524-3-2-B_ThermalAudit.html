@@ -110,6 +110,10 @@
   .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
   .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
   .result.show{display:block;background:var(--panel2);border:1px solid var(--line)}
+  /* dew-point acknowledgement — same look as .result, but deliberately NOT .result so the
+     submission module never mistakes it for the audit record */
+  .dpnote{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
+  .dpnote.show{display:block;background:var(--panel2);border:1px solid var(--line)}
   .srow{display:flex;gap:14px;padding:6px 0;border-bottom:1px solid #182b3b;font-size:12.5px;align-items:flex-start}
   .srow .sk{color:var(--faint);min-width:250px;flex:0 0 auto}
   .srow .sv{flex:1;white-space:pre-wrap}
@@ -317,7 +321,8 @@ const SCENARIOS=[
 
 const S={learner:"",t:0,timer:null,view:"cap",
   sel:0,readings:{},nz:[],hallDB:22.0,hallRH:45,dpSet:false,dpEntered:null,
-  insp:{},cam:false,refuse:""};
+  insp:{},cam:false,refuse:"",
+  ans:{above:"",dt:"",loc:"",cls:"",ev:"",act:""}};   /* audit-form entries live here, not in the DOM */
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const esc=t=>String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -540,8 +545,10 @@ function drawAshrae(cv){
     c.fillStyle=k.f; c.strokeStyle=k.s; c.lineWidth=1;
     c.fillRect(X(k.x0),Y(k.y1),X(k.x1)-X(k.x0),Y(k.y0)-Y(k.y1));
     c.strokeRect(X(k.x0),Y(k.y1),X(k.x1)-X(k.x0),Y(k.y0)-Y(k.y1));
-    c.fillStyle=k.s; c.textAlign="left"; c.textBaseline="top";
-    c.fillText("Allowable "+k.n,X(k.x0)+4,Y(k.y1)+3);
+    c.fillStyle=k.s; c.textBaseline="top";
+    /* A3 and A4 share the same left edge (5 °C), so A4's label goes at its own right edge */
+    if(k.n==="A4"){ c.textAlign="right"; c.fillText("Allowable "+k.n,X(k.x1)-4,Y(k.y1)+3); }
+    else{ c.textAlign="left"; c.fillText("Allowable "+k.n,X(k.x0)+4,Y(k.y1)+3); }
   });
 
   // recommended envelope: 18-27 °C dry-bulb, -9 °C dew point up to
@@ -648,7 +655,7 @@ function renderCapture(){
             <input type="number" step="0.1" id="dpIn" style="width:130px" value="${S.dpEntered===null?"":S.dpEntered}"></div>
           <button class="primary" id="btnDp">Record dew point</button>
         </div>
-        <div class="result ${S.dpSet?"show":""}" id="dpResult">${S.dpSet?"Dew point recorded as <b>"+S.dpEntered.toFixed(1)+" °C</b>. Your readings will be plotted at that dew point.":""}</div>
+        <div class="dpnote ${S.dpSet?"show":""}" id="dpResult">${S.dpSet?"Dew point recorded as <b>"+S.dpEntered.toFixed(1)+" °C</b>. Your readings will be plotted at that dew point.":""}</div>
         <div class="note" style="margin-top:12px">Dew point does not change when air is heated. Every inlet reading in this hall shares the same dew point, so the plotted points move sideways along one horizontal line. That is why a moisture problem and a temperature problem look completely different on the chart.</div>
       </div>
     </div>`;
@@ -680,7 +687,7 @@ function renderProbe(){
     const b=e.target.closest("button.cap"); if(!b) return;
     const el=+b.dataset.e;
     S.readings[S.sel+"-"+el]=+inletTemp(S.sel,el).toFixed(1);
-    S.refuse=""; renderCapture();
+    S.refuse=""; renderCapture(); updateBadge();
   };
   const n=rackCaptured(S.sel);
   $("rackCount").textContent=n+" of 3 elevations captured on "+RACKS[S.sel].id+" · "+capturedCount()+" of 36 in the hall";
@@ -703,9 +710,9 @@ function renderProbe(){
 function recordDewPoint(){
   const inp=$("dpIn"), r=$("dpResult");
   const v=parseFloat(inp.value);
-  if(isNaN(v)){ r.className="result show"; r.innerHTML="Enter a dew point in degrees Celsius."; return; }
+  if(isNaN(v)){ r.className="dpnote show"; r.innerHTML="Enter a dew point in degrees Celsius."; return; }
   S.dpEntered=v; S.dpSet=true;
-  r.className="result show";
+  r.className="dpnote show";
   r.innerHTML="Dew point recorded as <b>"+v.toFixed(1)+" °C</b>. Your readings will be plotted at that dew point. "+
     "Re-enter it at any time if you rework the calculation.";
   render();
@@ -826,8 +833,12 @@ function renderCam(){
   bindPlan();
 }
 
+const DTNAMES={within:"Within design, 10 to 13 K",reduced:"Reduced — below design",elevated:"Elevated — above design"};
+const CLNAMES={bypass:"Bypass — cold supply air returns to the cooling unit without passing through equipment",
+               recirculation:"Recirculation — hot exhaust re-enters the cold aisle and is drawn back into inlets",
+               both:"Both mechanisms at the same opening"};
 function renderAudit(){
-  const el=$("labView");
+  const el=$("labView"), A=S.ans;
   const dp=S.dpSet?S.dpEntered:null;
   const dt=hallDT();
   const rows=[];
@@ -862,35 +873,32 @@ function renderAudit(){
       <div class="sub">Fill this in from your own survey. Every entry is recorded on the submission sheet exactly as you write it.</div>
       <div class="fld" style="margin-bottom:12px"><label>Your name</label><input type="text" id="learnerName" placeholder="First and last" style="max-width:340px" value="${esc(S.learner)}"></div>
       <div class="fgrid">
-        <div class="fld"><label>Inlet readings above the recommended upper limit of 27.0 °C</label>
-          <input type="number" id="ansAbove" step="1" min="0" placeholder="count"></div>
-        <div class="fld"><label>Hall delta T against design</label>
+        <div class="fld"><label for="ansAbove">Inlet readings above the recommended upper limit of 27.0 °C</label>
+          <input type="number" id="ansAbove" step="1" min="0" placeholder="count" value="${esc(A.above)}"></div>
+        <div class="fld"><label for="ansDt">Hall delta T against design</label>
           <select id="ansDt">
             <option value="">— choose —</option>
-            <option value="within">Within design, 10 to 13 K</option>
-            <option value="reduced">Reduced — below design</option>
-            <option value="elevated">Elevated — above design</option>
+            ${Object.keys(DTNAMES).map(k=>'<option value="'+k+'"'+(A.dt===k?" selected":"")+'>'+DTNAMES[k]+"</option>").join("")}
           </select></div>
       </div>
       <div class="fgrid">
-        <div class="fld"><label>Containment leakage point</label>
+        <div class="fld"><label for="ansLoc">Containment leakage point</label>
           <select id="ansLoc"><option value="">— choose —</option>
-            ${LOCOPTS.map(k=>'<option value="'+k+'">'+LOCNAME[k]+"</option>").join("")}</select></div>
-        <div class="fld"><label>Classification of the breach</label>
+            ${LOCOPTS.map(k=>'<option value="'+k+'"'+(A.loc===k?" selected":"")+'>'+LOCNAME[k]+"</option>").join("")}</select></div>
+        <div class="fld"><label for="ansCls">Classification of the breach</label>
           <select id="ansCls"><option value="">— choose —</option>
-            <option value="bypass">Bypass — cold supply air returns to the cooling unit without passing through equipment</option>
-            <option value="recirculation">Recirculation — hot exhaust re-enters the cold aisle and is drawn back into inlets</option>
-            <option value="both">Both mechanisms at the same opening</option>
+            ${Object.keys(CLNAMES).map(k=>'<option value="'+k+'"'+(A.cls===k?" selected":"")+'>'+CLNAMES[k]+"</option>").join("")}
           </select></div>
       </div>
       <div class="fld" style="margin-bottom:12px">
-        <label>Your evidence — quote the readings that force this classification</label>
-        <textarea id="ansEv" rows="3" placeholder="Quote the readings that force your classification: which racks and elevations, what the hall figures do, and what the containment inspection found."></textarea>
+        <label for="ansEv">Your evidence — quote the readings that force this classification</label>
+        <textarea id="ansEv" rows="3" placeholder="Quote the readings that force your classification: which racks and elevations, what the hall figures do, and what the containment inspection found.">${esc(A.ev)}</textarea>
       </div>
       <div class="fld" style="margin-bottom:12px">
-        <label>Recommended action</label>
-        <textarea id="ansAct" rows="2" placeholder="What is to be done, by whom, and what is re-measured afterwards."></textarea>
+        <label for="ansAct">Recommended action</label>
+        <textarea id="ansAct" rows="2" placeholder="What is to be done, by whom, and what is re-measured afterwards.">${esc(A.act)}</textarea>
       </div>
+      <div class="note" style="margin-bottom:10px">The sheet is built only once all thirty-six inlet readings are captured — the tool does not accept a partial survey.</div>
       <div class="row noprint">
         <button class="primary" id="btnSubmit">Build submission sheet</button>
         <button id="btnPrintAudit">Print audit form</button>
@@ -899,20 +907,28 @@ function renderAudit(){
     </div>`;
   $("btnSubmit").onclick=buildSheet;
   {const _n=$("learnerName"); if(_n) _n.oninput=()=>{S.learner=_n.value.trim();};}
+  /* keep the six findings in state so leaving this tab and coming back loses nothing */
+  const bind=(id,key)=>{const f=$(id); if(!f) return; const h=()=>{S.ans[key]=String(f.value).trim();}; f.oninput=h; f.onchange=h;};
+  bind("ansAbove","above"); bind("ansDt","dt"); bind("ansLoc","loc"); bind("ansCls","cls"); bind("ansEv","ev"); bind("ansAct","act");
   $("btnPrintAudit").onclick=()=>window.print();
 }
 
 function srow(k,v){ return '<div class="srow"><div class="sk">'+k+'</div><div class="sv">'+v+'</div></div>'; }
-function buildSheet(){
+/* The tool does not accept an audit with fewer than thirty-six readings (handout Step 5). */
+function refusalHTML(){
+  return '<div class="refuse"><b>Not accepted — '+capturedCount()+' of 36 inlet readings captured.</b> '+
+    'The survey method is three readings per rack, 0.3 m, 1.1 m and 1.8 m, on all twelve racks. '+
+    'The audit sheet is built only when all thirty-six are in. Go back to <b>Capture readings</b>, finish the survey and build again.</div>';
+}
+/* Builds the audit sheet from the current state and returns the HTML string, or null while
+   the survey is short of thirty-six readings. Needs no tab to be visible. */
+function sheetHTML(forModule){
   {const _n=$("learnerName"); if(_n) S.learner=_n.value.trim();}
-  const above=$("ansAbove").value.trim(), dtA=$("ansDt").value, loc=$("ansLoc").value, cl=$("ansCls").value;
-  const ev=$("ansEv").value.trim(), act=$("ansAct").value.trim();
-  const dtNames={within:"Within design, 10 to 13 K",reduced:"Reduced — below design",elevated:"Elevated — above design"};
-  const clNames={bypass:"Bypass — cold supply air returns to the cooling unit without passing through equipment",
-                 recirculation:"Recirculation — hot exhaust re-enters the cold aisle and is drawn back into inlets",
-                 both:"Both mechanisms at the same opening"};
+  if(!allCaptured()) return null;
+  const A=S.ans;
+  const above=A.above, dtA=A.dt, loc=A.loc, cl=A.cls, ev=A.ev, act=A.act;
+  const dtNames=DTNAMES, clNames=CLNAMES;
   const missing=[];
-  if(!allCaptured()) missing.push(capturedCount()+" of 36 inlet readings captured");
   if(!S.dpSet) missing.push("dew point");
   if(above==="") missing.push("count of readings above the recommended upper limit");
   if(!dtA) missing.push("hall delta T assessment");
@@ -924,8 +940,10 @@ function buildSheet(){
   if(!S.learner) missing.push("your name");
 
   let h='<div class="sheet"><h4>'+LAB.lab+" \u2014 "+LAB.title+" \u00b7 Set "+SETLETTER+'</h4>';
-  h+='<div class="learnerline"><b>Name:</b> '+(esc(S.learner)||"\u2014")+'</div>';
-  h+=srow("Learner",esc(S.learner)||"&mdash;");
+  if(!forModule){   /* the submission module prints the name in its own Learner block */
+    h+='<div class="learnerline"><b>Name:</b> '+(esc(S.learner)||"\u2014")+'</div>';
+    h+=srow("Learner",esc(S.learner)||"&mdash;");
+  }
   h+=srow("Set",SETLETTER);
   h+=srow("Completed",stamp());
   h+=srow("Elapsed on the survey",fmtElapsed(S.t));
@@ -968,13 +986,28 @@ function buildSheet(){
   if(missing.length)
     h+='<div class="note" style="margin-top:12px"><b>Not yet filled in:</b> '+missing.join("; ")+
        ". This is a completeness check only \u2014 it says nothing about what you have written.</div>";
-  h+='<div class="note" style="margin-top:12px">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>';
-  h+='<div class="row noprint" style="margin-top:12px"><button id="btnPrintSheet">Print submission sheet</button></div></div>';
-  const r=$("auditResult");
-  r.className="result show";
-  r.innerHTML=h;
-  $("btnPrintSheet").onclick=()=>window.print();
+  h+='<div class="note" style="margin-top:12px">This record is embedded in your submission PDF.</div></div>';
+  return h;
 }
+function buildSheet(){
+  const r=$("auditResult"); if(!r) return;
+  const h=sheetHTML();
+  if(h===null){
+    r.className="refusal show"; r.style.display="block"; r.innerHTML=refusalHTML();
+    if(r.scrollIntoView) r.scrollIntoView({block:"nearest"});
+    return;
+  }
+  r.className="result show"; r.style.display="";
+  r.innerHTML=h+'<div class="row noprint" style="margin-top:12px"><button id="btnPrintSheet">Print submission sheet</button></div>';
+  $("btnPrintSheet").onclick=()=>window.print();
+  if(r.scrollIntoView) r.scrollIntoView({block:"nearest"});
+}
+/* Hook for the shared submission module: hands over the audit sheet built from state,
+   whichever tab is showing. Returns null while the survey is short of 36 readings —
+   the module then reports the record as missing, which is the intended refusal. */
+window.lqRecord=function(){
+  window.lqRecordReason=allCaptured()?"":"the audit has "+capturedCount()+" of 36 inlet readings — the tool will not build its sheet until all thirty-six are captured";
+  return sheetHTML(true); };
 
 /* ---------- run loop ---------- */
 function updateProgress(){
@@ -990,6 +1023,9 @@ function render(){
   else if(S.view==="cam") renderCam();
   else renderAudit();
   updateProgress();
+  updateBadge();
+}
+function updateBadge(){
   const bd=$("statusBadge");
   if(allCaptured()&&S.dpSet){bd.textContent="Survey complete";bd.className="badge run";}
   else{bd.textContent="Survey in progress";bd.className="badge";}
@@ -1008,6 +1044,7 @@ function stopClock(){ if(S.timer){clearInterval(S.timer);S.timer=null;} }
 function resetRun(){
   rnd=mulberry32(RUNKEY);
   S.t=0; S.readings={}; S.insp={}; S.sel=0; S.dpSet=false; S.dpEntered=null; S.cam=false; S.refuse="";
+  S.ans={above:"",dt:"",loc:"",cls:"",ev:"",act:""};
   S.hallDB=+(V.dbBase+noise(0.3)).toFixed(1);
   S.hallRH=+(V.rhBase+noise(1.5)).toFixed(1);
   S.nz=[]; for(let i=0;i<36;i++) S.nz.push(noise(0.3));
@@ -1042,8 +1079,10 @@ S.hallDB=V.dbBase; S.hallRH=V.rhBase;
 resetRun();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.3.2", "title": "Thermal Envelope Audit", "handout": "GLAB 524.3.2 - Thermal Envelope Audit", "file": "524-3-2-B_ThermalAudit.html", "set": "B", "items": [{"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 2. Confirm which ASHRAE class the hardware in this hall falls under, and write it on the form. The recommended band of 18 to 27 degrees C dry-bulb applies to all A classes and is your normal operating target. The allowable bands are defined per class, A1 to A4, with A1 the tightest and A4 the widest, and they describe what the hardware will survive rather than where you should run it. The 2021 edition adds class H1 at 18 to 22 degrees C for high-density hardware. Ask which class applies. Do not assume."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 7. Calculate the dew point from the hall dry-bulb and relative humidity using the Magnus formula, in which T is the hall dry-bulb temperature in degrees C, RH is the relative humidity in per cent, and the WMO coefficients are b = 17.62 and c = 243.12 degrees C. First calculate the intermediate term gamma: gamma = ln(RH divided by 100) plus (b times T) divided by (c plus T). Then dew point = (c times gamma) divided by (b minus gamma). Worked example, for a hall at 22.0 degrees C and 45 per cent relative humidity: ln(0.45) = -0.7985; (17.62 times 22.0) divided by (243.12 plus 22.0) = 387.64 divided by 265.12 = 1.4621; gamma = -0.7985 plus 1.4621 = 0.6636; dew point = (243.12 times 0.6636) divided by (17.62 minus 0.6636) = 161.34 divided by 16.956 = 9.5 degrees C. Show your own working on the sheet, then enter the value in the tool and confirm it."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 8. Check your dew point against the recommended limits and record the result. The recommended dew point range is -9 to 15 degrees C, with relative humidity not above 60 per cent. Then apply the practical rule: if the chilled water supply temperature is below the room dew point, the pipes, coils and valve bodies will sweat regardless of what the relative humidity reading says. State in one sentence whether this hall is at condensation risk and what number you used to decide."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "image", "p": "Photograph or scan your marked-up ASHRAE chart for submission. Check before you do that your name, every plotted point, every point you have marked as outside the recommended envelope, and your count of readings above 27.0 degrees C are all legible."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 10. Calculate the vertical gradient for each cabinet: gradient = top reading at 1.8 m minus bottom reading at 0.3 m. Worked example: a cabinet reading 19.6 degrees C at the bottom and 30.1 degrees C at the top has a gradient of 30.1 minus 19.6 = 10.5 K over 1.5 m of height. Air leaving a floor grille is the same temperature at 0.3 m as it is at 1.8 m, so a gradient like that means something warm has arrived at the top of that cabinet. The only warm air in the room is equipment exhaust. Record the gradient for every cabinet and circle the largest two."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "image", "p": "Step 13. Use the thermal camera to confirm what your probe readings already suggest. Take images of the two cabinets with the largest gradients and of the containment item you suspect. Re-read the standing caution before you press the trigger: the camera is showing you a surface, not the air an inlet is drawing. If the camera and the probe disagree strongly, stop and ask."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 16. If time remains in the 45-minute block, fix what you found — fit blanking panels to every vacant U position on the MIR, close the door, grommet the cutout — and re-measure the affected cabinets at all three elevations. Record the before and after side by side. This is the most useful ten minutes in the module and it is worth the engineering time."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose you had walked into this aisle looking only for a hot spot. Would you have found this breach? Name the specific reading that would have told you something was wrong even if every rack inlet had been within the recommended band, and say what value it had."}, {"s": "Part 2: Reflection", "k": "text", "p": "Two halls both read 45 per cent relative humidity, and one of them is at condensation risk while the other is not. Explain how that is possible, using the dew point you calculated and the chilled water supply temperature from GLAB 524.3.1."}, {"s": "Part 2: Reflection", "k": "text", "p": "The recommended band is 18 to 27 degrees C and the allowable bands for classes A1 to A4 are wider. Explain why running permanently near the top of the allowable band is within the standard and still a poor decision, and say what you would tell a colleague who proposed it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Describe a situation in this hall in which the thermal camera and the probe would disagree, explain which of the two you would put in the audit form as the measurement, and say what the other one is good for."}]};</script>
-<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+<script id="lqData">
+var LQ={"lab": "GLAB 524.3.2", "title": "Thermal Envelope Audit", "handout": "GLAB 524.3.2 - Thermal Envelope Audit", "file": "524-3-2-B_ThermalAudit.html", "set": "B", "items": [{"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 2. Confirm which ASHRAE class the hardware in this hall falls under, and write it on the form. The recommended band of 18 to 27 degrees C dry-bulb applies to all A classes and is your normal operating target. The allowable bands are defined per class, A1 to A4, with A1 the tightest and A4 the widest, and they describe what the hardware will survive rather than where you should run it. The 2021 edition adds class H1 at 18 to 22 degrees C for high-density hardware. Ask which class applies. Do not assume."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 7. Calculate the dew point from the hall dry-bulb and relative humidity using the Magnus formula, in which T is the hall dry-bulb temperature in degrees C, RH is the relative humidity in per cent, and the WMO coefficients are b = 17.62 and c = 243.12 degrees C. First calculate the intermediate term gamma: gamma = ln(RH divided by 100) plus (b times T) divided by (c plus T). Then dew point = (c times gamma) divided by (b minus gamma). Worked example, for a hall at 22.0 degrees C and 45 per cent relative humidity: ln(0.45) = -0.7985; (17.62 times 22.0) divided by (243.12 plus 22.0) = 387.64 divided by 265.12 = 1.4621; gamma = -0.7985 plus 1.4621 = 0.6636; dew point = (243.12 times 0.6636) divided by (17.62 minus 0.6636) = 161.34 divided by 16.956 = 9.5 degrees C. Show your own working on the sheet, then enter the value in the tool and confirm it."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 8. Check your dew point against the recommended limits and record the result. The recommended dew point range is -9 to 15 degrees C, with relative humidity not above 60 per cent. Then apply the practical rule: if the chilled water supply temperature is below the room dew point, the pipes, coils and valve bodies will sweat regardless of what the relative humidity reading says. State in one sentence whether this hall is at condensation risk and what number you used to decide."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "image", "p": "Photograph or scan your marked-up ASHRAE chart, or take a screenshot of the ASHRAE chart tab, and attach it as Q4."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 10. Calculate the vertical gradient for each cabinet: gradient = top reading at 1.8 m minus bottom reading at 0.3 m. Worked example: a cabinet reading 19.6 degrees C at the bottom and 30.1 degrees C at the top has a gradient of 30.1 minus 19.6 = 10.5 K over 1.5 m of height. Air leaving a floor grille is the same temperature at 0.3 m as it is at 1.8 m, so a gradient like that means something warm has arrived at the top of that cabinet. The only warm air in the room is equipment exhaust. Record the gradient for every cabinet and circle the largest two."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "image", "p": "Step 13. Use the thermal camera to confirm what your probe readings already suggest. Take images of the two cabinets with the largest gradients and of the containment item you suspect. Re-read the standing caution before you press the trigger: the camera is showing you a surface, not the air an inlet is drawing. If the camera and the probe disagree strongly, stop and ask."}, {"s": "Part 1: Measuring and inspecting the cold aisle", "k": "text", "p": "Step 16. If time remains in the 45-minute block, fix what you found — fit blanking panels to every vacant U position on the MIR, close the door, grommet the cutout — and re-measure the affected cabinets at all three elevations. Record the before and after side by side. This is the most useful ten minutes in the module and it is worth the engineering time."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose you had walked into this aisle looking only for a hot spot. Would you have found this breach? Name the specific reading that would have told you something was wrong even if every rack inlet had been within the recommended band, and say what value it had."}, {"s": "Part 2: Reflection", "k": "text", "p": "Two halls both read 45 per cent relative humidity, and one of them is at condensation risk while the other is not. Explain how that is possible, using the dew point you calculated and the chilled water supply temperature from GLAB 524.3.1."}, {"s": "Part 2: Reflection", "k": "text", "p": "The recommended band is 18 to 27 degrees C and the allowable bands for classes A1 to A4 are wider. Explain why running permanently near the top of the allowable band is within the standard and still a poor decision, and say what you would tell a colleague who proposed it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Describe a situation in this hall in which the thermal camera and the probe would disagree, explain which of the two you would put in the audit form as the measurement, and say what the other one is good for."}]};
+</script>
+<!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
      Self-contained. No external libraries. Safe to re-inject (idempotent).
@@ -1053,6 +1092,12 @@ resetRun();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
+     v2.1 — window.lqRecord() hook: a simulator can hand the module its record
+     directly, so the harvest no longer depends on which pane is showing; loose
+     `.sheet` tiles outside a `.result.show` are ignored; the learner name is
+     copied into the simulator's own name field before the harvest; the
+     completeness banner and the Set line respect no-simulator / single-set labs;
+     the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -1291,6 +1336,8 @@ resetRun();
     return LQ.set||"—";
   }
 
+  function hasSet(){ var l=setLetter(); return !!l&&l!=="—"; }
+
   /* ---------- downscale an image before it goes anywhere near storage ----------
      A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
      about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
@@ -1337,7 +1384,8 @@ resetRun();
    +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
    +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
    +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
-   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<b>What is saved:</b> everything you type in this panel is kept in this browser as you type, so a refresh will not lose your answers. '
+   +(LQ.nosim?'':'<b>What is not:</b> the simulator above starts again on a refresh — if you refresh mid-lab, work the simulator again before you build the PDF.')+'</p>'
    +'<div id="lqStoreErr" role="alert"></div>'
    +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
    +'<div class="lqid">'
@@ -1457,7 +1505,21 @@ resetRun();
   })();
 
   /* ---------- harvest the simulator's own record ---------- */
-  var REC_SEL=".sheet, .result.show";
+  var REC_SEL=".result.show, .result.show .sheet";
+  function syncSimName(){
+    /* the simulator keeps its own name field; the learner is told to fill the
+       module's. Copy across so the harvested record never reports the name blank. */
+    try{
+      var n=document.getElementById("lqName"); if(!n||!n.value.trim()) return;
+      var sim=document.getElementById("learnerName")||document.getElementById("learner")
+            ||document.querySelector('input[name="learnerName"]');
+      if(sim&&!card.contains(sim)&&!sim.value.trim()){
+        sim.value=n.value.trim();
+        sim.dispatchEvent(new Event("input",{bubbles:true}));
+        sim.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }catch(e){}
+  }
   function collect(){
     var raw=[];
     Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
@@ -1487,7 +1549,33 @@ resetRun();
     });
   }
 
+  function cleanClone(s){
+    var c=s.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    stripDuplicateName(c);
+    /* paper-era close line some simulators still print under their sheet */
+    Array.prototype.forEach.call(c.querySelectorAll("p,div,span,small"),function(n){
+      if(n.children.length===0&&/hand this sheet to your instructor/i.test(n.textContent||"")){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      }
+    });
+    return c;
+  }
   function toolRecord(){
+    syncSimName();
+    /* Preferred path: the simulator hands over its record itself. A simulator
+       defines window.lqRecord() to (re)build its sheet from its current state and
+       return the element or an HTML string — so the harvest no longer depends on
+       which pane or tab happens to be showing when the learner presses the button. */
+    if(typeof window.lqRecord==="function"){
+      try{
+        var r=window.lqRecord();
+        if(typeof r==="string"&&r.replace(/\s/g,"")) return r;
+        if(r&&r.nodeType===1&&r.textContent.replace(/\s/g,"")) return cleanClone(r).innerHTML;
+      }catch(e){}
+    }
     var found=collect();
     if(!found.length){
       var btns=document.querySelectorAll("button");
@@ -1511,14 +1599,7 @@ resetRun();
     }
     if(!found.length) return null;
     var wrap=document.createElement("div");
-    found.forEach(function(s){
-      var c=s.cloneNode(true);
-      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
-        if(n.parentNode) n.parentNode.removeChild(n);
-      });
-      stripDuplicateName(c);
-      wrap.appendChild(c);
-    });
+    found.forEach(function(s){ wrap.appendChild(cleanClone(s)); });
     return wrap.innerHTML;
   }
 
@@ -1535,21 +1616,24 @@ resetRun();
      +'<div class="lqsheet">'
      +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
      +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
-       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+       +(hasSet()?' · Set '+esc(setLetter()):'')+' · submission sheet</div>'
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
-     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
+       +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
      +'<div class="lqrow"><span class="k">Built</span><span class="v">'
        +esc(new Date().toLocaleString())+'</span></div>';
 
-    var rec=LQ.nosim?null:toolRecord();
-    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
-    else if(!LQ.nosim){
-      gaps.push("The simulator record — work through the lab tool above and press its own "
-               +"“Build submission sheet” button before you build this PDF");
-    }else{
+    /* a response tool (nosim) can still carry an in-tool packet record via window.lqRecord() */
+    var rec=(LQ.nosim&&typeof window.lqRecord!=="function")?null:toolRecord();
+    if(rec){ h+='<h2>'+(LQ.nosim?'Packet record':'Simulator record')+'</h2>'+rec; }
+    if(!rec&&!LQ.nosim){
+      var why=(typeof window.lqRecordReason==="string"&&window.lqRecordReason)?" ("+window.lqRecordReason+")":"";
+      gaps.push("The simulator record — the lab tool above has nothing to record yet"+why
+               +". Work through the lab, then build this PDF again");
+    }else if(LQ.nosim){
       h+='<h2>Assessed on the floor</h2>'
         +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
         +'Observed and signed off by the instructor against the handout. '
@@ -1574,7 +1658,8 @@ resetRun();
         +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
     }else{
       h+='<div class="lqgap ok">'
-        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+        +'<b>Complete.</b> Every question on this sheet carries a response'
+        +(LQ.nosim?'.':' and the simulator record is attached.')+'</div>';
     }
 
     h+='<div class="lqsign">Learner signature: ______________________________'
@@ -1620,7 +1705,7 @@ resetRun();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+    var runHead='<span class="r">'+esc(LQ.lab)+(hasSet()?' · Set '+esc(setLetter()):'')+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1657,6 +1742,5 @@ resetRun();
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
-
 </body>
 </html>

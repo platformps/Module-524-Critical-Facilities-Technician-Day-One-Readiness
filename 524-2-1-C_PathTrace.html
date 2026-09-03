@@ -184,6 +184,45 @@
     background:var(--panel2);color:var(--dim);cursor:pointer}
   .pill.sel{background:#16324a;border-color:var(--blue);color:var(--ice)}
   .assign{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--ice);margin:4px 0 2px}
+
+  /* ---------- drawing packet (in-tool, printable) ---------- */
+  .packet{background:#fbfaf6;color:#111;border:1px solid #c9c4b4;border-radius:9px;padding:22px 26px;
+    margin-bottom:14px;font-family:var(--sans);font-size:13px;line-height:1.5}
+  .packet h2{font-size:17px;margin:0 0 2px;color:#111}
+  .packet h3{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#345;margin:20px 0 8px;font-weight:700}
+  .packet .pkmeta{font-size:12px;color:#555;margin-bottom:12px}
+  .packet p{margin:0 0 10px;color:#222}
+  .packet table{font-size:12.5px}
+  .packet th{color:#345;border-bottom:1px solid #999;cursor:default;font-size:10px}
+  .packet td{border-bottom:1px solid #ddd;color:#111;vertical-align:middle;padding:6px 8px}
+  .packet input[type=text],.packet textarea{background:#fff;color:#111;border:1px solid #b9b3a3;border-radius:4px;
+    padding:5px 7px;font-size:12.5px;width:100%}
+  .packet textarea{min-height:54px}
+  .packet label.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .packet label{display:block;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:#345;font-weight:700;margin:0 0 4px}
+  .packet .lgrow .lgtxt{color:#333}
+  .packet .lgrow .lgtxt b{color:#111}
+  .packet .pkbtns{display:flex;gap:9px;margin-top:16px;align-items:center}
+  .packet .pkbtns button{background:#fff;color:#111;border-color:#999}
+  .packet .pkbtns button:hover{background:#eee}
+  .packet .pkfoot{font-size:11px;color:#666;margin-top:16px;border-top:1px solid #ccc;padding-top:8px}
+  .packet .pkcond{background:#fff;border:1px solid #b9b3a3;border-radius:4px;padding:8px 10px;color:#111;font-size:12.5px}
+  @media print{
+    body.pk-print{background:#fff!important;color:#000!important;overflow:visible!important;height:auto!important}
+    body.pk-print>*{display:none!important}
+    body.pk-print>#packetPane{display:block!important}
+    body.pk-print .packet{border:0;padding:0;background:#fff;color:#000;border-radius:0}
+    body.pk-print .packet *{color:#000!important;background:transparent!important;box-shadow:none!important}
+    body.pk-print .packet input[type=text],body.pk-print .packet textarea{border:0;border-bottom:1px solid #888;border-radius:0;resize:none}
+    body.pk-print .packet .pkbtns,body.pk-print .noprint{display:none!important}
+    body.pk-print .packet tr{page-break-inside:avoid;break-inside:avoid}
+    body.pk-print .packet thead{display:table-header-group}
+    body.pk-print .packet svg.lgsvg{background:#fff!important;border-color:#888}
+    body.pk-print .packet .sld .sym,body.pk-print .packet .sld .bus,body.pk-print .packet .sld .symfill,
+    body.pk-print .packet .sld .wire{stroke:#000}
+    body.pk-print .packet .sld .symfill{fill:#fff}
+    body.pk-print .packet .sld .glyph,body.pk-print .packet .sld .dot{fill:#000}
+  }
 </style>
 </head>
 <body>
@@ -202,6 +241,7 @@
 
   <div class="toolbar" id="toolbar">
     <button id="btnLegend">Legend</button>
+    <button id="btnPacket" title="Drawing packet: legend sheet and component list worksheet, readable and printable here">Packet</button>
     <button id="btnTrace" class="primary">Trace mode</button>
     <button id="btnUndo">Undo step</button>
     <button id="btnClear">Clear trace</button>
@@ -213,6 +253,7 @@
 
   <main>
     <div class="wrap">
+      <section id="packetPane" class="hidden" aria-label="Drawing packet"></section>
       <section id="pathView"></section>
     </div>
   </main>
@@ -302,7 +343,7 @@ const SETUPS=[
    cond:"Normal. Both utility feeds live, both generators in standby, both transfer switches on their normal source, bus tie open."},
   {id:"P2", target:"R-114", atsA:"n", atsB:"n",
    cond:"Normal. Both utility feeds live, both generators in standby, both transfer switches on their normal source, bus tie open."},
-  {id:"P3", target:"R-110", atsA:"e", atsB:"e",
+  {id:"P3", target:"R-110", atsA:"e", atsB:"e", utilLost:true,
    cond:"Utility supply lost at the service entrance. GEN-1 running and carrying the load through the paralleling switchboard. GEN-2 out for scheduled maintenance and off the board. Both transfer switches have moved to the emergency source. Bus tie still open."}
 ];
 
@@ -315,7 +356,8 @@ function kvr(k,v,wide){ return '<div class="kvr'+(wide?" wide":"")+'"><span>'+k+
 
 const S={learner:"",t:0,timer:null,
   trace:true,legendSeen:false,legendOpen:false,
-  path:[],volts:{},tieAns:null,quiz:[],lastMsg:null};
+  path:[],volts:{},tieAns:null,quiz:[],lastMsg:null,
+  packet:{ws:{},cond:"",count:""}};
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const esc=s=>String(s===undefined||s===null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -632,7 +674,10 @@ function clickNode(id){
       return;
     }
     S.path.push(id); S.volts[0]="";
-    say("ok","Step 1: <b>"+n.lab+"</b>. Now work down the drawing, one adjacent device at a time.");
+    if(id==="UTIL"&&V.utilLost)
+      say("warn","Step 1: <b>"+n.lab+"</b>. <b>Read the plant status before you start</b> — it says what has happened to this source today.");
+    else
+      say("ok","Step 1: <b>"+n.lab+"</b>. Now work down the drawing, one adjacent device at a time.");
     afterPathChange(); return;
   }
   const head=S.path[S.path.length-1];
@@ -768,11 +813,11 @@ function renderQuiz(){
 }
 
 /* ---------- submission sheet ---------- */
-function buildSheet(){
-  const r=$("pathResult"), b=[];
+function sheetHTML(forRecord){
+  const b=[];
   b.push(`<h3 style="font-size:15px">${LAB.lab} — ${LAB.title}</h3>
     <div class="sub" style="margin:2px 0 11px">Submission sheet</div>`);
-  b.push(kvr("Name",esc(S.learner)||"—")+
+  b.push((forRecord?"":kvr("Name",esc(S.learner)||"—"))+
          kvr("Completed",stamp())+kvr("Time on task",fmtElapsed(S.t))+
          kvr("Assigned rack",V.target)+kvr("Plant status",esc(V.cond),true));
 
@@ -801,6 +846,8 @@ function buildSheet(){
           q.ans?lbl(q.ans):"not answered",true)).join("")
       : `<div class="note">Not attempted.</div>`));
 
+  b.push(packetRecordHTML());
+
   const miss=[];
   if(!S.learner) miss.push("your name");
   if(!S.path.length) miss.push("the traced sequence");
@@ -809,17 +856,137 @@ function buildSheet(){
   if(S.tieAns===null) miss.push("the open-tie confirmation");
   if(!S.quiz.length) miss.push("the three upstream questions");
   else if(S.quiz.some(q=>!q.ans)) miss.push("an answer to every upstream question");
+  if(!packetAnyFilled()) miss.push("the drawing packet worksheet (Packet button on the toolbar)");
   if(miss.length) b.push(`<div class="todo"><b>Blank fields on this sheet:</b>
     <ul>${miss.map(m=>`<li>${m}</li>`).join("")}</ul></div>`);
 
-  b.push(`<div class="close">Check every field before printing. Hand this sheet to your instructor with your
-    worksheet.</div>
-    <div class="row noprint" style="margin-top:11px">
+  b.push(`<div class="close">This record is embedded in your submission PDF.</div>`);
+  if(!forRecord) b.push(`<div class="row noprint" style="margin-top:11px">
       <button onclick="window.print()">Print submission sheet</button></div>`);
-
+  return b.join("");
+}
+function buildSheet(){
+  const r=$("pathResult");
+  if(!r) return;
   r.className="result show";
-  r.innerHTML=b.join("");
+  r.innerHTML=sheetHTML(false);
   setStatus("Sheet built","run");
+}
+/* The submission module calls this when the learner presses Build submission PDF.
+   It rebuilds the record from the current state, whatever is on screen, and never
+   touches the visible panes. */
+window.lqRecord=function(){ return sheetHTML(true); };
+
+/* ---------- drawing packet: legend sheet + component list worksheet ----------
+   Lives in #packetPane, which is never repainted, so the learner's entries survive
+   every trace, undo and sheet build. Values are held in S.packet and written into
+   the submission sheet (and so into the submission PDF). */
+const PK_ROWS=LEGEND.map((r,i)=>({i:i,svg:r[0],name:r[1]}));
+function pkv(i,k){ const w=S.packet.ws[i]; return w&&w[k]?w[k]:""; }
+function packetAnyFilled(){
+  if((S.packet.cond||"").trim()||(S.packet.count||"").trim()) return true;
+  return PK_ROWS.some(r=>["name","does","volt"].some(k=>pkv(r.i,k).trim()));
+}
+function packetHTML(){
+  const rows=PK_ROWS.map(r=>`<tr>
+      <td style="width:90px"><svg class="sld lgsvg" viewBox="0 0 74 46" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(r.name)} symbol">${r.svg}</svg></td>
+      <td><label class="vh" for="pk_name_${r.i}">Component name</label>
+          <input type="text" id="pk_name_${r.i}" data-pk="${r.i}" data-k="name" value="${esc(pkv(r.i,"name"))}" autocomplete="off"></td>
+      <td><label class="vh" for="pk_does_${r.i}">What it does</label>
+          <input type="text" id="pk_does_${r.i}" data-pk="${r.i}" data-k="does" value="${esc(pkv(r.i,"does"))}" autocomplete="off"></td>
+      <td style="width:150px"><label class="vh" for="pk_volt_${r.i}">Voltage level</label>
+          <input type="text" id="pk_volt_${r.i}" data-pk="${r.i}" data-k="volt" value="${esc(pkv(r.i,"volt"))}" placeholder="e.g. 13.8 kV" autocomplete="off"></td>
+    </tr>`).join("");
+  return `<div class="packet" id="packetPaper">
+    <h2>${LAB.lab} — Drawing packet</h2>
+    <div class="pkmeta">Power Path Tracing · Single-line diagram sheet E-101 Rev C (unlabeled training print) · Set ${"ABCDEFGH".charAt(SET)} · Assigned rack <b>${V.target}</b></div>
+    <p>This packet is the paper that used to be issued with the drawing: the legend sheet and the component list
+      worksheet. The drawing itself is on the console. Read the legend before you trace, fill the worksheet as you
+      work, and everything you type here is written into your submission sheet. <b>Print packet</b> gives you a paper
+      copy to carry to the MIR.</p>
+
+    <h3>Plant condition — read this first</h3>
+    <div class="pkcond">${esc(V.cond)}</div>
+
+    <h3>Legend sheet</h3>
+    <p>Every designation on the print is recoverable from the symbol, the voltage level and the position in the chain.</p>
+    <div class="lgrid">`+
+    LEGEND.map(r=>`<div class="lgrow">
+      <svg class="sld lgsvg" viewBox="0 0 74 46" xmlns="http://www.w3.org/2000/svg">${r[0]}</svg>
+      <div class="lgtxt"><b>${r[1]}</b>${r[2]}</div></div>`).join("")+
+    `</div>
+
+    <h3>Component list worksheet — one line per symbol on the drawing</h3>
+    <p>For each symbol, write the component name you would use on the floor, what the device does in the delivery
+      chain, and the voltage level at which it sits on this drawing (13.8 kV, 480 V, 415 V, 415/240 V, or
+      &ldquo;none — not a delivery device&rdquo;). The traced sequence in delivery order is the console worksheet
+      to the right of the drawing; this sheet is the symbol key you build for yourself.</p>
+    <table><thead><tr><th style="width:90px">Symbol</th><th>Component name</th><th>What it does</th><th style="width:150px">Voltage level</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+
+    <div style="display:grid;grid-template-columns:1fr 180px;gap:14px;margin-top:16px">
+      <div><label for="pk_cond">Plant condition, in my own words (Step 3)</label>
+        <textarea id="pk_cond" data-pkf="cond">${esc(S.packet.cond)}</textarea></div>
+      <div><label for="pk_count">Node count at the foot of my list (Step 12)</label>
+        <input type="text" id="pk_count" data-pkf="count" value="${esc(S.packet.count)}" autocomplete="off"></div>
+    </div>
+
+    <div class="pkbtns noprint">
+      <button type="button" id="btnPrintPacket">Print packet</button>
+      <button type="button" id="btnClosePacket">Close packet</button>
+      <span style="font-size:12px;color:#555">Your entries here are carried into the submission sheet automatically.</span>
+    </div>
+    <div class="pkfoot">UCI 2227 · ${LAB.lab} ${LAB.title} · Drawing packet · Sheet E-101 Rev C · Set ${"ABCDEFGH".charAt(SET)}</div>
+  </div>`;
+}
+function renderPacket(){
+  const p=$("packetPane"); if(!p) return;
+  p.innerHTML=packetHTML();
+  p.oninput=e=>{
+    const t=e.target; if(!t) return;
+    if(t.dataset.pk!==undefined){
+      const i=+t.dataset.pk; S.packet.ws[i]=S.packet.ws[i]||{};
+      S.packet.ws[i][t.dataset.k]=t.value;
+    } else if(t.dataset.pkf){ S.packet[t.dataset.pkf]=t.value; }
+  };
+  $("btnPrintPacket").onclick=printPacket;
+  $("btnClosePacket").onclick=()=>togglePacket(false);
+}
+function togglePacket(force){
+  const p=$("packetPane");
+  const open=typeof force==="boolean"?force:p.classList.contains("hidden");
+  p.classList.toggle("hidden",!open);
+  $("btnPacket").classList.toggle("primary",open);
+  if(open) p.scrollIntoView({block:"start"});
+}
+function printPacket(){
+  /* print only the packet: lift the pane to <body>, print, put it back where it was */
+  const p=$("packetPane"), parent=p.parentNode, next=p.nextSibling;
+  const wasHidden=p.classList.contains("hidden");
+  p.classList.remove("hidden");
+  document.body.appendChild(p);
+  document.body.classList.add("pk-print");
+  const restore=()=>{
+    if(!document.body.classList.contains("pk-print")) return;
+    document.body.classList.remove("pk-print");
+    parent.insertBefore(p,next);
+    if(wasHidden) p.classList.add("hidden");
+    window.removeEventListener("afterprint",restore);
+  };
+  window.addEventListener("afterprint",restore);
+  try{ window.print(); }catch(e){}
+  setTimeout(restore,1500);
+}
+function packetRecordHTML(){
+  const cell=v=>esc((v||"").trim())||"—";
+  return `<h4>Packet — Drawing packet (legend sheet and component list worksheet)</h4>`+
+    kvr("Plant condition, in my own words",cell(S.packet.cond),true)+
+    `<table><thead><tr><th style="cursor:default">Symbol</th><th style="cursor:default">Component name</th>
+      <th style="cursor:default">What it does</th><th style="cursor:default;width:120px">Voltage level</th></tr></thead><tbody>`+
+    PK_ROWS.map(r=>`<tr><td style="color:var(--faint);font-size:11px">${esc(r.name)}</td>
+      <td>${cell(pkv(r.i,"name"))}</td><td>${cell(pkv(r.i,"does"))}</td><td class="mono">${cell(pkv(r.i,"volt"))}</td></tr>`).join("")+
+    `</tbody></table>`+
+    kvr("Node count at the foot of my list",cell(S.packet.count));
 }
 
 /* ---------- view ---------- */
@@ -828,7 +995,7 @@ function renderView(){
   el.innerHTML=`
     <div class="cols">
       <div>
-        <div class="msgbar" id="msg">Read the plant status, open the <b>Legend</b>, then trace from the live source down to the assigned rack.</div>
+        <div class="msgbar" id="msg">Read the plant status, open the <b>Legend</b> (the full drawing packet — legend sheet and component list worksheet — is behind <b>Packet</b>), then trace from the live source down to the assigned rack.</div>
         <div class="chartbox">
           <h3>Single-line diagram — sheet E-101, unlabeled training print</h3>
           <div class="sub">One line drawn stands for all three phases. Designations appear only on the devices you have traced through. Rack positions are labeled because they are labeled on the floor.</div>
@@ -915,7 +1082,9 @@ function resetRun(){
   rnd=mulberry32(RNG_KEY);
   S.t=0; S.path=[]; S.volts={}; S.quiz=[]; S.tieAns=null;
   S.trace=true; S.legendSeen=false; S.legendOpen=false;
-  renderView(); render();
+  S.packet={ws:{},cond:"",count:""};
+  renderView(); renderPacket(); render();
+  togglePacket(false);
   $("btnTrace").classList.add("primary");
   $("btnLegend").classList.remove("primary");
   setStatus("Ready","");
@@ -923,6 +1092,7 @@ function resetRun(){
 
 /* ---------- wiring ---------- */
 $("btnLegend").onclick=()=>openLegend(false);
+$("btnPacket").onclick=()=>togglePacket();
 $("btnTrace").onclick=()=>{
   S.trace=!S.trace;
   $("btnTrace").classList.toggle("primary",S.trace);
@@ -949,8 +1119,10 @@ resetRun(); startClock();
 
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.2.1", "title": "Power Path Tracing", "handout": "GLAB 524.2.1 - Power Path Tracing", "file": "524-2-1-C_PathTrace.html", "set": "C", "items": [{"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 1. Collect your drawing packet, legend sheet, component list worksheet and two highlighters. Open the 524.2.1 file your instructor gives you — it opens straight into the lab. Record the rack you have been assigned. Everything you write from here relates to that one rack."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 2. Read the legend block before you mark anything on the drawing. Work through every symbol on the sheet and say to yourself what each one is. Pay particular attention to the difference between a breaker drawn closed and a breaker drawn open, and to the difference between a two-winding transformer symbol and a UPS symbol. Learners who skip this step lose ten minutes later on. List below any symbol that appears on your drawing but is not covered by the legend, then raise your hand."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 3. Read the plant condition statement at the top of the drawing before you trace. It tells you whether the utility feeds are live, whether the generators are running or in standby, which source each transfer switch is sitting on, and whether the bus tie is open. Copy that condition statement into your worksheet in your own words. If you trace without reading it, you will trace the wrong plant."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 4. Find the start of your path and mark it. On a normal utility supply that is the utility service entrance at the top of the drawing; if the plant condition says the utility supply has been lost, your path starts at the running generator instead. Write the voltage at that starting point next to it, taken from the drawing and not from memory. On the utility route, note also what sits immediately below the service entrance — the utility metering set, a CT (current transformer) and PT (potential transformer) arrangement that measures but does not switch."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 6. Mark every transformer you pass and record the voltage on both sides of it. Voltage changes at a transformer and nowhere else. On a utility path, if you cannot say where the medium voltage becomes 480 V, you do not yet understand the drawing well enough to work on it. On a path fed from a running generator there is no substation transformer and no medium voltage at all — record that explicitly rather than leaving the column blank."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 7. Find where the generator connects to the system and mark it. Identify which transfer switch it feeds, and mark which side of that transfer switch is the normal source and which is the emergency source. Note whether the switch is currently sitting on normal or on emergency. If there is more than one generator, note whether both are on the board or whether one is out of service."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 10. Continue through the PDU to the RPP and on to your assigned rack position. Record the voltage on both sides of the PDU. The PDU contains a transformer, so this is the last place on your path where the voltage changes — the second such place on a utility path, and the only one on a path fed from a generator. Note both the line-to-line and the line-to-neutral value if the drawing gives them."}, {"s": "Part 1: Tracing the delivery path", "k": "image", "p": "Step 11. Highlight the complete path in one color, from the service entrance to the rack, in one continuous line. Then highlight in your second color every device you considered and rejected, and write one or two words beside each saying why you rejected it. The rejections are as much a part of the answer as the path."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 12. Complete the component list worksheet. One line per node, in delivery order, with the device type and the voltage at that stage. Count the nodes and write the total at the foot of the list. A finished worksheet reads as a sequence a stranger could follow with a finger on the drawing."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 13. Identify every normally open device on the drawing, whether or not you went near it. State below whether your path crossed the bus tie at any point, and confirm in writing that your path does not depend on any normally open device being closed. Answer this honestly. A path that only works if somebody closes the tie is not a path, it is a request, and the person who has to approve it is asleep."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 14. Look for the dead end. Somewhere on this drawing there is at least one route that appears to head towards the racks and does not deliver. Find it, mark it, and record below which device stops it."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 16. Answer the three upstream questions in the lab tool. They ask about points on your own completed path: what is immediately upstream of this node. Record your three answers below, then walk your trace out loud to your instructor. They will choose points at random and ask you what is upstream. Answer from the path, not from the drawing. Then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Voltage changes at a transformer and nowhere else. List every point on your path where the voltage changed, give the value before and after, and explain what would go wrong if a technician assumed the rack voltage was the same as the switchboard voltage."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain, in your own words, why a path that depends on somebody closing a normally open bus tie is not a valid answer to the question “what feeds this rack?”. Say what a normally open device is actually there to do."}, {"s": "Part 2: Reflection", "k": "text", "p": "Something is dead at the rack you traced. Walk your path backwards and state the first three things you would look at, in that order, and why that order and not another."}, {"s": "Part 2: Reflection", "k": "text", "p": "You rejected at least one route while tracing. Describe one rejected route, say exactly which device stopped it, and say what on the drawing would have had to be different for that route to have been the right answer."}]};</script>
-<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+<script id="lqData">
+var LQ={"lab": "GLAB 524.2.1", "title": "Power Path Tracing", "handout": "GLAB 524.2.1 - Power Path Tracing", "file": "524-2-1-C_PathTrace.html", "set": "C", "items": [{"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 1. Open the 524.2.1 file your instructor gives you — it opens straight into the lab, with the drawing on screen and the legend sheet and component list worksheet behind the Packet button. Print the packet if you want to work on paper. Record the rack you have been assigned. Everything you write from in the lab tool relates to that one rack."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 2. Read the legend block before you mark anything on the drawing. Work through every symbol on the sheet and say to yourself what each one is. Pay particular attention to the difference between a breaker drawn closed and a breaker drawn open, and to the difference between a two-winding transformer symbol and a UPS symbol. Learners who skip this step lose ten minutes later on. List in the lab tool any symbol that appears on your drawing but is not covered by the legend, then raise your hand."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 3. Read the plant condition statement at the top of the drawing before you trace. It tells you whether the utility feeds are live, whether the generators are running or in standby, which source each transfer switch is sitting on, and whether the bus tie is open. Copy that condition statement into your worksheet in your own words. If you trace without reading it, you will trace the wrong plant."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 4. Find the start of your path and mark it. On a normal utility supply that is the utility service entrance at the top of the drawing; if the plant condition says the utility supply has been lost, your path starts at the running generator instead. Write the voltage at that starting point next to it, taken from the drawing and not from memory. On the utility route, note also what sits immediately below the service entrance — the utility metering set, a CT (current transformer) and PT (potential transformer) arrangement that measures but does not switch."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 6. Mark every transformer you pass and record the voltage on both sides of it. Voltage changes at a transformer and nowhere else. On a utility path, if you cannot say where the medium voltage becomes 480 V, you do not yet understand the drawing well enough to work on it. On a path fed from a running generator there is no substation transformer and no medium voltage at all — record that explicitly rather than leaving the column blank."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 7. Find where the generator connects to the system and mark it. Identify which transfer switch it feeds, and mark which side of that transfer switch is the normal source and which is the emergency source. Note whether the switch is currently sitting on normal or on emergency. If there is more than one generator, note whether both are on the board or whether one is out of service."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 10. Continue through the PDU to the RPP and on to your assigned rack position. Record the voltage on both sides of the PDU. The PDU contains a transformer, so this is the last place on your path where the voltage changes — the second such place on a utility path, and the only one on a path fed from a generator. Note both the line-to-line and the line-to-neutral value if the drawing gives them."}, {"s": "Part 1: Tracing the delivery path", "k": "image", "p": "Step 11. Highlight the complete path in one colour, from the service entrance to the rack, in one continuous line. Then highlight in your second colour every device you considered and rejected, and write one or two words beside each saying why you rejected it. The rejections are as much a part of the answer as the path."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 12. Complete the component list worksheet. One line per node, in delivery order, with the device type and the voltage at that stage. Count the nodes and write the total at the foot of the list. A finished worksheet reads as a sequence a stranger could follow with a finger on the drawing."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 13. Identify every normally open device on the drawing, whether or not you went near it. State in the lab tool whether your path crossed the bus tie at any point, and confirm in writing that your path does not depend on any normally open device being closed. Answer this honestly. A path that only works if somebody closes the tie is not a path, it is a request, and the person who has to approve it is asleep."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 14. Look for the dead end. Somewhere on this drawing there is at least one route that appears to head towards the racks and does not deliver. Find it, mark it, and record in the lab tool which device stops it."}, {"s": "Part 1: Tracing the delivery path", "k": "text", "p": "Step 16. Answer the three upstream questions in the lab tool. They ask about points on your own completed path: what is immediately upstream of this node. Record your three answers in the lab tool, then walk your trace out loud to your instructor. They will choose points at random and ask you what is upstream. Answer from the path, not from the drawing. Enter your name and cohort in the lab tool, then press Build submission PDF and save the file — that single PDF is what you hand in."}, {"s": "Part 2: Reflection", "k": "text", "p": "Voltage changes at a transformer and nowhere else. List every point on your path where the voltage changed, give the value before and after, and explain what would go wrong if a technician assumed the rack voltage was the same as the switchboard voltage."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain, in your own words, why a path that depends on somebody closing a normally open bus tie is not a valid answer to the question “what feeds this rack?”. Say what a normally open device is actually there to do."}, {"s": "Part 2: Reflection", "k": "text", "p": "Something is dead at the rack you traced. Walk your path backwards and state the first three things you would look at, in that order, and why that order and not another."}, {"s": "Part 2: Reflection", "k": "text", "p": "You rejected at least one route while tracing. Describe one rejected route, say exactly which device stopped it, and say what on the drawing would have had to be different for that route to have been the right answer."}]};
+</script>
+<!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
      Self-contained. No external libraries. Safe to re-inject (idempotent).
@@ -960,6 +1132,12 @@ resetRun(); startClock();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
+     v2.1 — window.lqRecord() hook: a simulator can hand the module its record
+     directly, so the harvest no longer depends on which pane is showing; loose
+     `.sheet` tiles outside a `.result.show` are ignored; the learner name is
+     copied into the simulator's own name field before the harvest; the
+     completeness banner and the Set line respect no-simulator / single-set labs;
+     the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -1198,6 +1376,8 @@ resetRun(); startClock();
     return LQ.set||"—";
   }
 
+  function hasSet(){ var l=setLetter(); return !!l&&l!=="—"; }
+
   /* ---------- downscale an image before it goes anywhere near storage ----------
      A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
      about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
@@ -1244,7 +1424,8 @@ resetRun(); startClock();
    +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
    +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
    +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
-   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<b>What is saved:</b> everything you type in this panel is kept in this browser as you type, so a refresh will not lose your answers. '
+   +(LQ.nosim?'':'<b>What is not:</b> the simulator above starts again on a refresh — if you refresh mid-lab, work the simulator again before you build the PDF.')+'</p>'
    +'<div id="lqStoreErr" role="alert"></div>'
    +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
    +'<div class="lqid">'
@@ -1364,7 +1545,21 @@ resetRun(); startClock();
   })();
 
   /* ---------- harvest the simulator's own record ---------- */
-  var REC_SEL=".sheet, .result.show";
+  var REC_SEL=".result.show, .result.show .sheet";
+  function syncSimName(){
+    /* the simulator keeps its own name field; the learner is told to fill the
+       module's. Copy across so the harvested record never reports the name blank. */
+    try{
+      var n=document.getElementById("lqName"); if(!n||!n.value.trim()) return;
+      var sim=document.getElementById("learnerName")||document.getElementById("learner")
+            ||document.querySelector('input[name="learnerName"]');
+      if(sim&&!card.contains(sim)&&!sim.value.trim()){
+        sim.value=n.value.trim();
+        sim.dispatchEvent(new Event("input",{bubbles:true}));
+        sim.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }catch(e){}
+  }
   function collect(){
     var raw=[];
     Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
@@ -1394,7 +1589,33 @@ resetRun(); startClock();
     });
   }
 
+  function cleanClone(s){
+    var c=s.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    stripDuplicateName(c);
+    /* paper-era close line some simulators still print under their sheet */
+    Array.prototype.forEach.call(c.querySelectorAll("p,div,span,small"),function(n){
+      if(n.children.length===0&&/hand this sheet to your instructor/i.test(n.textContent||"")){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      }
+    });
+    return c;
+  }
   function toolRecord(){
+    syncSimName();
+    /* Preferred path: the simulator hands over its record itself. A simulator
+       defines window.lqRecord() to (re)build its sheet from its current state and
+       return the element or an HTML string — so the harvest no longer depends on
+       which pane or tab happens to be showing when the learner presses the button. */
+    if(typeof window.lqRecord==="function"){
+      try{
+        var r=window.lqRecord();
+        if(typeof r==="string"&&r.replace(/\s/g,"")) return r;
+        if(r&&r.nodeType===1&&r.textContent.replace(/\s/g,"")) return cleanClone(r).innerHTML;
+      }catch(e){}
+    }
     var found=collect();
     if(!found.length){
       var btns=document.querySelectorAll("button");
@@ -1418,14 +1639,7 @@ resetRun(); startClock();
     }
     if(!found.length) return null;
     var wrap=document.createElement("div");
-    found.forEach(function(s){
-      var c=s.cloneNode(true);
-      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
-        if(n.parentNode) n.parentNode.removeChild(n);
-      });
-      stripDuplicateName(c);
-      wrap.appendChild(c);
-    });
+    found.forEach(function(s){ wrap.appendChild(cleanClone(s)); });
     return wrap.innerHTML;
   }
 
@@ -1442,21 +1656,24 @@ resetRun(); startClock();
      +'<div class="lqsheet">'
      +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
      +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
-       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+       +(hasSet()?' · Set '+esc(setLetter()):'')+' · submission sheet</div>'
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
-     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
+       +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
      +'<div class="lqrow"><span class="k">Built</span><span class="v">'
        +esc(new Date().toLocaleString())+'</span></div>';
 
-    var rec=LQ.nosim?null:toolRecord();
-    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
-    else if(!LQ.nosim){
-      gaps.push("The simulator record — work through the lab tool above and press its own "
-               +"“Build submission sheet” button before you build this PDF");
-    }else{
+    /* a response tool (nosim) can still carry an in-tool packet record via window.lqRecord() */
+    var rec=(LQ.nosim&&typeof window.lqRecord!=="function")?null:toolRecord();
+    if(rec){ h+='<h2>'+(LQ.nosim?'Packet record':'Simulator record')+'</h2>'+rec; }
+    if(!rec&&!LQ.nosim){
+      var why=(typeof window.lqRecordReason==="string"&&window.lqRecordReason)?" ("+window.lqRecordReason+")":"";
+      gaps.push("The simulator record — the lab tool above has nothing to record yet"+why
+               +". Work through the lab, then build this PDF again");
+    }else if(LQ.nosim){
       h+='<h2>Assessed on the floor</h2>'
         +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
         +'Observed and signed off by the instructor against the handout. '
@@ -1481,7 +1698,8 @@ resetRun(); startClock();
         +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
     }else{
       h+='<div class="lqgap ok">'
-        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+        +'<b>Complete.</b> Every question on this sheet carries a response'
+        +(LQ.nosim?'.':' and the simulator record is attached.')+'</div>';
     }
 
     h+='<div class="lqsign">Learner signature: ______________________________'
@@ -1527,7 +1745,7 @@ resetRun(); startClock();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+    var runHead='<span class="r">'+esc(LQ.lab)+(hasSet()?' · Set '+esc(setLetter()):'')+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1564,6 +1782,5 @@ resetRun(); startClock();
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
-
 </body>
 </html>

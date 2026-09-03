@@ -60,6 +60,7 @@
   /* ---------- console ---------- */
   .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
     border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .toolbar button.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
   .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
 
   /* ---------- alarms ---------- */
@@ -84,6 +85,36 @@
   .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
   .note{font-size:12px;color:var(--dim);line-height:1.55}
   .hidden{display:none !important}
+  .tick:focus-visible,.chip:focus-visible,th[data-k]:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+  .tick.second{background:var(--warn);border-color:var(--warn)}
+  .kf td{font-size:12.5px;line-height:1.5}
+  .kf .ref{font-family:var(--mono);white-space:nowrap;color:var(--blue)}
+  .empty td{color:var(--faint);font-size:13px;padding:22px 10px;text-align:center}
+
+  /* ---------- packet (paper inside the console) ---------- */
+  .packet{background:#fff;color:#12232e;border-radius:6px;padding:26px 30px;max-width:1180px;margin:0 auto 14px;
+    font-size:13px;line-height:1.5;border:1px solid #c3ced7}
+  .packet h1{font-size:21px;color:#1a3a5c;margin:0 0 4px}
+  .packet h2{font-size:15px;color:#1a3a5c;margin:22px 0 8px;border-bottom:1px solid #c3ced7;padding-bottom:4px}
+  .packet .eyebrow{font:600 10px/1 Arial;letter-spacing:.10em;text-transform:uppercase;color:#0b6ea8;margin:0 0 8px}
+  .packet .lede{color:#5a6b78;margin:0 0 14px;max-width:86ch}
+  .packet table{border-collapse:collapse;width:100%;margin:8px 0 4px;font-size:12.5px}
+  .packet th,.packet td{border:1px solid #c3ced7;padding:6px 8px;text-align:left;vertical-align:top;color:#12232e}
+  .packet th{background:#1a3a5c;color:#fff;font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;cursor:default}
+  .packet th:hover{color:#fff}
+  .packet .cover td:first-child{width:190px;background:#f2f6f9;font-weight:600}
+  .packet .note{background:#f2f6f9;border-left:3px solid #0b6ea8;padding:10px 14px;margin:14px 0;color:#12232e}
+  .packet .note.bad{border-left-color:#c8501e}
+  .packet .foot{color:#5a6b78;font-size:11px;margin-top:18px;border-top:1px solid #c3ced7;padding-top:8px}
+  .packet label{display:block;font:600 11px Arial;letter-spacing:.04em;text-transform:uppercase;color:#1a3a5c;margin:10px 0 4px}
+  .packet input[type=text],.packet textarea,.packet select{width:100%;background:#fff;color:#12232e;border:1px solid #9fb0bf;border-radius:3px;font-size:13px}
+  .packet .wsrow{display:grid;grid-template-columns:2.2fr 1fr 2.6fr;gap:10px;align-items:start;margin-bottom:6px}
+  .packet .wsrow .q{font-size:13px;color:#12232e;padding-top:26px}
+  .pkbar{display:flex;gap:12px;align-items:center;max-width:1180px;margin:0 auto 12px;color:var(--dim);font-size:12px}
+  body.pk-print{overflow:visible;background:#fff}
+  body.pk-print > *:not(#pkPrint){display:none !important}
+  #pkPrint .packet{border:0;max-width:none;padding:0;margin:0}
+  #pkPrint .pkval{display:inline-block;min-height:1.3em;border-bottom:1px solid #9fb0bf;padding:1px 4px;white-space:pre-wrap}
 
   /* ---------- submission ---------- */
   .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
@@ -149,12 +180,14 @@
     </div>
     <span class="spacer"></span>
     <span class="counter" id="elapsed">T+00:00</span>
+    <button id="btnPacket" aria-pressed="false" title="Shift-start packet: the known-fault log and the four-question triage worksheet. Printable.">Packet</button>
     <button id="btnRestart">Restart</button>
   </div>
 
   <main>
     <div class="wrap">
       <section id="almView"></section>
+      <section id="packetPane" class="hidden noprint" aria-label="Shift-start packet"></section>
     </div>
   </main>
 </div>
@@ -187,8 +220,63 @@ const LAB={lab:"GLAB 524.5.2",obj:"M5.2",title:"Twenty Alarms at Once",duration:
 
 const CONFIGS=[{id:"C1"},{id:"C2"}];
 
+/* Known-fault log at shift start — what the desk already knows before the flood.
+   Per set. Nothing here explains the originating event or the second genuine event;
+   several entries explain alarms that are noise. Read before Start run. */
+const KNOWN={
+  C1:[
+    {ref:"WO-8811",raised:"Tue 22:40",pt:"BMS-P4 controller — Hall B east plant network",
+     what:"Controller drops comms for 30 to 90 s and re-establishes on its own. Three retry/restore pairs a night since the network switch firmware change.",
+     status:"Controls vendor attending Thursday 09:00. Engineering aware.",
+     act:"Acknowledge the retry and the matching restore. Escalate only if the restore does not follow within five minutes."},
+    {ref:"PM-0450",raised:"Scheduled",pt:"UPS-B — weekly battery self-test",
+     what:"Runs Wednesday night 03:15 to 03:35. The console posts a reminder before the test and a result after it.",
+     status:"Planned maintenance. Electrical supervisor owns it.",
+     act:"Acknowledge the reminder. Escalate a FAILED result only."},
+    {ref:"WO-8790",raised:"Sun 14:10",pt:"Door 3 — loading dock",
+     what:"Door closer weak. Door-held-open alarm every time the 03:00 security patrol passes through; clears within a minute.",
+     status:"Awaiting parts (closer on order). Facilities.",
+     act:"Acknowledge if it clears within a minute. Escalate a held-open that does not clear."},
+    {ref:"SCH-07",raised:"Standing",pt:"Sched — nightly trend report",
+     what:"Generated at about 03:16 every night and posted to the console as a low alarm because of a rule error.",
+     status:"Controls to re-class in the next release.",
+     act:"Acknowledge. It carries no plant information."},
+    {ref:"WO-8802",raised:"Mon 09:30",pt:"RH-A3 humidity sensor — Hall A",
+     what:"Reads about 4% RH high against the reference instrument. Awaiting calibration kit.",
+     status:"Awaiting parts. Mechanical.",
+     act:"Read Hall A humidity with the offset in mind. Hall B sensors are not on this list."},
+    {ref:"Round note",raised:"23:58",pt:"CT-2 cooling tower basin make-up valve",
+     what:"Cycled three times during the night round. Basin level 318 mm and steady while watched.",
+     status:"Engineering informed, watching. Not alarmed on this console.",
+     act:"Log the level if you pass it. Nothing to acknowledge here."}
+  ],
+  C2:[
+    {ref:"WO-8815",raised:"Mon 21:05",pt:"BMS-P2 controller — plant room network",
+     what:"Controller drops comms for 30 to 90 s and re-establishes on its own. Two or three retry/restore pairs a night since the network switch firmware change.",
+     status:"Controls vendor attending Thursday 09:00. Engineering aware.",
+     act:"Acknowledge the retry and the matching restore. Escalate only if the restore does not follow within five minutes."},
+    {ref:"WO-8790",raised:"Sun 14:10",pt:"Door 1 — main entrance lobby",
+     what:"Door closer weak. Door-held-open alarm every time the 03:00 security patrol passes through; clears within a minute.",
+     status:"Awaiting parts (closer on order). Facilities.",
+     act:"Acknowledge if it clears within a minute. Escalate a held-open that does not clear."},
+    {ref:"SCH-07",raised:"Standing",pt:"Sched — nightly trend report",
+     what:"Generated at about 03:15 every night and posted to the console as a low alarm because of a rule error.",
+     status:"Controls to re-class in the next release.",
+     act:"Acknowledge. It carries no plant information."},
+    {ref:"CR-0219",raised:"Fri 16:20",pt:"GEN-1 controller — running-hours counter",
+     what:"Since the controller firmware update the hours-counter increment is posted to the console as a low alarm whenever the set runs. Informational only.",
+     status:"Change request open to re-class. Controls.",
+     act:"Acknowledge. It says nothing about the run itself — read the run alarms, not the counter."},
+    {ref:"WO-8806",raised:"Sat 10:15",pt:"CRAH-06 filter differential pressure switch",
+     what:"Switch sticks and posts FILTER DIRTY with clean filters. Replacement switch on order.",
+     status:"Awaiting parts. Mechanical.",
+     act:"Acknowledge FILTER DIRTY from CRAH-06 only. Every other CRAH alarm is live."}
+  ]
+};
+
 const S={cfg:SET,learner:"",t:0,running:false,timer:null,speed:12,
-  alarms:[],sortKey:"time",sortDir:1,filters:new Set(),acked:new Set(),marks:{}};
+  alarms:[],sortKey:"time",sortDir:1,sortArmed:false,filters:new Set(),acked:new Set(),marks:{},
+  ansParent:"",ansSecond:"",ansText:"",packet:{}};
 const $=id=>document.getElementById(id);
 let V=CONFIGS[SET];
 
@@ -246,7 +334,13 @@ function renderAlm(){
   if(!el.dataset.built){
     el.innerHTML=`
       <div class="tile noprint" style="margin-bottom:14px">
-        <div class="flt" id="almFilters"></div>
+        <h3 style="font-size:14px;margin-bottom:3px">Known faults at shift start — read before you press Start run</h3>
+        <div class="note" style="margin-bottom:10px">${KNOWN[V.id].length} entries on the desk log: work in progress, faults awaiting parts, sensors already reported faulty. Anything on this list that alarms later is an acknowledge, not an escalation. The full log with the triage worksheet is under <b>Packet</b> in the toolbar.</div>
+        <table class="kf"><thead><tr><th style="cursor:default">Ref</th><th style="cursor:default">Raised</th><th style="cursor:default">Equipment / point</th><th style="cursor:default">What is known</th><th style="cursor:default">Status / owner</th><th style="cursor:default">If it alarms</th></tr></thead>
+        <tbody>${KNOWN[V.id].map(k=>`<tr><td class="ref">${esc(k.ref)}</td><td class="mono">${esc(k.raised)}</td><td>${esc(k.pt)}</td><td>${esc(k.what)}</td><td>${esc(k.status)}</td><td>${esc(k.act)}</td></tr>`).join("")}</tbody></table>
+      </div>
+      <div class="tile noprint" style="margin-bottom:14px">
+        <div class="flt" id="almFilters" role="group" aria-label="Filter alarms"></div>
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
           <span class="counter" id="almCount"></span>
           <span class="spacer" style="flex:1"></span>
@@ -259,17 +353,17 @@ function renderAlm(){
       </div>
       <div class="submit noprint">
         <h3>Your triage</h3>
-        <div class="sub">Fill this in as you work. When you are finished, build your submission sheet and hand it to your instructor.</div>
-        <div class="fld" style="margin-bottom:12px"><label>Your name</label>
+        <div class="sub">Fill this in as you work. When you are finished, build your submission sheet — it is embedded in your submission PDF.</div>
+        <div class="fld" style="margin-bottom:12px"><label for="learnerName">Your name</label>
           <input type="text" id="learnerName" placeholder="first and last name" style="width:260px"></div>
         <div class="fgrid">
-          <div class="fld"><label>Parent event — the alarm everything else follows from</label>
+          <div class="fld"><label for="ansParent">Parent event — the alarm everything else follows from</label>
             <select id="ansParent"></select></div>
-          <div class="fld"><label>Second unrelated event, if you identified one</label>
+          <div class="fld"><label for="ansSecond">Second unrelated event, if you identified one (marks it as “second event” in the table)</label>
             <select id="ansSecond"></select></div>
         </div>
         <div class="fld" style="margin-bottom:12px">
-          <label>Your one escalation sentence — what failed, when, and what is now at risk</label>
+          <label for="ansText">Your one escalation sentence — what failed, when, and what is now at risk</label>
           <textarea id="ansText" rows="3" placeholder="Type your answer here: what failed, at what time, and what is now at risk."></textarea>
         </div>
         <button class="primary" id="btnSubmit">Build submission sheet</button>
@@ -277,10 +371,13 @@ function renderAlm(){
       <div class="result sheet" id="almResult"></div>`;
     el.dataset.built="1";
     $("almFilters").innerHTML=["All","Critical","High","Medium","Low"].map(f=>
-      `<div class="chip ${f==='All'?'on':''}" data-f="${f}">${f}</div>`).join("")+
+      `<div class="chip ${f==='All'?'on':''}" data-f="${f}" role="button" tabindex="0" aria-pressed="${f==='All'?'true':'false'}">${f}</div>`).join("")+
       `<span style="width:12px"></span>`+
       ["Mechanical","Electrical","Environment","Leak det.","Fire","Network","Security","Admin"].map(f=>
-      `<div class="chip" data-f="${f}">${f}</div>`).join("");
+      `<div class="chip" data-f="${f}" role="button" tabindex="0" aria-pressed="false">${f}</div>`).join("");
+    $("almFilters").onkeydown=e=>{
+      if((e.key==="Enter"||e.key===" ")&&e.target.closest(".chip")){e.preventDefault();e.target.closest(".chip").click();}
+    };
     $("almFilters").onclick=e=>{
       const c=e.target.closest(".chip"); if(!c)return;
       const f=c.dataset.f;
@@ -289,6 +386,7 @@ function renderAlm(){
       [...$("almFilters").children].forEach(ch=>{
         if(!ch.dataset)return;
         ch.classList.toggle("on", ch.dataset.f==="All" ? S.filters.size===0 : S.filters.has(ch.dataset.f));
+        ch.setAttribute("aria-pressed",ch.classList.contains("on")?"true":"false");
       });
       renderAlmTable();
     };
@@ -296,6 +394,21 @@ function renderAlm(){
     $("btnClearMarks").onclick=()=>{S.marks={};renderAlmTable();};
     $("learnerName").value=S.learner;
     $("learnerName").oninput=e=>{S.learner=e.target.value;};
+    $("ansText").value=S.ansText;
+    $("ansText").oninput=e=>{S.ansText=e.target.value;};
+    $("ansParent").onchange=e=>{
+      S.ansParent=e.target.value;
+      if(S.ansParent!=="") S.marks[+S.ansParent]="parent";
+      renderAlmTable();
+    };
+    $("ansSecond").onchange=e=>{
+      /* the alarm chosen as the second genuine event is marked “second event” in the table,
+         so it is classified and appears on the sheet — an unmarked alarm is an undecided alarm */
+      const prev=S.ansSecond; S.ansSecond=e.target.value;
+      if(prev!==""&&S.marks[+prev]==="second") S.marks[+prev]=undefined;
+      if(S.ansSecond!=="") S.marks[+S.ansSecond]="second";
+      renderAlmTable();
+    };
     $("btnSubmit").onclick=buildSheet;
   }
   renderAlmTable();
@@ -326,33 +439,53 @@ function renderAlmTable(){
     return r*dir;
   });
   const arrow=key=>S.sortKey===key?(S.sortDir>0?" ▲":" ▼"):"";
+  const sortLbl=key=>S.sortKey===key?(S.sortDir>0?"ascending":"descending"):"none";
+  /* remember keyboard focus across the repaint */
+  const ae=document.activeElement, keep=ae&&$("almTable").contains(ae)?
+    (ae.dataset.k?'th[data-k="'+ae.dataset.k+'"]':ae.dataset.ack!==undefined?'.tick[data-ack="'+ae.dataset.ack+'"]':
+     ae.dataset.mark?'.tick[data-mark="'+ae.dataset.mark+'"][data-i="'+ae.dataset.i+'"]':null):null;
+  const tickA=(cls,on,attrs,label)=>`<span class="tick ${cls}" ${attrs} role="checkbox" tabindex="0" aria-checked="${on?'true':'false'}" aria-label="${esc(label)}"></span>`;
+  const nothingYet=!revealed().length;
   $("almTable").innerHTML=
    `<thead><tr>
-      <th data-k="time">Time${arrow("time")}</th>
-      <th data-k="sev">Severity${arrow("sev")}</th>
-      <th data-k="sys">System${arrow("sys")}</th>
-      <th data-k="pt">Point${arrow("pt")}</th>
-      <th data-k="msg">Message${arrow("msg")}</th>
+      <th data-k="time" role="button" tabindex="0" aria-sort="${sortLbl("time")}" title="${S.sortKey==='time'&&S.sortDir>0?'Sorted by time, oldest first. Click again to reverse.':'Sort by time, oldest first'}">Time${arrow("time")}${S.sortKey==='time'&&S.sortDir>0?' <span style="font-weight:400;letter-spacing:0;text-transform:none">oldest first</span>':''}</th>
+      <th data-k="sev" role="button" tabindex="0" aria-sort="${sortLbl("sev")}">Severity${arrow("sev")}</th>
+      <th data-k="sys" role="button" tabindex="0" aria-sort="${sortLbl("sys")}">System${arrow("sys")}</th>
+      <th data-k="pt" role="button" tabindex="0" aria-sort="${sortLbl("pt")}">Point${arrow("pt")}</th>
+      <th data-k="msg" role="button" tabindex="0" aria-sort="${sortLbl("msg")}">Message${arrow("msg")}</th>
       <th style="cursor:default">Ack</th>
       <th style="cursor:default">Parent</th>
       <th style="cursor:default">Conseq.</th>
       <th style="cursor:default">Noise</th>
+      <th style="cursor:default">2nd event</th>
     </tr></thead><tbody>`+
+    (nothingYet?`<tr class="empty"><td colspan="10">No alarms yet — press Start run to begin. Read the known-fault log above first.</td></tr>`:
+     rows.length?"":`<tr class="empty"><td colspan="10">No alarms match the filters you have set.</td></tr>`)+
     rows.map(({a,i})=>`<tr class="${S.acked.has(i)?'ack':''}">
       <td class="mono">${a.t}</td>
       <td><span class="sev ${a.sev}">${a.sev.toUpperCase()}</span></td>
       <td>${a.sys}</td><td class="mono">${a.pt}</td><td>${a.msg}</td>
-      <td><span class="tick ${S.acked.has(i)?'on':''}" data-ack="${i}"></span></td>
-      <td><span class="tick ${S.marks[i]==='parent'?'on':''}" data-mark="parent" data-i="${i}"></span></td>
-      <td><span class="tick ${S.marks[i]==='consequence'?'on':''}" data-mark="consequence" data-i="${i}"></span></td>
-      <td><span class="tick ${S.marks[i]==='noise'?'on':''}" data-mark="noise" data-i="${i}"></span></td>
+      <td>${tickA(S.acked.has(i)?'on':'',S.acked.has(i),'data-ack="'+i+'"',"Acknowledge "+a.t+" "+a.pt+" "+a.msg)}</td>
+      <td>${tickA(S.marks[i]==='parent'?'on':'',S.marks[i]==='parent','data-mark="parent" data-i="'+i+'"',"Mark as parent: "+a.t+" "+a.pt)}</td>
+      <td>${tickA(S.marks[i]==='consequence'?'on':'',S.marks[i]==='consequence','data-mark="consequence" data-i="'+i+'"',"Mark as consequence: "+a.t+" "+a.pt)}</td>
+      <td>${tickA(S.marks[i]==='noise'?'on':'',S.marks[i]==='noise','data-mark="noise" data-i="'+i+'"',"Mark as noise: "+a.t+" "+a.pt)}</td>
+      <td>${tickA(S.marks[i]==='second'?'on second':'',S.marks[i]==='second','data-mark="second" data-i="'+i+'"',"Mark as second genuine event: "+a.t+" "+a.pt)}</td>
     </tr>`).join("")+`</tbody>`;
   $("almCount").textContent=`${rows.length} alarm${rows.length===1?"":"s"} shown · ${S.acked.size} acknowledged`;
   $("almTable").querySelectorAll("th[data-k]").forEach(th=>th.onclick=()=>{
     const k2=th.dataset.k;
-    if(S.sortKey===k2)S.sortDir*=-1; else{S.sortKey=k2;S.sortDir=1;}
+    /* The table boots sorted by time, oldest first. The first click on a column that is already
+       the sort key confirms it (the handout says “click the Time header before you read”); only a
+       second click on the same column reverses the direction. */
+    if(S.sortKey===k2){ if(S.sortArmed) S.sortDir*=-1; else S.sortArmed=true; }
+    else{S.sortKey=k2;S.sortDir=1;S.sortArmed=true;}
     renderAlmTable();
   });
+  $("almTable").onkeydown=e=>{
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    const t=e.target.closest(".tick,th[data-k]"); if(!t)return;
+    e.preventDefault(); t.click();
+  };
   $("almTable").onclick=e=>{
     const t=e.target.closest(".tick"); if(!t)return;
     if(t.dataset.ack!==undefined){
@@ -360,9 +493,13 @@ function renderAlmTable(){
     }else{
       const i=+t.dataset.i, m=t.dataset.mark;
       S.marks[i]= S.marks[i]===m ? undefined : m;
+      /* keep the pickers and the marks consistent */
+      if(m==="second"){ const sel=$("ansSecond"); if(sel){ S.ansSecond=S.marks[i]==="second"?String(i):""; sel.value=S.ansSecond; } }
+      if(m==="parent"&&S.marks[i]==="parent"){ const sel=$("ansParent"); if(sel){ S.ansParent=String(i); sel.value=S.ansParent; } }
     }
     renderAlmTable();
   };
+  if(keep){ const k=$("almTable").querySelector(keep); if(k) k.focus(); }
   // the two pickers only offer alarms that have already come in
   const rv=revealed();
   const p=$("ansParent"), q=$("ansSecond");
@@ -371,7 +508,7 @@ function renderAlmTable(){
     const opts=rv.map(({a,i})=>`<option value="${i}">${esc(a.t+" — "+a.pt+" · "+a.msg)}</option>`).join("");
     p.innerHTML=`<option value="">— choose —</option>`+opts;
     q.innerHTML=`<option value="">— none —</option>`+opts;
-    p.value=pv; q.value=qv;
+    p.value=pv||S.ansParent; q.value=qv||S.ansSecond;
     p.dataset.n=String(rv.length); q.dataset.n=String(rv.length);
   }
 }
@@ -384,9 +521,24 @@ function almLabel(i){
   const a=S.alarms[i];
   return a? a.t+" — "+a.sys+" · "+a.pt+" · "+a.msg : "—";
 }
-function buildSheet(){
-  const pi=$("ansParent").value, si=$("ansSecond").value;
-  const txt=$("ansText").value.trim();
+function markWord(m){return m==="second"?"second genuine event":m;}
+function packetRows(){
+  const p=S.packet||{}, v=k=>String(p[k]||"").trim()||"—";
+  const yn=k=>({yes:"Yes",no:"No",unsure:"Not sure"}[p[k]]||"—");
+  const rows=[
+    ["Life safety — is anyone in danger?",v("life")],
+    ["Candidate parent (alarm and exact timestamp)",v("cand")],
+    ["1. Is it the earliest alarm in the flood?",yn("q1")+(p.q1n?" — "+p.q1n:"")],
+    ["2. Does it explain the others?",yn("q2")+(p.q2n?" — "+p.q2n:"")],
+    ["3. Is it on the path to the load?",yn("q3")+(p.q3n?" — "+p.q3n:"")],
+    ["4. Is it already known (checked against the known-fault log)?",yn("q4")+(p.q4n?" — "+p.q4n:"")],
+    ["Known faults acknowledged, not escalated",v("known")]
+  ];
+  return rows.map(r=>`<div class="srow"><span>${esc(r[0])}</span><span>${esc(r[1])}</span></div>`).join("");
+}
+function sheetHTML(){
+  const pi=S.ansParent, si=S.ansSecond;
+  const txt=String(S.ansText||"").trim();
   const marked=Object.keys(S.marks).map(Number).filter(i=>S.marks[i]).sort((a,b)=>a-b);
   const acked=[...S.acked].sort((a,b)=>a-b);
   const now=new Date();
@@ -395,6 +547,9 @@ function buildSheet(){
   if(pi==="") missing.push("Parent event");
   if(!txt) missing.push("Escalation sentence");
   if(!marked.length) missing.push("At least one alarm classified");
+  const unmarked=revealed().filter(({i})=>!S.marks[i]).length;
+  if(marked.length&&unmarked) missing.push(unmarked+" alarm"+(unmarked===1?"":"s")+" left unmarked");
+  if(!String((S.packet||{}).cand||"").trim()) missing.push("Packet worksheet — candidate parent");
 
   let h=`<h3>${LAB.lab} — ${LAB.title}</h3>
     <div class="shsub">Submission sheet · UCI 2227 · objective ${LAB.obj}</div>
@@ -416,7 +571,7 @@ function buildSheet(){
       marked.map(i=>{
         const a=S.alarms[i];
         return `<tr><td class="mono">${esc(a.t)}</td><td>${esc(a.sys)}</td><td class="mono">${esc(a.pt)}</td>
-          <td>${esc(a.msg)}</td><td>${esc(S.marks[i])}</td></tr>`;
+          <td>${esc(a.msg)}</td><td>${esc(markWord(S.marks[i]))}</td></tr>`;
       }).join("")+`</tbody></table>`;
   } else {
     h+=`<div class="note">No alarms classified.</div>`;
@@ -430,16 +585,92 @@ function buildSheet(){
   h+=`<h4>Escalation</h4>`;
   h+=`<div class="srow"><span>Your escalation sentence</span><span>${esc(txt||"not recorded")}</span></div>`;
 
+  h+=`<h4>Packet — Shift-start packet (four-question triage worksheet)</h4>`;
+  h+=packetRows();
+  h+=`<h4>Known-fault log read at shift start (${KNOWN[V.id].length} entries)</h4>`;
+  h+=KNOWN[V.id].map(k=>`<div class="srow"><span>${esc(k.ref)}</span><span>${esc(k.pt+" — "+k.status)}</span></div>`).join("");
+
   if(missing.length){
     h+=`<div class="missing"><b>Not yet filled in:</b> ${esc(missing.join(", "))}. Complete these before you print, or note on the sheet why you left them blank.</div>`;
   }
-  h+=`<div class="closing">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
-      <div style="margin-top:12px" class="noprint"><button class="primary" id="btnPrintSheet">Print submission sheet</button></div>`;
-
-  const r=$("almResult");
+  h+=`<div class="closing">This record is embedded in your submission PDF.</div>`;
+  return h;
+}
+function buildSheet(){
+  const r=$("almResult"); if(!r) return;
   r.className="result sheet show";
-  r.innerHTML=h;
-  $("btnPrintSheet").onclick=()=>window.print();
+  r.innerHTML=sheetHTML();
+}
+/* The submission module calls this when the learner presses Build submission PDF.
+   It builds the record from state, whatever is on screen. */
+window.lqRecord=function(){ return S.alarms.length?sheetHTML():null; };
+
+/* ---------- packet: known-fault log + four-question worksheet ---------- */
+function pkField(id,label,kind,ph){
+  const v=esc((S.packet||{})[id]||"");
+  if(kind==="yn") return `<label for="pk_${id}">${label}</label><select id="pk_${id}" data-pk="${id}">
+    <option value="">— choose —</option><option value="yes" ${v==="yes"?"selected":""}>Yes</option>
+    <option value="no" ${v==="no"?"selected":""}>No</option><option value="unsure" ${v==="unsure"?"selected":""}>Not sure — say why</option></select>`;
+  if(kind==="ta") return `<label for="pk_${id}">${label}</label><textarea id="pk_${id}" data-pk="${id}" rows="2" placeholder="${esc(ph||"")}">${v}</textarea>`;
+  return `<label for="pk_${id}">${label}</label><input type="text" id="pk_${id}" data-pk="${id}" value="${v}" placeholder="${esc(ph||"")}">`;
+}
+function renderPacket(){
+  const el=$("packetPane");
+  const kf=KNOWN[V.id].map(k=>`<tr><td class="mono" style="white-space:nowrap">${esc(k.ref)}</td><td class="mono">${esc(k.raised)}</td><td>${esc(k.pt)}</td><td>${esc(k.what)}</td><td>${esc(k.status)}</td><td>${esc(k.act)}</td></tr>`).join("");
+  const q=(n,label,hint)=>`<div class="wsrow"><div class="q"><b>${n}.</b> ${label}</div><div>${pkField("q"+n,"Answer","yn")}</div><div>${pkField("q"+n+"n","Evidence — alarms, times, what you checked","text",hint)}</div></div>`;
+  el.innerHTML=`
+    <div class="pkbar">
+      <button class="primary" id="btnPrintPacket">Print packet</button>
+      <span>Paper copy of the shift-start packet. The worksheet fields below are saved in the tool and printed inside your submission sheet; you do not need to hand this page in.</span>
+    </div>
+    <div class="packet" id="packetPaper">
+      <p class="eyebrow">UCI 2227 · Module 524 · Lesson 524.5 — Shift Ops &amp; Handoffs</p>
+      <h1>GLAB 524.5.2 — Shift-start packet</h1>
+      <p class="lede">Two things the desk hands you at 03:14: the <strong>known-fault log</strong> — what is already acknowledged, what work is in progress, which sensors are already reported faulty — and the <strong>four-question triage worksheet</strong> you fill in once the flood has a candidate parent. Read the log <em>before</em> the flood, not during it. Anything on it that alarms later is an acknowledge, not an escalation.</p>
+      <table class="cover">
+        <tr><td>Console</td><td>Simulated BMS and SCADA console — this lab tool</td></tr>
+        <tr><td>Site time</td><td>Log current at 03:14. The flood arrives over the following three minutes.</td></tr>
+        <tr><td>Triage order</td><td><strong>1 life safety · 2 load at risk · 3 knock-ons · 4 already known.</strong> In that order, every time.</td></tr>
+      </table>
+
+      <h2>Known-fault log — current at shift start</h2>
+      <table><thead><tr><th>Ref</th><th>Raised</th><th>Equipment / point</th><th>What is known</th><th>Status / owner</th><th>If it alarms</th></tr></thead><tbody>${kf}</tbody></table>
+      <div class="note bad"><strong>The log is not a list of things to ignore.</strong> It tells you what an alarm from that point means tonight. A known fault that behaves differently from its entry — a retry with no restore, a held-open that does not clear — is new information and is escalated.</div>
+
+      <h2>Four-question triage worksheet</h2>
+      <p class="lede">Answer life safety first, then name the earliest alarm as your candidate parent and put it through the four questions. A candidate that fails question 2 or 3 is not the parent, whatever its timestamp.</p>
+      ${pkField("life","Life safety — is anyone in danger? Name the alarm, or record “no life safety alarm in this flood”","text","e.g. none — no fire, smoke, gas or person alarm in the flood")}
+      ${pkField("cand","Candidate parent — alarm and exact timestamp","text","e.g. 03:14:02 — point · message")}
+      ${q(1,"Is it the earliest alarm in the flood?","sorted by time, oldest first — what is above it?")}
+      ${q(2,"Does it explain the others? List the alarms it accounts for and the interval to each.","e.g. pump low flow +7 s, supply temp +9 s, CRAHs +38 s …")}
+      ${q(3,"Is it on the path to the load? What is at risk now, and how long until it matters?","e.g. hall cooling on one chiller; rack inlets rising")}
+      ${q(4,"Is it already known? Checked against the known-fault log above.","which log entries you checked it against")}
+      ${pkField("known","Alarms you acknowledged as already known, by name — not escalated","ta","point and time of each, and the log ref that covers it")}
+      <p class="foot">UCI 2227 — GLAB 524.5.2 Shift-start packet · Known-fault log and four-question triage worksheet · Fields are captured into the submission sheet.</p>
+    </div>`;
+  el.querySelectorAll("[data-pk]").forEach(f=>{
+    const h=e=>{S.packet[e.target.dataset.pk]=e.target.value;};
+    f.oninput=h; f.onchange=h;
+  });
+  $("btnPrintPacket").onclick=printPacket;
+}
+function printPacket(){
+  const src=$("packetPaper"), c=src.cloneNode(true);
+  c.querySelectorAll("input,textarea,select").forEach(f=>{
+    const s=document.createElement("span"); s.className="pkval";
+    let v=f.value; if(f.tagName==="SELECT") v=f.selectedOptions[0]?f.selectedOptions[0].textContent:"";
+    if(/^— /.test(v)) v="";
+    s.textContent=v||"\u00a0"; f.replaceWith(s);
+  });
+  const w=document.createElement("div"); w.id="pkPrint"; w.appendChild(c);
+  document.body.appendChild(w); document.body.classList.add("pk-print");
+  try{ window.print(); } finally { document.body.classList.remove("pk-print"); w.remove(); }
+}
+function togglePacket(){
+  const p=$("packetPane"), on=p.classList.contains("hidden");
+  p.classList.toggle("hidden",!on); $("almView").classList.toggle("hidden",on);
+  $("btnPacket").classList.toggle("on",on); $("btnPacket").setAttribute("aria-pressed",on?"true":"false");
+  $("btnPacket").textContent=on?"Back to console":"Packet";
 }
 
 /* ---------- run loop ---------- */
@@ -467,8 +698,10 @@ function stopRun(done){
 function resetRun(){
   stopRun(false);
   rnd=mulberry32((1013904223 + SET*2654435761)>>>0);
-  S.t=0; S.acked=new Set(); S.marks={}; S.filters=new Set();
+  S.t=0; S.acked=new Set(); S.marks={}; S.filters=new Set(); S.sortKey="time"; S.sortDir=1; S.sortArmed=false;
+  S.ansParent=""; S.ansSecond=""; S.ansText=""; S.packet={};
   S.alarms=buildAlarms(V.id);
+  renderPacket();
   const vw=$("almView"); vw.dataset.built=""; vw.innerHTML="";
   render();
   $("statusBadge").textContent="Ready"; $("statusBadge").className="badge";
@@ -479,18 +712,24 @@ $("btnStart").onclick=startRun;
 $("btnPause").onclick=()=>stopRun(false);
 $("btnStep").onclick=()=>{if(S.running)stopRun(false);for(let i=0;i<4;i++)tick();};
 $("btnRestart").onclick=resetRun;
+$("btnPacket").onclick=togglePacket;
 $("speed").onchange=()=>{S.speed=+$("speed").value;if(S.running){stopRun(false);startRun();}};
 window.addEventListener("resize",()=>{render();});
 document.addEventListener("keydown",e=>{
-  if(e.key===" "&&e.target.tagName!=="TEXTAREA"&&e.target.tagName!=="INPUT"&&e.target.tagName!=="SELECT"){
-    e.preventDefault(); S.running?stopRun(false):startRun();
-  }
+  if(e.key!==" ") return;
+  const t=e.target;
+  /* the space bar pauses and resumes the run only when nothing interactive has the focus —
+     ticks, chips, sort headers, buttons and the packet fields handle their own Space key */
+  if(t.closest&&t.closest("input,textarea,select,button,[role=button],[role=checkbox],#packetPane,#lqCard")) return;
+  e.preventDefault(); S.running?stopRun(false):startRun();
 });
 resetRun();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.5.2", "title": "Twenty Alarms at Once", "handout": "GLAB 524.5.2 - Twenty Alarms at Once", "file": "524-5-2-B_AlarmFlood.html", "set": "B", "items": [{"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 1. Before the flood starts, open the simulated BMS and SCADA dashboard and read the current known-fault log. Write down what is already acknowledged, what work is in progress, and which sensors have already been reported faulty. Anything on this list that alarms later is an acknowledge, not an escalation. Escalating an alarm that three people already know about, twice a shift, is how a new technician stops being listened to. Record the known faults here."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 3. Apply triage question 1: is anyone in danger? Fire, smoke, gas, a person alarm. Life safety outranks everything on the screen, including the load. Answer this first, every time, and answer it before you start reasoning about the cascade. There is a natural pull towards the load, because that is what the facility exists for and it is what gets measured. If a smoke alarm and an uninterruptible power supply (UPS) failure arrive together, the smoke alarm is first. Record your answer and the alarm it relates to, or record explicitly that there is no life safety alarm in this flood."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 9. Confirm your parent event against the physical relationships. Does the timing make sense for how the plant actually works? A pump reporting low flow a few seconds after an upstream mechanical fault is physics, not a second fault. Cooling units noticing about forty seconds later is how long it takes warm water to reach them. Rack inlets noticing a minute after that is how long it takes the air to change. If an interval cannot be explained by how heat, water or electricity travel, that alarm is probably not a consequence. This step is Module 3 being paid back: you can only read this cascade because you know how the loop moves heat. Write your reasoning for at least three intervals."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 10. Look specifically for the second genuine event. Once the parent is identified there is a strong pull to assign everything else to it, and that pull is exactly what this step exists to resist. Ask of each remaining alarm: could this physically have been caused by the parent? An alarm on a system with no physical path back to the parent cannot be downstream of it. Record the second event, its timestamp, and why it cannot be downstream of the parent."}, {"s": "Part 1: Triaging the flood", "k": "image", "p": "Step 13. Capture the sorted timeline from the console — the alarm list sorted by time with your parent, consequence and noise marks visible — and paste it below. This is the evidence of your reasoning, not just your answer. Then type your name into the submission panel, press Build submission sheet and print it."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 14. Present your triage to your instructor. State the parent, the second event if there is one, and your escalation sentence. Then justify two alarms you chose to set aside, giving the reason each one cannot be downstream of the parent. Anyone can name the earliest alarm; justifying a decision to set something aside requires you to have actually reasoned about it. Note the two alarms you justified and what you said."}, {"s": "Part 2: Reflection", "k": "text", "p": "The four triage questions are asked in a fixed order: life safety, load at risk, knock-ons, already known. Explain what goes wrong if you answer question 2 before question 1, and give an example from your own flood where the order changed what you did first."}, {"s": "Part 2: Reflection", "k": "text", "p": "Take three consecutive alarms from your cascade and explain the interval between them in physical terms — what had to travel, and how far, for the second alarm to happen when it did. If any interval in your flood cannot be explained that way, say which one and what you concluded from it."}, {"s": "Part 2: Reflection", "k": "text", "p": "You were told there was a second genuine event. Describe how you would have found it if nobody had told you, and what specifically in your method would have surfaced it. Be honest if you only found it because you were looking for it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Alarm fatigue is a documented failure mode: when a console alarms constantly, operators stop reading it, and the one that mattered goes unread. It is a rational adaptation to a badly configured system, not laziness. Name one thing you can do about it at your level today, and one thing that can only be fixed at the system level."}]};</script>
-<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+<script id="lqData">
+var LQ={"lab": "GLAB 524.5.2", "title": "Twenty Alarms at Once", "handout": "GLAB 524.5.2 - Twenty Alarms at Once", "file": "524-5-2-B_AlarmFlood.html", "set": "B", "items": [{"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 1. Before the flood starts, read the current known-fault log shown above the alarm table in the lab tool. Write down what is already acknowledged, what work is in progress, and which sensors have already been reported faulty. Anything on this list that alarms later is an acknowledge, not an escalation. Escalating an alarm that three people already know about, twice a shift, is how a new technician stops being listened to. Record the known faults here."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 3. Apply triage question 1: is anyone in danger? Fire, smoke, gas, a person alarm. Life safety outranks everything on the screen, including the load. Answer this first, every time, and answer it before you start reasoning about the cascade. There is a natural pull towards the load, because that is what the facility exists for and it is what gets measured. If a smoke alarm and an uninterruptible power supply (UPS) failure arrive together, the smoke alarm is first. Record your answer and the alarm it relates to, or record explicitly that there is no life safety alarm in this flood."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 9. Confirm your parent event against the physical relationships. Does the timing make sense for how the plant actually works? A pump reporting low flow a few seconds after an upstream mechanical fault is physics, not a second fault. Cooling units noticing about forty seconds later is how long it takes warm water to reach them. Rack inlets noticing a minute after that is how long it takes the air to change. If an interval cannot be explained by how heat, water or electricity travel, that alarm is probably not a consequence. This step is Lesson 3 being paid back: you can only read this cascade because you know how the loop moves heat. Write your reasoning for at least three intervals."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 10. Look specifically for the second genuine event. Once the parent is identified there is a strong pull to assign everything else to it, and that pull is exactly what this step exists to resist. Ask of each remaining alarm: could this physically have been caused by the parent? An alarm on a system with no physical path back to the parent cannot be downstream of it. Record the second event, its timestamp, and why it cannot be downstream of the parent."}, {"s": "Part 1: Triaging the flood", "k": "image", "p": "Step 13. Capture the sorted timeline from the console — the alarm list sorted by time with your parent, consequence and noise marks visible — and attach it in the lab tool. This is the evidence of your reasoning, not just your answer. Enter your name and cohort in the lab tool, then press Build submission PDF and save the file — that single PDF is what you hand in."}, {"s": "Part 1: Triaging the flood", "k": "text", "p": "Step 14. Present your triage to your instructor. State the parent, the second event if there is one, and your escalation sentence. Then justify two alarms you chose to set aside, giving the reason each one cannot be downstream of the parent. Anyone can name the earliest alarm; justifying a decision to set something aside requires you to have actually reasoned about it. Note the two alarms you justified and what you said."}, {"s": "Part 2: Reflection", "k": "text", "p": "The four triage questions are asked in a fixed order: life safety, load at risk, knock-ons, already known. Explain what goes wrong if you answer question 2 before question 1, and give an example from your own flood where the order changed what you did first."}, {"s": "Part 2: Reflection", "k": "text", "p": "Take three consecutive alarms from your cascade and explain the interval between them in physical terms — what had to travel, and how far, for the second alarm to happen when it did. If any interval in your flood cannot be explained that way, say which one and what you concluded from it."}, {"s": "Part 2: Reflection", "k": "text", "p": "You were told there was a second genuine event. Describe how you would have found it if nobody had told you, and what specifically in your method would have surfaced it. Be honest if you only found it because you were looking for it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Alarm fatigue is a documented failure mode: when a console alarms constantly, operators stop reading it, and the one that mattered goes unread. It is a rational adaptation to a badly configured system, not laziness. Name one thing you can do about it at your level today, and one thing that can only be fixed at the system level."}]};
+</script>
+<!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
      Self-contained. No external libraries. Safe to re-inject (idempotent).
@@ -500,6 +739,12 @@ resetRun();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
+     v2.1 — window.lqRecord() hook: a simulator can hand the module its record
+     directly, so the harvest no longer depends on which pane is showing; loose
+     `.sheet` tiles outside a `.result.show` are ignored; the learner name is
+     copied into the simulator's own name field before the harvest; the
+     completeness banner and the Set line respect no-simulator / single-set labs;
+     the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -738,6 +983,8 @@ resetRun();
     return LQ.set||"—";
   }
 
+  function hasSet(){ var l=setLetter(); return !!l&&l!=="—"; }
+
   /* ---------- downscale an image before it goes anywhere near storage ----------
      A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
      about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
@@ -784,7 +1031,8 @@ resetRun();
    +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
    +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
    +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
-   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<b>What is saved:</b> everything you type in this panel is kept in this browser as you type, so a refresh will not lose your answers. '
+   +(LQ.nosim?'':'<b>What is not:</b> the simulator above starts again on a refresh — if you refresh mid-lab, work the simulator again before you build the PDF.')+'</p>'
    +'<div id="lqStoreErr" role="alert"></div>'
    +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
    +'<div class="lqid">'
@@ -904,7 +1152,21 @@ resetRun();
   })();
 
   /* ---------- harvest the simulator's own record ---------- */
-  var REC_SEL=".sheet, .result.show";
+  var REC_SEL=".result.show, .result.show .sheet";
+  function syncSimName(){
+    /* the simulator keeps its own name field; the learner is told to fill the
+       module's. Copy across so the harvested record never reports the name blank. */
+    try{
+      var n=document.getElementById("lqName"); if(!n||!n.value.trim()) return;
+      var sim=document.getElementById("learnerName")||document.getElementById("learner")
+            ||document.querySelector('input[name="learnerName"]');
+      if(sim&&!card.contains(sim)&&!sim.value.trim()){
+        sim.value=n.value.trim();
+        sim.dispatchEvent(new Event("input",{bubbles:true}));
+        sim.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }catch(e){}
+  }
   function collect(){
     var raw=[];
     Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
@@ -934,7 +1196,33 @@ resetRun();
     });
   }
 
+  function cleanClone(s){
+    var c=s.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    stripDuplicateName(c);
+    /* paper-era close line some simulators still print under their sheet */
+    Array.prototype.forEach.call(c.querySelectorAll("p,div,span,small"),function(n){
+      if(n.children.length===0&&/hand this sheet to your instructor/i.test(n.textContent||"")){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      }
+    });
+    return c;
+  }
   function toolRecord(){
+    syncSimName();
+    /* Preferred path: the simulator hands over its record itself. A simulator
+       defines window.lqRecord() to (re)build its sheet from its current state and
+       return the element or an HTML string — so the harvest no longer depends on
+       which pane or tab happens to be showing when the learner presses the button. */
+    if(typeof window.lqRecord==="function"){
+      try{
+        var r=window.lqRecord();
+        if(typeof r==="string"&&r.replace(/\s/g,"")) return r;
+        if(r&&r.nodeType===1&&r.textContent.replace(/\s/g,"")) return cleanClone(r).innerHTML;
+      }catch(e){}
+    }
     var found=collect();
     if(!found.length){
       var btns=document.querySelectorAll("button");
@@ -958,14 +1246,7 @@ resetRun();
     }
     if(!found.length) return null;
     var wrap=document.createElement("div");
-    found.forEach(function(s){
-      var c=s.cloneNode(true);
-      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
-        if(n.parentNode) n.parentNode.removeChild(n);
-      });
-      stripDuplicateName(c);
-      wrap.appendChild(c);
-    });
+    found.forEach(function(s){ wrap.appendChild(cleanClone(s)); });
     return wrap.innerHTML;
   }
 
@@ -982,21 +1263,24 @@ resetRun();
      +'<div class="lqsheet">'
      +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
      +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
-       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+       +(hasSet()?' · Set '+esc(setLetter()):'')+' · submission sheet</div>'
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
-     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
+       +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
      +'<div class="lqrow"><span class="k">Built</span><span class="v">'
        +esc(new Date().toLocaleString())+'</span></div>';
 
-    var rec=LQ.nosim?null:toolRecord();
-    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
-    else if(!LQ.nosim){
-      gaps.push("The simulator record — work through the lab tool above and press its own "
-               +"“Build submission sheet” button before you build this PDF");
-    }else{
+    /* a response tool (nosim) can still carry an in-tool packet record via window.lqRecord() */
+    var rec=(LQ.nosim&&typeof window.lqRecord!=="function")?null:toolRecord();
+    if(rec){ h+='<h2>'+(LQ.nosim?'Packet record':'Simulator record')+'</h2>'+rec; }
+    if(!rec&&!LQ.nosim){
+      var why=(typeof window.lqRecordReason==="string"&&window.lqRecordReason)?" ("+window.lqRecordReason+")":"";
+      gaps.push("The simulator record — the lab tool above has nothing to record yet"+why
+               +". Work through the lab, then build this PDF again");
+    }else if(LQ.nosim){
       h+='<h2>Assessed on the floor</h2>'
         +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
         +'Observed and signed off by the instructor against the handout. '
@@ -1021,7 +1305,8 @@ resetRun();
         +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
     }else{
       h+='<div class="lqgap ok">'
-        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+        +'<b>Complete.</b> Every question on this sheet carries a response'
+        +(LQ.nosim?'.':' and the simulator record is attached.')+'</div>';
     }
 
     h+='<div class="lqsign">Learner signature: ______________________________'
@@ -1067,7 +1352,7 @@ resetRun();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+    var runHead='<span class="r">'+esc(LQ.lab)+(hasSet()?' · Set '+esc(setLetter()):'')+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1104,6 +1389,5 @@ resetRun();
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
-
 </body>
 </html>

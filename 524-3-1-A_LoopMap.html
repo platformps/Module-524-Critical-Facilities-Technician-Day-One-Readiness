@@ -128,11 +128,15 @@
   .lkrow .n{font-family:var(--mono);color:var(--faint);min-width:22px}
   .lkrow .x{margin-left:auto;color:var(--faint);cursor:pointer;font-family:var(--mono);padding:0 4px}
   .lkrow .x:hover{color:var(--stop)}
-  .sheet{font-size:12.5px;line-height:1.6;color:var(--dim)}
-  .sheet b{color:var(--ink)}
+  /* design-condition tile — deliberately NOT .sheet: the submission module harvests .sheet as a record */
+  .dsheet{font-size:12.5px;line-height:1.6;color:var(--dim)}
+  .dsheet b{color:var(--ink)}
   .learnerline{font-size:14px;margin:6px 0 4px}
-  .sheet .dl{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid #182b3b}
-  .sheet .dl span:last-child{font-family:var(--mono);color:var(--ink)}
+  .dsheet .dl{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid #182b3b}
+  .dsheet .dl span:last-child{font-family:var(--mono);color:var(--ink)}
+  .hocount{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--dim);line-height:1.5;
+    padding:9px 10px;border-radius:7px;background:var(--panel2);border:1px solid var(--line)}
+  .hocount input{margin-top:2px}
   ol.stepl{margin:6px 0 0;padding-left:20px;font-size:12.5px;line-height:1.7;color:var(--dim)}
   ol.stepl b{color:var(--ink)}
   .hoslot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 10px;border-radius:7px;
@@ -239,6 +243,7 @@ function airL2(){
 const CONF={
   L1:{
     vb:"0 0 1180 600",
+    handovers:2,
     nodes:AIR_L1.concat([
       {id:"coilw",x:610,y:240,g:"chw",l:["CRAH coil","water side"]},
       {id:"chwr", x:400,y:240,g:"chw",l:["CHW return header"]},
@@ -269,6 +274,7 @@ const CONF={
   },
   L2:{
     vb:"0 0 1180 560",
+    handovers:1,
     nodes:airL2().concat([
       {id:"dxevap",x:610,y:250,g:"ref",l:["DX evaporator","refrigerant side"]},
       {id:"comp",  x:400,y:250,g:"ref",l:["Compressor"]},
@@ -294,6 +300,7 @@ const CONF={
   },
   L3:{
     vb:"0 0 1180 600",
+    handovers:2,
     nodes:AIR_L1.concat([
       {id:"coilw",x:610,y:240,g:"chw",l:["CRAH coil","water side"]},
       {id:"chwr", x:400,y:240,g:"chw",l:["CHW return header"]},
@@ -314,7 +321,9 @@ const CONF={
     s3:"Draw the <b>condenser water loop</b>, including the branch that serves the plate heat exchanger, and the rejection to atmosphere at the tower.",
     refnote:"Inside the chiller, a refrigeration cycle lifts heat from one water loop into the other.",
     sheet:[["Hall IT load","480 kW"],["Chilled water (CHW) supply — design","7.0 °C"],
-           ["Chilled water return — design","13.0 °C"],["Outdoor wet-bulb — now","0.0 °C"],
+           ["Chilled water return — design","13.0 °C"],["CHW flow — design","19.1 l/s"],
+           ["Condenser water supply / return — design, chiller on duty","27.0 / 32.0 °C"],
+           ["Outdoor wet-bulb — now","0.0 °C"],
            ["Cooling tower approach","4.0 K"],["Plate heat exchanger approach","1.5 K"],
            ["Cold aisle set point","24.0 °C"]],
     dt:{supL:"CHW supply temperature (°C)",retL:"CHW return temperature (°C)",
@@ -334,7 +343,8 @@ const CYCLE=[["evaporator","Evaporator"],["compressor","Compressor"],
              ["condenser","Condenser"],["expansion","Expansion device"]];
 
 const S={learner:"",t:0,running:false,timer:null,
-  mode:"draw",src:null,links:[],ho:{1:null,2:null},hoNames:{},hoSlot:1,cycOpts:CYCLE};
+  mode:"draw",src:null,links:[],ho:{1:null,2:null},hoNames:{},hoSlot:1,hoOnlyOne:false,cycOpts:CYCLE,
+  f:{}};   /* S.f mirrors every typed field by element id, so the sheet can be built from state alone */
 const $=id=>document.getElementById(id);
 let V=PLANTS[SET];
 
@@ -427,7 +437,9 @@ function paintLinkList(){
 function onNodeClick(id){
   if(S.mode==="handover"){
     S.ho[S.hoSlot]=id;
-    if(S.hoSlot===1 && !S.ho[2]) S.hoSlot=2;
+    /* only carry on to handover 2 automatically on a plant that has one;
+       otherwise the next click on the schematic would silently tag H2 */
+    if(S.hoSlot===1 && conf().handovers>1 && !S.ho[2]) S.hoSlot=2;
     else setMode("draw");
     paintSch(); paintHo(); return;
   }
@@ -465,7 +477,12 @@ function paintHo(){
       <input type="text" id="hoName${n}" value="${esc((S.hoNames&&S.hoNames[n])||"")}" placeholder="type the component name">
     </div>`;
   };
-  el.innerHTML=slot(1)+slot(2);
+  el.innerHTML=slot(1)+slot(2)+`
+    <label class="hocount" for="hoOnlyOne">
+      <input type="checkbox" id="hoOnlyOne"${S.hoOnlyOne?" checked":""}>
+      <span>This configuration has only <b style="color:var(--ink)">one</b> loop-to-loop handover — I am leaving handover 2 unmarked. (Handout Step 10 asks for the count; it is recorded on your sheet either way.)</span>
+    </label>`;
+  $("hoOnlyOne").onchange=()=>{S.hoOnlyOne=$("hoOnlyOne").checked;};
   [1,2].forEach(n=>{const f=$("hoName"+n); if(f) f.oninput=readHoNames;});
   el.querySelectorAll("[data-hopick]").forEach(b=>b.onclick=()=>{
     S.hoSlot=+b.dataset.hopick; setMode("handover"); paintSch();
@@ -496,7 +513,7 @@ function buildView(){
     C.s2,
     C.s3,
     "Use <b>Mark handover</b> and tag <b>handover 1</b> — the place where heat leaves the air and enters a fluid. Then name the component.",
-    "Work out whether this plant has a further loop-to-loop handover, where heat leaves one fluid loop and enters the next. Mark and name it as handover 2 if it is there, and leave handover 2 unmarked if it is not.",
+    "Work out whether this plant has a further loop-to-loop handover, where heat leaves one fluid loop and enters the next. Mark and name it as handover 2 if it is there; if it is not, leave handover 2 unmarked and tick the box that says so, so the count is recorded.",
     "Read the design condition sheet, enter the two temperatures, and work out delta T. Then put the refrigeration cycle in order.",
     "Answer the reasoning question, then build your submission sheet."
   ];
@@ -526,7 +543,7 @@ function buildView(){
     <div class="grid g2">
       <div class="tile">
         <div class="name">Design condition sheet</div>
-        <div class="sheet" style="margin-top:8px">${sheetRows}</div>
+        <div class="dsheet" style="margin-top:8px">${sheetRows}</div>
         <div class="fine">Read the temperatures off this sheet. Nothing on it is a trick, but not every line is needed.</div>
       </div>
       <div class="tile">
@@ -587,8 +604,8 @@ function buildView(){
         <div class="sub">Builds a printable record of the chart you drew, the handovers you marked and every figure you entered.</div>
         <div class="fld" style="margin-bottom:12px"><label>Your name</label><input type="text" id="learnerName" placeholder="First and last" style="max-width:340px" value="${esc(S.learner)}"></div>
         <div class="fld" style="margin-bottom:12px">
-          <label>Step 7 — which single component would you ask about first if delta T were half its design value, and why?</label>
-          <textarea id="ansStep7" rows="3" placeholder="Name one component and give the reason, in terms of the loop you have just drawn."></textarea>
+          <label for="ansStep7">Q7 (handout Step 13) — which single component would you ask about first if delta T were half its design value, and why?</label>
+          <textarea id="ansStep7" rows="3" placeholder="Name one component and give the reason, in terms of the loop you have just drawn.">${esc(S.f.ansStep7||"")}</textarea>
           <div class="fine">Your instructor reads this against the arrows on your own chart, so make the reasoning follow the fluid path you drew.</div>
         </div>
         <button class="primary" id="btnSubmit">Build submission sheet</button>
@@ -607,12 +624,19 @@ function buildView(){
   ["dtSup","dtRet","dtDelta"].forEach(id=>$(id).oninput=dtReadout);
   $("btnSubmit").onclick=buildSubmission;
   {const _n=$("learnerName"); if(_n) _n.oninput=()=>{S.learner=_n.value.trim();};}
+  /* mirror every typed/selected value into S.f so the record can be rebuilt from state */
+  const mirror=e=>{const t=e.target; if(t&&t.id&&t.id!=="learnerName"&&"value" in t) S.f[t.id]=String(t.value);};
+  el.addEventListener("input",mirror); el.addEventListener("change",mirror);
   paintHo(); paintSch(); dtReadout();
 }
 
 /* ---------- submission sheet ---------- */
-function val(id){const e=$(id);return e?String(e.value).trim():"";}
-function buildSubmission(){
+function val(id){const e=$(id);return e?String(e.value).trim():String(S.f[id]||"").trim();}
+function hoCount(){ if(S.hoOnlyOne) return 1; return (S.ho[1]?1:0)+(S.ho[2]?1:0); }
+/* Builds the record from the current state and returns {html, missing}. Nothing here
+   needs a particular pane to be visible; window.lqRecord() calls it directly. */
+/* forModule: the submission module prints the learner name in its own block, so leave it out there */
+function sheetHTML(forModule){
   readHoNames();
   {const _n=$("learnerName"); if(_n) S.learner=_n.value.trim();}
   const C=conf(), missing=[];
@@ -620,22 +644,23 @@ function buildSubmission(){
   if(!S.links.length) missing.push("The loop chart — no connections drawn yet");
   if(!S.ho[1]) missing.push("Handover 1 — not marked on the schematic");
   if(!(S.hoNames&&S.hoNames[1]&&S.hoNames[1].trim())) missing.push("Handover 1 — component not named");
+  if(!S.ho[2]&&!S.hoOnlyOne) missing.push("Handover count — mark handover 2, or tick the box stating this plant has only one");
   if(!val("dtSup")) missing.push(C.dt.supL);
   if(!val("dtRet")) missing.push(C.dt.retL);
   if(!val("dtDelta")) missing.push("Delta T (K)");
   const cyc=[1,2,3,4].map(i=>val("cyc"+i));
   if(cyc.some(v=>!v)) missing.push("Refrigeration cycle — all four positions");
   if(C.ask&&!val("ansAsk")) missing.push("The question on the temperatures and delta T panel");
-  if(!val("ansStep7")) missing.push("Step 7 — your reasoning");
+  if(!val("ansStep7")) missing.push("Q7 (handout Step 13) — your reasoning");
 
   const row=(k,v)=>`<div class="srow"><span>${esc(k)}</span><span>${esc(v||"—")}</span></div>`;
   const out=[];
   const now=new Date();
-  out.push(`<h2 style="font-size:16px">${LAB.lab} — ${LAB.title}</h2>
-    <div class="fine" style="margin:2px 0 10px">UCI 2227 · objective ${LAB.obj} · Set ${SETLETTER} · submission sheet</div>
-    <div class="learnerline"><b>Name:</b> ${esc(S.learner)||"\u2014"}</div>`);
+  out.push(`<h4 style="font-size:15px;margin:0">${LAB.lab} — ${LAB.title}</h4>
+    <div class="fine" style="margin:2px 0 10px">UCI 2227 · objective ${LAB.obj} · Set ${SETLETTER} · submission sheet</div>`+
+    (forModule?"":`<div class="learnerline"><b>Name:</b> ${esc(S.learner)||"\u2014"}</div>`));
   out.push(`<div class="shead">Session</div>`);
-  out.push(row("Learner",S.learner));
+  if(!forModule) out.push(row("Learner",S.learner));
   out.push(row("Set",SETLETTER));
   out.push(row("Completed",now.toLocaleDateString()+" "+now.toLocaleTimeString()));
   out.push(row("Time at console",fmtElapsed(S.t)));
@@ -650,6 +675,9 @@ function buildSubmission(){
     out.push(row("Handover "+n+" — marked at",S.ho[n]?nodeName(S.ho[n]):"not marked"));
     out.push(row("Handover "+n+" — named as",nm||"—"));
   });
+  out.push(row("Loop-to-loop handover count, as recorded",
+    S.hoOnlyOne ? "1 — stated: this configuration has only one loop-to-loop handover"
+                : hoCount()+" — "+hoCount()+(hoCount()===1?" handover":" handovers")+" marked on the schematic"));
 
   out.push(`<div class="shead">Temperatures and delta T</div>`);
   out.push(row(C.dt.supL,val("dtSup")));
@@ -668,7 +696,7 @@ function buildSubmission(){
     out.push(row("Position "+(i+1),o?o[1]:"—"));
   });
 
-  out.push(`<div class="shead">Step 7 — your reasoning</div>`);
+  out.push(`<div class="shead">Q7 (handout Step 13) — your reasoning</div>`);
   out.push(row("Which component you would ask about first, and why",val("ansStep7")));
 
   const extGiven=C.ext.rows.map((q,i)=>[q,val("ext"+i)]);
@@ -682,15 +710,21 @@ function buildSubmission(){
       missing.map(m=>"· "+esc(m)).join("<br>")+
       `<br><br>This is a completeness check only. Fill these in and build the sheet again, or hand it in as it stands and explain the gaps to your instructor.</div>`;
   }
-  html+=`<div class="closing">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
-    <div class="noprint" style="margin-top:12px"><button id="btnPrint">Print submission sheet</button></div>`;
-  const r=$("loopResult");
+  html+=`<div class="closing">This record is embedded in your submission PDF.</div>`;
+  return {html,missing};
+}
+function buildSubmission(){
+  const sh=sheetHTML();
+  const r=$("loopResult"); if(!r) return;
   r.className="result show";
-  r.innerHTML=html;
+  r.innerHTML=sh.html+`<div class="noprint" style="margin-top:12px"><button id="btnPrint">Print submission sheet</button></div>`;
   $("btnPrint").onclick=()=>window.print();
   $("statusBadge").textContent="Sheet built"; $("statusBadge").className="badge run";
   if(r.scrollIntoView) r.scrollIntoView({block:"nearest"});
 }
+/* Hook for the shared submission module: hands over the record built from the
+   current state, whatever is or is not showing on screen. */
+window.lqRecord=function(){ return sheetHTML(true).html; };
 
 /* ---------- clock ---------- */
 function render(){
@@ -719,7 +753,7 @@ function startSession(){
   rnd=mulberry32(RUNKEY);
   S.cycOpts=shuffled(CYCLE);
   S.t=0;
-  S.links=[]; S.ho={1:null,2:null}; S.hoNames={}; S.src=null; S.hoSlot=1; S.mode="draw";
+  S.links=[]; S.ho={1:null,2:null}; S.hoNames={}; S.hoOnlyOne=false; S.src=null; S.hoSlot=1; S.mode="draw"; S.f={};
   buildView(); setMode("draw");
   render(); startRun();
 }
@@ -727,12 +761,12 @@ function startSession(){
 /* ---------- wiring ---------- */
 $("btnDraw").onclick=()=>{setMode("draw");paintSch();};
 $("btnHandover").onclick=()=>{
-  if(!S.ho[1]) S.hoSlot=1; else if(!S.ho[2]) S.hoSlot=2; else S.hoSlot=1;
+  if(!S.ho[1]) S.hoSlot=1; else if(conf().handovers>1&&!S.ho[2]) S.hoSlot=2; else S.hoSlot=1;
   setMode("handover"); paintSch();
 };
 $("btnUndo").onclick=()=>{S.links.pop();S.src=null;paintSch();};
 $("btnClear").onclick=()=>{S.links=[];S.ho={1:null,2:null};S.src=null;
-  [1,2].forEach(n=>{const f=$("hoName"+n); if(f) f.value="";}); S.hoNames={};
+  [1,2].forEach(n=>{const f=$("hoName"+n); if(f) f.value="";}); S.hoNames={}; S.hoOnlyOne=false;
   paintSch();paintHo();};
 $("btnRefrig").onclick=()=>{const p=$("refPanel");if(p){if(p.scrollIntoView)p.scrollIntoView({block:"center"});const s=$("cyc1");if(s)s.focus();}};
 $("btnRestart").onclick=()=>{S.learner="";startSession();};
@@ -751,8 +785,10 @@ $("setTag").textContent="Set "+SETLETTER;
 startSession();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout": "GLAB 524.3.1 - Map the Thermodynamic Loops", "file": "524-3-1-A_LoopMap.html", "set": "A", "items": [{"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 2. Read the site design condition sheet in the tool before you draw a single line. Copy onto your fluid loop worksheet: the hall IT load, the chilled water (CHW) supply and return design temperatures, the design flow, the condenser water supply and return temperatures, the outdoor wet-bulb temperature and the cold aisle set point. If your configuration has no chilled water row, record that fact in words. On a direct expansion plant there is no chilled water loop at all, and that is a finding rather than an omission."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 5. Circle handover 1 — the place where heat leaves the air and enters another fluid — and write the component name beside the circle. Air is on one side of it and something else is on the other. Write the full name, not an abbreviation."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 8. Mark handover 2 if your configuration has one, and name the component. Inside a chiller, list the four stages of the refrigeration cycle in order on your chart: evaporator, compressor, condenser, expansion device. Heat enters the refrigerant at the evaporator and leaves it at the condenser; the compressor raises it to a temperature at which it can be rejected, and the expansion device drops it back down. Record below the component you named as handover 2, and the four stages in the order you charted them."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 10. Count the loop-to-loop handovers on your chart and write the number in a box. Count only the places where heat moves from one circulating loop into another circulating loop. Rejection to the atmosphere at the end of the chain is a terminal sink, not a handover — the atmosphere does not come back round. Three loops means two handovers. One air loop plus a refrigerant circuit means one."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 11. Calculate delta T for the loop your configuration actually has. The formula is: delta T = return temperature minus supply temperature. Worked example from the module: chilled water leaving the chiller at 7.0 degrees C and coming back at 13.0 degrees C gives a delta T of 6.0 K, which is a healthy loop. The same water coming back at 9.0 degrees C gives 2.0 K, which is low delta T and needs investigating. Apply the same arithmetic to your own sheet, using the design supply and return figures your own design condition sheet gives you. On a direct expansion plant there is no chilled water, so you take delta T across the air side of the coil, using the on-coil and off-coil figures instead. Write the value and the unit on your chart."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 12. Write down what half the design delta T would be as a number, and what return temperature would produce it on your own configuration. Having the actual number in front of you makes the next step a reading rather than an opinion."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 13. Identify, in writing, which single component you would ask about first if delta T were half its design value, and why. Low delta T means the water went round the loop without picking up much heat. That is a distribution problem, not a capacity problem. Support your answer from the chart you have just drawn — any component you can justify from your own loop is a good answer at this stage."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 14. If your configuration has a water-side economiser, decide which path is carrying the load and show the arithmetic. Take the outdoor wet-bulb, the cooling tower approach and the plate heat exchanger approach from your design condition sheet. The tower can produce condenser water at the wet-bulb plus the tower approach, and across the plate heat exchanger that gives chilled water at that figure plus the exchanger approach. Compare the result with the chilled water set point and state which path can carry the load. Draw both possible paths, not just the one you memorised."}, {"s": "Part 1: Charting the heat journey", "k": "image", "p": "Step 16. Photograph or scan your marked-up chart for submission. Check before you do that your name, every arrowhead, the handover count, and the delta T value with its unit are all legible."}, {"s": "Part 2: Reflection", "k": "text", "p": "A direct expansion configuration has one loop-to-loop handover and a chilled water configuration with a tower has two. The outdoor condenser coil on a direct expansion plant clearly transfers heat from refrigerant into air, so why is it not counted as a handover? Answer in terms of what a loop is."}, {"s": "Part 2: Reflection", "k": "text", "p": "A cooling tower rejects heat by evaporating water, so its performance is limited by the outdoor wet-bulb temperature rather than the dry-bulb. Describe, stage by stage down your chart, what happens to condenser water temperature, chilled water supply temperature and finally rack inlet temperature on a humid afternoon when the wet-bulb is high."}, {"s": "Part 2: Reflection", "k": "text", "p": "Faced with a hot spot, the instinct is to lower the set point and start more CRAH units. Explain, using the delta T you calculated, why that response usually makes low delta T worse rather than better, and what it costs."}, {"s": "Part 2: Reflection", "k": "text", "p": "Write one sentence that distinguishes a CRAH from a CRAC. Then state what changes in your fault report — specifically, which components an engineer will ask you about — depending on which of the two you are describing."}]};</script>
-<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+<script id="lqData">
+var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout": "GLAB 524.3.1 - Map the Thermodynamic Loops", "file": "524-3-1-A_LoopMap.html", "set": "A", "items": [{"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 2. Read the site design condition sheet in the tool before you draw a single line. Copy onto your fluid loop worksheet: the hall IT load, the chilled water (CHW) supply and return design temperatures, the design flow, the condenser water supply and return temperatures, the outdoor wet-bulb temperature and the cold aisle set point. If your configuration has no chilled water row, record that fact in words. On a direct expansion plant there is no chilled water loop at all, and that is a finding rather than an omission."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 5. Circle handover 1 — the place where heat leaves the air and enters another fluid — and write the component name beside the circle. Air is on one side of it and something else is on the other. Write the full name, not an abbreviation."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 8. Mark handover 2 if your configuration has one, and name the component. Inside a chiller, list the four stages of the refrigeration cycle in order on your chart: evaporator, compressor, condenser, expansion device. Heat enters the refrigerant at the evaporator and leaves it at the condenser; the compressor raises it to a temperature at which it can be rejected, and the expansion device drops it back down. Record in the lab tool the component you named as handover 2, and the four stages in the order you charted them."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 10. Count the loop-to-loop handovers on your chart and write the number in a box. Count only the places where heat moves from one circulating loop into another circulating loop. Rejection to the atmosphere at the end of the chain is a terminal sink, not a handover — the atmosphere does not come back round. Three loops means two handovers. One air loop plus a refrigerant circuit means one."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 11. Calculate delta T for the loop your configuration actually has. The formula is: delta T = return temperature minus supply temperature. Worked example from the module: chilled water leaving the chiller at 7.0 degrees C and coming back at 13.0 degrees C gives a delta T of 6.0 K, which is a healthy loop. The same water coming back at 9.0 degrees C gives 2.0 K, which is low delta T and needs investigating. Apply the same arithmetic to your own sheet, using the design supply and return figures your own design condition sheet gives you. On a direct expansion plant there is no chilled water, so you take delta T across the air side of the coil, using the on-coil and off-coil figures instead. Write the value and the unit on your chart."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 12. Write down what half the design delta T would be as a number, and what return temperature would produce it on your own configuration. Having the actual number in front of you makes the next step a reading rather than an opinion."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 13. Identify, in writing, which single component you would ask about first if delta T were half its design value, and why. Low delta T means the water went round the loop without picking up much heat. That is a distribution problem, not a capacity problem. Support your answer from the chart you have just drawn — any component you can justify from your own loop is a good answer at this stage."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 14. If your configuration has a water-side economiser, decide which path is carrying the load and show the arithmetic. Take the outdoor wet-bulb, the cooling tower approach and the plate heat exchanger approach from your design condition sheet. The tower can produce condenser water at the wet-bulb plus the tower approach, and across the plate heat exchanger that gives chilled water at that figure plus the exchanger approach. Compare the result with the chilled water set point and state which path can carry the load. Draw both possible paths, not just the one you memorised."}, {"s": "Part 1: Charting the heat journey", "k": "image", "p": "Step 16. Photograph or scan your marked-up chart for submission. Check before you do that your name, every arrowhead, the handover count, and the delta T value with its unit are all legible."}, {"s": "Part 2: Reflection", "k": "text", "p": "A direct expansion configuration has one loop-to-loop handover and a chilled water configuration with a tower has two. The outdoor condenser coil on a direct expansion plant clearly transfers heat from refrigerant into air, so why is it not counted as a handover? Answer in terms of what a loop is."}, {"s": "Part 2: Reflection", "k": "text", "p": "A cooling tower rejects heat by evaporating water, so its performance is limited by the outdoor wet-bulb temperature rather than the dry-bulb. Describe, stage by stage down your chart, what happens to condenser water temperature, chilled water supply temperature and finally rack inlet temperature on a humid afternoon when the wet-bulb is high."}, {"s": "Part 2: Reflection", "k": "text", "p": "Faced with a hot spot, the instinct is to lower the set point and start more CRAH units. Explain, using the delta T you calculated, why that response usually makes low delta T worse rather than better, and what it costs."}, {"s": "Part 2: Reflection", "k": "text", "p": "Write one sentence that distinguishes a CRAH from a CRAC. Then state what changes in your fault report — specifically, which components an engineer will ask you about — depending on which of the two you are describing."}]};
+</script>
+<!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
      Self-contained. No external libraries. Safe to re-inject (idempotent).
@@ -762,6 +798,12 @@ startSession();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
+     v2.1 — window.lqRecord() hook: a simulator can hand the module its record
+     directly, so the harvest no longer depends on which pane is showing; loose
+     `.sheet` tiles outside a `.result.show` are ignored; the learner name is
+     copied into the simulator's own name field before the harvest; the
+     completeness banner and the Set line respect no-simulator / single-set labs;
+     the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -1000,6 +1042,8 @@ startSession();
     return LQ.set||"—";
   }
 
+  function hasSet(){ var l=setLetter(); return !!l&&l!=="—"; }
+
   /* ---------- downscale an image before it goes anywhere near storage ----------
      A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
      about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
@@ -1046,7 +1090,8 @@ startSession();
    +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
    +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
    +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
-   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<b>What is saved:</b> everything you type in this panel is kept in this browser as you type, so a refresh will not lose your answers. '
+   +(LQ.nosim?'':'<b>What is not:</b> the simulator above starts again on a refresh — if you refresh mid-lab, work the simulator again before you build the PDF.')+'</p>'
    +'<div id="lqStoreErr" role="alert"></div>'
    +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
    +'<div class="lqid">'
@@ -1166,7 +1211,21 @@ startSession();
   })();
 
   /* ---------- harvest the simulator's own record ---------- */
-  var REC_SEL=".sheet, .result.show";
+  var REC_SEL=".result.show, .result.show .sheet";
+  function syncSimName(){
+    /* the simulator keeps its own name field; the learner is told to fill the
+       module's. Copy across so the harvested record never reports the name blank. */
+    try{
+      var n=document.getElementById("lqName"); if(!n||!n.value.trim()) return;
+      var sim=document.getElementById("learnerName")||document.getElementById("learner")
+            ||document.querySelector('input[name="learnerName"]');
+      if(sim&&!card.contains(sim)&&!sim.value.trim()){
+        sim.value=n.value.trim();
+        sim.dispatchEvent(new Event("input",{bubbles:true}));
+        sim.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }catch(e){}
+  }
   function collect(){
     var raw=[];
     Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
@@ -1196,7 +1255,33 @@ startSession();
     });
   }
 
+  function cleanClone(s){
+    var c=s.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    stripDuplicateName(c);
+    /* paper-era close line some simulators still print under their sheet */
+    Array.prototype.forEach.call(c.querySelectorAll("p,div,span,small"),function(n){
+      if(n.children.length===0&&/hand this sheet to your instructor/i.test(n.textContent||"")){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      }
+    });
+    return c;
+  }
   function toolRecord(){
+    syncSimName();
+    /* Preferred path: the simulator hands over its record itself. A simulator
+       defines window.lqRecord() to (re)build its sheet from its current state and
+       return the element or an HTML string — so the harvest no longer depends on
+       which pane or tab happens to be showing when the learner presses the button. */
+    if(typeof window.lqRecord==="function"){
+      try{
+        var r=window.lqRecord();
+        if(typeof r==="string"&&r.replace(/\s/g,"")) return r;
+        if(r&&r.nodeType===1&&r.textContent.replace(/\s/g,"")) return cleanClone(r).innerHTML;
+      }catch(e){}
+    }
     var found=collect();
     if(!found.length){
       var btns=document.querySelectorAll("button");
@@ -1220,14 +1305,7 @@ startSession();
     }
     if(!found.length) return null;
     var wrap=document.createElement("div");
-    found.forEach(function(s){
-      var c=s.cloneNode(true);
-      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
-        if(n.parentNode) n.parentNode.removeChild(n);
-      });
-      stripDuplicateName(c);
-      wrap.appendChild(c);
-    });
+    found.forEach(function(s){ wrap.appendChild(cleanClone(s)); });
     return wrap.innerHTML;
   }
 
@@ -1244,21 +1322,24 @@ startSession();
      +'<div class="lqsheet">'
      +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
      +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
-       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+       +(hasSet()?' · Set '+esc(setLetter()):'')+' · submission sheet</div>'
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
-     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
+       +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
      +'<div class="lqrow"><span class="k">Built</span><span class="v">'
        +esc(new Date().toLocaleString())+'</span></div>';
 
-    var rec=LQ.nosim?null:toolRecord();
-    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
-    else if(!LQ.nosim){
-      gaps.push("The simulator record — work through the lab tool above and press its own "
-               +"“Build submission sheet” button before you build this PDF");
-    }else{
+    /* a response tool (nosim) can still carry an in-tool packet record via window.lqRecord() */
+    var rec=(LQ.nosim&&typeof window.lqRecord!=="function")?null:toolRecord();
+    if(rec){ h+='<h2>'+(LQ.nosim?'Packet record':'Simulator record')+'</h2>'+rec; }
+    if(!rec&&!LQ.nosim){
+      var why=(typeof window.lqRecordReason==="string"&&window.lqRecordReason)?" ("+window.lqRecordReason+")":"";
+      gaps.push("The simulator record — the lab tool above has nothing to record yet"+why
+               +". Work through the lab, then build this PDF again");
+    }else if(LQ.nosim){
       h+='<h2>Assessed on the floor</h2>'
         +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
         +'Observed and signed off by the instructor against the handout. '
@@ -1283,7 +1364,8 @@ startSession();
         +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
     }else{
       h+='<div class="lqgap ok">'
-        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+        +'<b>Complete.</b> Every question on this sheet carries a response'
+        +(LQ.nosim?'.':' and the simulator record is attached.')+'</div>';
     }
 
     h+='<div class="lqsign">Learner signature: ______________________________'
@@ -1329,7 +1411,7 @@ startSession();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+    var runHead='<span class="r">'+esc(LQ.lab)+(hasSet()?' · Set '+esc(setLetter()):'')+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1366,6 +1448,5 @@ startSession();
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
-
 </body>
 </html>

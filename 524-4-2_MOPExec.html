@@ -176,6 +176,56 @@
     font-weight:700;margin:18px 0 8px}
   .sheet table{margin-bottom:4px}
   .sheet td,.sheet th{font-size:12px}
+
+  /* ---------- additive: the paper packet, read and printed from inside the tool ---------- */
+  .packet{background:#fff;color:#111;border-radius:9px;padding:28px 34px;max-width:1040px;margin:0 auto;
+    font-size:13px;line-height:1.55;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+  .packet h2{font-size:18px;margin:0 0 4px;color:#111}
+  .packet h3{font-size:14px;margin:26px 0 8px;color:#111;border-bottom:2px solid #111;padding-bottom:4px;
+    page-break-after:avoid;break-after:avoid}
+  .packet h4{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:#333;margin:16px 0 6px}
+  .packet p,.packet li{color:#222;font-size:12.5px;line-height:1.55}
+  .packet p{margin:0 0 8px}
+  .packet ol,.packet ul{margin:0 0 8px;padding-left:20px}
+  .packet table{border-collapse:collapse;width:100%;font-size:12px;margin-bottom:8px}
+  .packet th,.packet td{border:1px solid #999;padding:5px 7px;color:#111;vertical-align:top;text-align:left;font-size:11.5px}
+  .packet th{background:#eee;letter-spacing:.6px;text-transform:uppercase;font-size:9.5px;color:#222;cursor:default;white-space:normal}
+  .packet th:hover{color:#222}
+  .packet td.n{font-family:var(--mono);font-weight:700;width:30px}
+  .packet td.sig{min-width:70px;height:30px}
+  .packet .box{display:inline-block;width:13px;height:13px;border:1px solid #333;vertical-align:-2px;margin-right:5px}
+  .packet .line{border-bottom:1px solid #333;min-height:24px}
+  .packet .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 18px;border:1px solid #999;padding:10px 12px;margin:10px 0}
+  .packet .pgrid .k{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:#444}
+  .packet .pgrid .v{font-family:var(--mono);font-size:12px;color:#111;margin-top:2px}
+  .packet input,.packet select,.packet textarea{background:#fff;color:#111;border:1px solid #777;border-radius:3px;
+    font-size:12px;padding:4px 6px;font-family:inherit}
+  .packet textarea{width:100%;resize:vertical}
+  .packet label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#444;font-weight:700;display:block;margin-bottom:3px}
+  .packet .cover{border:2px solid #111;padding:16px 18px;margin-bottom:22px}
+  .packet .cover .tag{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#444;font-weight:700;margin-bottom:6px}
+  .packet .brk{page-break-before:always;break-before:page}
+  .packet .foot{font-size:10.5px;color:#555;margin-top:22px;border-top:1px solid #999;padding-top:6px}
+  .packet .pkbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 0}
+  .packet .pkbar button{background:#111;color:#fff;border-color:#111}
+  .packet .pkbar button:hover{background:#333}
+  .packet .pkbar .counter{color:#555}
+  .packet .vl select{width:56px;padding:3px 4px}
+  .packet .vl input{width:100%}
+  @media print{ .packet{box-shadow:none} }
+  /* Print packet — only the packet reaches the paper, ink on white */
+  body.pk-print{background:#fff!important;color:#000!important;overflow:visible!important;height:auto!important}
+  body.pk-print>*{display:none!important}
+  body.pk-print>#app{display:block!important;height:auto!important}
+  body.pk-print #app>header,body.pk-print #app>.toolbar,body.pk-print #mopView,
+  body.pk-print #flashbox,body.pk-print #lqCard,body.pk-print #lqPrint{display:none!important}
+  body.pk-print main{overflow:visible!important;padding:0!important}
+  body.pk-print #packetPane{display:block!important}
+  body.pk-print .packet{box-shadow:none;border-radius:0;max-width:none;padding:0;color:#000}
+  body.pk-print .packet .noprint,body.pk-print .packet .pkbar{display:none!important}
+  body.pk-print .packet input,body.pk-print .packet select,body.pk-print .packet textarea{
+    border:0;border-bottom:1px solid #999;border-radius:0;background:#fff;color:#000;-webkit-appearance:none;appearance:none}
+  body.pk-print .packet tr{page-break-inside:avoid;break-inside:avoid}
 </style>
 </head>
 <body>
@@ -199,6 +249,7 @@
     <button id="btnHalt" class="danger">HALT</button>
     <button id="btnRoll">Rollback</button>
     <button id="btnRed">Redline</button>
+    <button id="btnPacket" title="The paper packet: field copy of MOP-2227-041 Rev C, validation tracking log, rollback template and field redline form — readable and printable from here">Packet</button>
     <span class="spacer"></span>
     <span class="counter" id="stepTimer">step --:--</span>
     <span class="counter" id="elapsed">T+00:00</span>
@@ -208,6 +259,7 @@
   <main>
     <div class="wrap">
       <section id="mopView"></section>
+      <section id="packetPane" class="hidden"></section>
     </div>
   </main>
 </div>
@@ -226,7 +278,8 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 let rnd=mulberry32(1);
 function noise(amp){return (rnd()*2-1)*amp;}
 function fmtClock(mins){
-  const base=3*60+14; // scenarios run from 03:14 site time
+  /* GLAB 524.4.2 opens at 04:06 inside CHG-4471 (handout scenario); the 524.4.3 gate opens at 04:00 */
+  const base=(typeof V!=="undefined"&&V&&V.mode==="B")?4*60:4*60+6;
   const total=base+mins;
   const h=Math.floor(total/60)%24, m=Math.floor(total%60), s=Math.floor((mins%1)*60);
   return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
@@ -285,7 +338,7 @@ const BRK=[
   {id:"CB-11",label:"CB-11 · RACK R-14 PDU-A PRIMARY · 20 A",serves:"Rack R-14 PDU-A primary feed"},
   {id:"CB-12",label:"CB-12 · RACK R-14 PDU-B PRIMARY · 20 A",serves:"Rack R-14 PDU-B primary feed"},
   {id:"CB-13",label:"CB-13 · SPARE · 20 A",serves:"Spare"},
-  {id:"CB-14",label:"CB-14A · RACK R-14 SECONDARY · 20 A",serves:"Rack R-14 secondary feed and maintenance receptacle RCP-14"},
+  {id:"CB-14",label:"CB-14 · RACK R-14 SECONDARY · 20 A",serves:"Rack R-14 secondary feed and maintenance receptacle RCP-14"},
   {id:"CB-15",label:"CB-15 · RACK R-15 PDU-A PRIMARY · 20 A",serves:"Rack R-15 PDU-A primary feed"},
   {id:"CB-16",label:"CB-16 · HALL B REDUNDANT PATH TIE TO RP-2A · 32 A",serves:"Redundant path tie to board RP-2A"},
   {id:"CB-17",label:"CB-17 · SPARE · 20 A",serves:"Spare"},
@@ -354,11 +407,10 @@ const CONFIGS=[
 
 /* fixed integer derived from SET — the run is identical every time the file is opened */
 const RKEY=(Math.imul(SET+1,2654435761)^0x9E3779B9)>>>0;
-function labNo(){ return V.mode==="A"?"4.2":"4.3"; }
-function labName(){ return "Lab "+labNo(); }
-function labHead(){ return "Lab "+labNo()+" — MOP execution"; }
-function labTag(){ return "524."+labNo()+" &middot; Lab "+labNo()+" &middot; objective M"+labNo()+
-  " &middot; Module 4 &mdash; Procedure Discipline"; }
+function labName(){ return LAB.lab; }
+function labHead(){ return LAB.lab+" — "+LAB.title; }
+function labTag(){ return esc(LAB.lab)+" &middot; objective "+esc(LAB.obj)+
+  " &middot; Lesson 524.4 &mdash; Procedure Discipline"; }
 
 const STEPS=[
  {n:1,dev:"rack",
@@ -395,7 +447,10 @@ const STEPS=[
   expect:"CB-14 moves from CLOSED to OPEN. Maintenance receptacle RCP-14 dead. Outlet B-04 spare. Redundant path breaker CB-16 CLOSED and untagged.",
   verify:"State the CB-14 handle position aloud before and after operating it, then read the outlet map aloud outlet by outlet, then read CB-16 aloud.",
   scriptref:"Open breaker CB-14",
-  opts:["CB-14A · RACK R-14 SECONDARY · 20 A","CB-14 · RACK R-14 SECONDARY · 20 A","CB-14A · RACK R-14 · 20 A","CB-14","open the breaker"],
+  /* opts[0] is the label as fitted. In the clean set the breaker is labelled CB-14 exactly as the
+     script says; "CB-14A" stays in the list as a distractor. Variant M2 swaps the first two (see
+     the variant hook below V) so the fitted label reads CB-14A and the mismatch is real. */
+  opts:["CB-14 · RACK R-14 SECONDARY · 20 A","CB-14A · RACK R-14 SECONDARY · 20 A","CB-14A · RACK R-14 · 20 A","CB-14","open the breaker"],
   mutate:st=>{st.breakers["CB-14"]="OPEN";}},
 
  {n:6,dev:"sw3750",
@@ -453,8 +508,16 @@ const S={ci:SET,rkey:RKEY,learner:"",t:0,timer:null,pane:"doc",
   halted:false,haltStep:null,haltBeforeAct:false,haltInfo:{},
   rbSummary:"",rbDone:{},rbOtherUsed:[],rbActions:[],rbSubmitted:false,rbSubmittedAt:"",
   rbOutstanding:[],rbAdminMissing:[],
-  redline:{},initials:"",stepStart:0,stepSecs:[],labelOpts:{}};
+  redline:{},initials:"",stepStart:0,stepSecs:[],labelOpts:{},
+  packet:{}};
 let V=CONFIGS[SET];
+/* Variant hook — the CB-14A label mismatch belongs to M2 only (GLAB 524.4.3 set A).
+   Every other set carries the board exactly as the document describes it. */
+if(V.id==="M2"){
+  const o=STEPS[4].opts; STEPS[4].opts=[o[1],o[0]].concat(o.slice(2));
+  BRK.find(b=>b.id==="CB-14").label="CB-14A · RACK R-14 SECONDARY · 20 A";
+}
+const CB14LABEL=()=>BRK.find(b=>b.id==="CB-14").label.split(" · ")[0];
 /* ---------- log, flash, phase ---------- */
 function addLog(kind,text){
   S.log.push({t:fmtClock(S.t),kind:kind,text:text});
@@ -496,7 +559,7 @@ function observed(n){
   if(n===3) return `Shift lead A. Reyes confirms the window 04:00 to 06:00. SRV-R630-01 power supply indicators normal. SW-3750-01 and SW-2960G-01 status indicators normal.`;
   if(n===4) return `Front door tag: <b>${st.tags.front?"fitted":"not fitted"}</b>. Rear door tag: <b>${st.tags.rear?"fitted":"not fitted"}</b>. Tag stock at the rack reads WORK IN PROGRESS · MOP-2227-041 · DO NOT OPERATE.`;
   if(n===5){
-    return `Board RP-2B, breaker <b>CB-14</b>, physical label reads <b>CB-14A</b>: handle in the <b>${st.breakers["CB-14"]}</b> position`+
+    return `Board RP-2B, breaker <b>CB-14</b>, physical label reads <b>${esc(CB14LABEL())}</b>: handle in the <b>${st.breakers["CB-14"]}</b> position`+
       (st.lockoff?` with a <b>lock-off cover fitted</b> and no tag`:``)+`. `+
       `Maintenance receptacle RCP-14: ${st.breakers["CB-14"]==="OPEN"?"<b>dead</b>":"<b>live</b>"}.<br>`+
       `Redundant path: ${brk("CB-16")}${tagOn("CB-16")}.<br>`+
@@ -713,9 +776,17 @@ function applyOther(id){
   if(!it) return;
   it.apply();
   S.rbOtherUsed.push({id:id,t:it.t,at:fmtClock(S.t)});
-  addLog("w","Rollback: "+it.t+".");
-  recordRbAction(it.t);
+  addLog("w","Outside the rollback: "+it.t+". This action is not in the rollback section and does not return the rack to its as-found state.");
+  recordRbAction(it.t+" — NOT IN THE ROLLBACK SECTION");
+  flash("That action is not in the rollback section. It has been recorded as an action outside the rollback.");
   paint();
+}
+function otherUsedNote(){
+  if(!S.rbOtherUsed.length) return "";
+  return `<div class="notebox" style="margin-top:12px;border-color:#6d3129;background:#2a1512">
+    <b>Actions outside the rollback: ${S.rbOtherUsed.length}.</b>
+    ${S.rbOtherUsed.map(u=>"<br>— "+esc(u.at)+"  "+esc(u.t)).join("")}
+    <br><br>None of these is in the rollback section of MOP-2227-041 Rev C, and none of them returns the rack to the state it was found in. Changing the plant to match the document — or operating a breaker to prove a point — is a plant change nobody has authorised, and if the device carried another crew's tag it is their isolation you have just operated. The record above now differs from the as-found state; say so on the redline.</div>`;
 }
 function toggleAdmin(id){
   S.rbDone[id]=!S.rbDone[id];
@@ -747,12 +818,14 @@ function stampNow(){
   return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes());
 }
 function sRow(k,v){return `<div class="sheetrow"><span>${k}</span><span>${v}</span></div>`;}
-function buildSheet(){
+/* sheetHTML() builds the record from the current state alone — no pane has to be showing.
+   buildSheet() writes it into the Execute pane; window.lqRecord() hands it to the submission module. */
+function sheetHTML(){
   const name=($("subName")?$("subName").value.trim():"")||S.learner;
   S.learner=name;
   const miss=[];
   if(!name) miss.push("your name");
-  if(!S.initials) miss.push("your initials");
+  if(S.started && !S.initials) miss.push("your initials");
   if(V.mode==="B" && !String(S.rbSummary||"").trim()) miss.push("the rollback summary in your own words");
   const upto=S.halted?((Number(S.haltStep)||0)-1):9;
   STEPS.forEach(st=>{
@@ -833,6 +906,8 @@ function buildSheet(){
     <h4>Rollback actions performed</h4>
     ${rbRows?`<table><thead><tr><th style="width:90px">Time</th><th>Action</th></tr></thead><tbody>${rbRows}</tbody></table>`
       :`<div style="font-size:12.5px">No rollback actions were performed.</div>`}
+    ${sRow("Actions outside the rollback",String(S.rbOtherUsed.length))}
+    ${S.rbOtherUsed.length?`<div style="font-size:12.5px;line-height:1.6">${S.rbOtherUsed.map(u=>"— "+esc(u.at)+"  "+esc(u.t)).join("<br>")}</div>`:""}
     ${S.rbSubmitted?`${sRow("Rollback declared complete at",esc(S.rbSubmittedAt))}
       ${sRow("Items still differing from the recorded start state",String(S.rbOutstanding.length))}
       ${S.rbOutstanding.length?`<div style="font-size:12.5px;line-height:1.6">${S.rbOutstanding.map(m=>"— "+esc(m.d)).join("<br>")}</div>`:""}
@@ -864,17 +939,31 @@ function buildSheet(){
     ${sRow("Steps signed",STEPS.filter(x=>S.phase[x.n]&&S.phase[x.n].sign).length+" of 9")}
     ${sRow("Verification results stated",STEPS.filter(x=>S.phase[x.n]&&(S.phase[x.n].vres==="ok"||S.phase[x.n].vres==="not")).length+" of 9")}
 
+    ${packetSheetHTML()}
+
     ${miss.length?`<h4>Fields still blank</h4>
       <div style="font-size:12.5px;line-height:1.6">${miss.map(m=>"— "+esc(m)).join("<br>")}</div>`:""}
 
-    <div style="font-size:12.5px;margin-top:16px">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
-    <div class="row noprint" style="margin-top:12px"><button id="btnPrintSheet" class="primary">Print submission sheet</button></div>
+    <div style="font-size:12.5px;margin-top:16px">This record is embedded in your submission PDF.</div>
   </div>`;
-  const el=$("mopSheet");
-  el.className="result show";
-  el.innerHTML=html;
-  addLog("n","Submission sheet built at "+fmtClock(S.t)+".");
+  return html;
 }
+function buildSheet(){
+  const html=sheetHTML();
+  const el=$("mopSheet");
+  if(el){
+    el.className="result show";
+    el.innerHTML=html+'<div class="row noprint" style="margin-top:12px"><button id="btnPrintSheet" class="primary">Print submission sheet</button></div>';
+  }
+  addLog("n","Submission sheet built at "+fmtClock(S.t)+".");
+  return html;
+}
+/* The submission module calls this when the learner presses Build submission PDF, whichever
+   pane is showing. It never paints, never switches pane, and never needs #mopSheet in the DOM. */
+window.lqRecord=function(){
+  if(!S.start) return null;
+  return sheetHTML();
+};
 
 /* ---------- pane: MOP document ---------- */
 function paneDoc(){
@@ -956,7 +1045,8 @@ function paneDoc(){
       <tr><td>Executed by</td><td>${esc(S.learner||"")}</td><td class="sigline">${esc(S.finished?S.initials:"")}</td><td class="mono">${S.finished?fmtClock(S.t):""}</td></tr>
       <tr><td>Verified by</td><td>&nbsp;</td><td class="sigline"></td><td>&nbsp;</td></tr>
     </tbody></table>
-    <p class="noprint" style="margin-top:16px"><button onclick="window.print()">Print the field copy</button></p>
+    <p class="noprint" style="margin-top:16px"><button id="btnPrintFieldCopy">Print the field copy</button>
+      <span class="counter" style="margin-left:10px">Prints the paper packet — field copy, validation tracking log, rollback template and redline form — ink on paper. The same packet is under the <b>Packet</b> tab.</span></p>
   </div>`;
 }
 
@@ -1036,6 +1126,7 @@ function execGate(){
       <div class="sub">${V.mode==="A"
         ? "Nine steps on rack R-14. The work is the rhythm: read the step aloud, point at the device, match the label to the script text, act, sign at the rack, and state the verification result before you move on. Nothing is done from memory."
         : "Nine steps on rack R-14, same rhythm: read aloud, point, match the label, act, sign, and state the verification result before you move on. Confirm every pre-condition and every expected result against the plant in front of you rather than against the document. If the plant does not match the document, halt at that step, roll back to the state you found, and raise a field redline."}</div>
+      <div class="hint">You will use: the printed field copy of ${DOC.no} Rev ${DOC.rev}, the validation tracking log${V.mode==="B"?", the rollback template":""} and a blank field redline form — all in the <b>Packet</b> tab, readable and printable from there. The <b>Rack state</b> tab is the plant in front of you.</div>
     </div>
     <div class="sectbox">
       <h3>Pre-conditions</h3>
@@ -1210,6 +1301,7 @@ function paneRoll(){
       ${others.map(w=>`<div class="rbrow">
         <div class="rbt">${esc(w.t)}</div>
         <button data-other="${w.id}">Do it</button></div>`).join("")}
+      ${otherUsedNote()}
     </div>
     <div class="sectbox">
       <h3>Close out</h3>
@@ -1293,9 +1385,202 @@ function saveRedline(){
     tObs:g("rTObs"),tHalt:g("rTHalt"),notified:g("rNotif")};
   S.redlineSaved=fmtClock(S.t);
 }
+/* ---------- the paper packet ----------
+   Field copy of MOP-2227-041 Rev C, the observer's validation tracking log, a blank rollback
+   template and a blank field redline form — built from the same DOC / PRECON / STEPS / APPENDIX
+   data the simulator runs on, readable and printable from inside the tool. The tracking log is
+   the only part with response fields; they live in S.packet and are written into the record. */
+const VL_COLS=[
+  {k:"read", n:"Read aloud", h:"Step read out loud, word for word, before anything else"},
+  {k:"point",n:"Pointed",    h:"Finger on the device the step names"},
+  {k:"match",n:"Label matched",h:"Label on the device read aloud and agreed with the script text exactly — not paraphrased"},
+  {k:"act",  n:"Acted",      h:"The one action in the step, and only that action"},
+  {k:"verify",n:"Verified",  h:"Expected and observed result both stated aloud before moving on"},
+  {k:"sign", n:"Signed at rack",h:"Initialled at the rack, at the time, not later and not before"}
+];
+function pk(){ if(!S.packet) S.packet={}; if(!S.packet.vl) S.packet.vl={}; return S.packet; }
+function packetHTML(){
+  const p=pk();
+  const v=(n,k)=>((p.vl[n]||{})[k])||"";
+  const sel=(n,k,label)=>`<select data-vl="${n}|${k}" aria-label="${esc(label)}, step ${n}">
+      <option value="" ${v(n,k)===""?"selected":""}>—</option>
+      <option value="Y" ${v(n,k)==="Y"?"selected":""}>Y</option>
+      <option value="N" ${v(n,k)==="N"?"selected":""}>N</option></select>`;
+  const stepRows=STEPS.map(s=>`<tr><td class="n">${s.n}</td><td>${esc(s.action)}</td><td>${esc(s.expect)}</td>
+      <td>${esc(s.verify)}</td><td class="sig">&nbsp;</td><td class="sig">&nbsp;</td></tr>`).join("");
+  const vlRows=STEPS.map(s=>`<tr class="vl"><td class="n">${s.n}</td>
+      <td style="font-size:11px">${esc(s.scriptref)}</td>
+      ${VL_COLS.map(c=>`<td>${sel(s.n,c.k,c.n)}</td>`).join("")}
+      <td><input type="text" data-vl="${s.n}|note" aria-label="Observer note, step ${s.n}" value="${esc(v(s.n,"note"))}" placeholder="what you saw"></td></tr>`).join("");
+  return `<div class="packet" id="packetDoc">
+    <div class="cover">
+      <div class="tag">${esc(LAB.lab)} &middot; objective ${esc(LAB.obj)} &middot; Lesson 524.4 — Procedure Discipline</div>
+      <h2>MOP packet — ${DOC.no} Rev ${DOC.rev}</h2>
+      <p>This is the paper for the lab, held inside the lab tool so it cannot be separated from the run. It contains, in order: the <b>field copy</b> of ${DOC.no} Rev ${DOC.rev} with the sign-off block on its last page; the <b>validation tracking log</b> the observer keeps while the executor works; a blank <b>rollback template</b>; and a blank <b>field redline form</b>. Print it single-sided. The executor signs the printed field copy in wet ink at the rack; the observer fills the tracking log here in the tool, and it is written into the submission record. The redline, when there is one, is raised in the <b>Redline</b> tab and is also written into the record.</p>
+      <div class="pkbar noprint">
+        <button id="btnPrintPacket">Print packet</button>
+        <span class="counter">Prints this packet only, ink on paper. Nothing else on the screen is printed.</span>
+      </div>
+    </div>
+
+    <h3>1 · Field copy — ${DOC.no} Rev ${DOC.rev}</h3>
+    <h2 style="font-size:15px">${esc(DOC.title)}</h2>
+    <div class="pgrid">
+      <div><div class="k">Document number</div><div class="v">${DOC.no}</div></div>
+      <div><div class="k">Revision</div><div class="v">${DOC.rev}</div></div>
+      <div><div class="k">Approved</div><div class="v">${DOC.approved}</div></div>
+      <div><div class="k">Author</div><div class="v">${esc(DOC.author)}</div></div>
+      <div><div class="k">Reviewed by</div><div class="v">${esc(DOC.reviewer)}</div></div>
+      <div><div class="k">Approved by</div><div class="v">${esc(DOC.approver)}</div></div>
+      <div><div class="k">Duration</div><div class="v">${esc(DOC.duration)}</div></div>
+      <div><div class="k">Window</div><div class="v">${esc(DOC.window)}</div></div>
+      <div><div class="k">Level of Risk</div><div class="v">${esc(DOC.risk)}</div></div>
+    </div>
+    <h4>1 · Purpose</h4><p>${esc(DOC.purpose)}</p>
+    <h4>2 · Scope</h4><p>${esc(DOC.scope)}</p><p><b>Not in scope.</b> ${esc(DOC.excl)}</p>
+    <h4>3 · Pre-conditions — all must be true before step 1</h4>
+    <p>If any one of these is not true, the procedure does not start. Stop, say which one is false and why, and raise it with the shift lead. Tick each one only after you have walked to it and looked.</p>
+    <table><thead><tr><th style="width:52px">Ref</th><th>Condition</th><th style="width:150px">Confirmed at the plant</th></tr></thead><tbody>
+      ${PRECON.map(q=>`<tr><td class="n" style="width:52px">${q.id}</td><td>${esc(q.t)}</td><td><span class="box"></span>Yes &nbsp; <span class="box"></span>No &nbsp; time ______</td></tr>`).join("")}
+    </tbody></table>
+    <h4>4 · Tools required</h4><ul>${TOOLSREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    <h4>5 · Personal protective equipment (PPE)</h4><ul>${PPEREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    <h4>6 · Action steps</h4>
+    <p>Each step is executed in the same order every time: read the step aloud, point at the device, match the label to the script text, act, then sign. Do not sign a step you have not done. Initial each step at the rack as it completes, never at the end.</p>
+    <table><thead><tr><th style="width:30px">Step</th><th style="width:27%">Action</th><th style="width:24%">Expected result</th>
+      <th style="width:24%">Verification</th><th>Initials</th><th>Time</th></tr></thead><tbody>${stepRows}</tbody></table>
+    <h4>7 · Appendix A — rack R-14 as recorded</h4>
+    <p>${esc(APPENDIX.note)}</p>
+    <table><thead><tr><th>Device</th><th>Outlet</th><th>Feed</th></tr></thead><tbody>
+      <tr><td>SRV-R630-01 PSU1</td><td>A-03</td><td>PDU-A · CB-11</td></tr>
+      <tr><td>SRV-R630-01 PSU2</td><td>not fitted</td><td>—</td></tr>
+      <tr><td>SW-3750-01</td><td>A-05</td><td>PDU-A · CB-11</td></tr>
+      <tr><td>KVM-01</td><td>A-07</td><td>PDU-A · CB-11</td></tr>
+      <tr><td>SW-2960G-01</td><td>B-03</td><td>PDU-B · CB-12</td></tr>
+      <tr><td>PP-01, PP-02 patch panels</td><td>passive</td><td>—</td></tr>
+      <tr><td>PDU-A load, recorded</td><td>${APPENDIX.loadA}</td><td>16 A supply</td></tr>
+      <tr><td>PDU-B load, recorded</td><td>${APPENDIX.loadB}</td><td>16 A supply</td></tr>
+    </tbody></table>
+    <table><thead><tr><th>Board RP-2B way</th><th>Serves</th><th>Position the document expects</th></tr></thead><tbody>
+      ${BRK.map(b=>`<tr><td>${b.id}</td><td>${esc(b.serves)}</td><td>${DOCBRK[b.id]}</td></tr>`).join("")}
+    </tbody></table>
+    <h4>8 · Rollback</h4>
+    <p>If any step cannot be completed as written, or the plant does not match this document, <b>stop at that step</b>. Do not improvise the next step. Announce the halt to the shift lead with the step number and what you observed, then roll back in the reverse of the order performed:</p>
+    <ol>
+      <li>Close breaker CB-11 and verify PDU-A energized, if step 8 was performed.</li>
+      <li>Return the SRV-R630-01 PSU1 lead to outlet A-03 and verify the power supply indicator, if step 7 was performed.</li>
+      <li>Return the SW-3750-01 lead to outlet A-05 and verify the switch, if step 6 was performed.</li>
+      <li>Restore breaker CB-14 to the position it was found in, if step 5 was performed.</li>
+      <li>Remove both door tags, if step 4 was performed.</li>
+      <li>Announce to the shift lead that the rack is back to as-found and the MOP is suspended.</li>
+      <li>Record the as-found condition on the field redline form and return the field copy to the change file marked SUSPENDED.</li>
+    </ol>
+    <p><b>The rollback target is the state the rack was found in, not the state this document describes.</b> If something was already out of position when you arrived, it stays where it was. Changing it to match the document is a plant change nobody has authorized.</p>
+    <h4>9 · Sign-off</h4>
+    <table><thead><tr><th>Role</th><th>Name</th><th>Signature</th><th>Date and time</th></tr></thead><tbody>
+      <tr><td>Prepared by</td><td>${esc(DOC.author)}</td><td class="sig">&nbsp;</td><td>${DOC.approved}</td></tr>
+      <tr><td>Reviewed by</td><td>${esc(DOC.reviewer)}</td><td class="sig">&nbsp;</td><td>${DOC.approved}</td></tr>
+      <tr><td>Approved by</td><td>${esc(DOC.approver)}</td><td class="sig">&nbsp;</td><td>${DOC.approved}</td></tr>
+      <tr><td>Executed by</td><td class="sig">&nbsp;</td><td class="sig">&nbsp;</td><td class="sig">&nbsp;</td></tr>
+      <tr><td>Verified by (observer)</td><td class="sig">&nbsp;</td><td class="sig">&nbsp;</td><td class="sig">&nbsp;</td></tr>
+    </tbody></table>
+    <div class="foot">${DOC.no} Rev ${DOC.rev} · field copy · change record CHG-4471 · window 04:00–06:00 · Rack R-14, Hall B row 3 · Level of Risk High · UNCONTROLLED WHEN PRINTED — confirm the revision against the change file before use</div>
+
+    <h3 class="brk">2 · Validation tracking log — observer's record</h3>
+    <p>One per pair. The observer holds this and says nothing during execution except to record what they see. Mark <b>Y</b> where the control was done as written, <b>N</b> where it was not, and write what you saw in the note — the step number is what makes the note usable in the debrief. A silent step is a step acted on before it was read aloud. Back-signing is initialling a step after the next one has started, or before its action was taken. A paraphrase is any label read as something other than the text on the device.</p>
+    <div class="fgrid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="fld"><label for="pkExec">Executor</label><input type="text" id="pkExec" data-pk="executor" value="${esc(p.executor||"")}"></div>
+      <div class="fld"><label for="pkObs">Observer</label><input type="text" id="pkObs" data-pk="observer" value="${esc(p.observer||"")}"></div>
+      <div class="fld"><label for="pkStart">Time execution started</label><input type="text" id="pkStart" data-pk="startTime" value="${esc(p.startTime||"")}" placeholder="site time, e.g. 04:08"></div>
+    </div>
+    <table><thead><tr><th style="width:30px">Step</th><th>Script names</th>
+      ${VL_COLS.map(c=>`<th title="${esc(c.h)}">${c.n}</th>`).join("")}<th style="width:26%">Note — what you saw</th></tr></thead>
+      <tbody>${vlRows}</tbody></table>
+    <div class="fld" style="margin-top:10px"><label for="pkNotes">Observer's notes — silent steps, back-signing, paraphrases, anything done that was not in the script, with the step number against each</label>
+      <textarea id="pkNotes" data-pk="notes" rows="4">${esc(p.notes||"")}</textarea></div>
+
+    <h3 class="brk">3 · Rollback template — write it before you start</h3>
+    <p>In your own words, as you would say it to somebody on the phone. Not copied from section 8. The as-found state is the target: what you found, not what the document says you should have found.</p>
+    <table><thead><tr><th>Item</th><th>As found — before step 1</th><th>Verified back to as-found (initials, time)</th></tr></thead><tbody>
+      ${["Breaker CB-11","Breaker CB-14","Breaker CB-16 and any tag on it","SRV-R630-01 PSU1 lead — outlet","SRV-R630-01 PSU2 lead — outlet","SW-3750-01 lead — outlet","Front door tag","Rear door tag","PDU-A display reading","PDU-B display reading"].map(i=>`<tr><td>${i}</td><td class="sig">&nbsp;</td><td class="sig">&nbsp;</td></tr>`).join("")}
+    </tbody></table>
+    <h4>Sequence, in the reverse of the order performed</h4>
+    ${[1,2,3,4,5,6,7].map(n=>`<div class="line" style="margin-bottom:6px"><span style="font-family:var(--mono);font-size:11px;color:#444">${n}.</span></div>`).join("")}
+    <h4>Administration</h4>
+    <p><span class="box"></span>Announced to the shift lead — step number, what was observed, MOP suspended &nbsp; time ______<br>
+       <span class="box"></span>As-found condition recorded on the field redline form<br>
+       <span class="box"></span>Field copy of ${DOC.no} Rev ${DOC.rev} returned to the change file marked SUSPENDED</p>
+
+    <h3 class="brk">4 · Field redline form — ${DOC.no} Rev ${DOC.rev}</h3>
+    <p>Raised when the plant does not match the document. It goes back to the author with the field copy. Observations only — no theories. The person who reads it was not standing where you are standing, so write it for them. In the lab tool the <b>Redline</b> tab carries these same seven fields and writes them into your record.</p>
+    <div class="pgrid">
+      <div><div class="k">Document</div><div class="v">${DOC.no} Rev ${DOC.rev}</div></div>
+      <div><div class="k">Rack</div><div class="v">R-14 · HALL B · ROW 3</div></div>
+      <div><div class="k">Change record</div><div class="v">CHG-4471</div></div>
+    </div>
+    <table><tbody>
+      <tr><td style="width:32%">Step number</td><td class="sig">&nbsp;</td></tr>
+      <tr><td>Script text as written — copied word for word, not summarised</td><td class="sig" style="height:56px">&nbsp;</td></tr>
+      <tr><td>Observed state — device, label as fitted, position or reading, and how it differs from the script</td><td class="sig" style="height:80px">&nbsp;</td></tr>
+      <tr><td>Time observed</td><td class="sig">&nbsp;</td></tr>
+      <tr><td>Time halted</td><td class="sig">&nbsp;</td></tr>
+      <tr><td>Who was notified, by what means, and when</td><td class="sig">&nbsp;</td></tr>
+      <tr><td>Signature — initials and name</td><td class="sig">&nbsp;</td></tr>
+    </tbody></table>
+    <div class="foot">${esc(LAB.lab)} — ${esc(LAB.title)} · MOP packet · UCI 2227 · This packet is embedded in the lab tool; the tracking log entries made here are carried into the submission PDF.</div>
+  </div>`;
+}
+function renderPacket(){
+  const el=$("packetPane"); if(!el) return;
+  el.innerHTML=packetHTML();
+  el.oninput=e=>{
+    const t=e.target, p=pk();
+    if(t.dataset.pk) p[t.dataset.pk]=t.value;
+    if(t.dataset.vl){ const q=t.dataset.vl.split("|"); p.vl[q[0]]=p.vl[q[0]]||{}; p.vl[q[0]][q[1]]=t.value; }
+  };
+  el.onchange=el.oninput;
+  el.onclick=e=>{ const b=e.target.closest("button"); if(b&&b.id==="btnPrintPacket") printPacket(); };
+}
+function showPacket(on){
+  const el=$("packetPane"), mv=$("mopView");
+  if(!el) return;
+  el.classList.toggle("hidden",!on);
+  if(mv) mv.classList.toggle("hidden",!!on);
+  const b=$("btnPacket"); if(b) b.className=on?"primary":"";
+  if(on){ [["btnDoc"],["btnRack"],["btnExec"],["btnRoll"],["btnRed"]].forEach(([id])=>{const x=$(id); if(x) x.className="";}); }
+  const m=document.querySelector("main"); if(m) m.scrollTop=0;
+}
+function printPacket(){
+  if(!$("packetDoc")) renderPacket();
+  document.body.classList.add("pk-print");
+  try{ window.print(); }
+  finally{ setTimeout(()=>document.body.classList.remove("pk-print"),400); }
+}
+/* the tracking log as it goes into the record */
+function packetSheetHTML(){
+  const p=pk();
+  const rows=STEPS.map(s=>{
+    const e=p.vl[s.n]||{};
+    return `<tr><td class="n">${s.n}</td>${VL_COLS.map(c=>`<td class="mono">${esc(e[c.k]||"—")}</td>`).join("")}<td>${esc(e.note||"—")}</td></tr>`;
+  }).join("");
+  const nCount=k=>STEPS.filter(s=>((p.vl[s.n]||{})[k])==="N").length;
+  const any=Object.keys(p.vl).length||p.executor||p.observer||p.startTime||p.notes;
+  return `<h4>Packet — Validation tracking log (observer)</h4>
+    ${sRow("Executor",esc(p.executor||"—"))}
+    ${sRow("Observer",esc(p.observer||"—"))}
+    ${sRow("Time execution started",esc(p.startTime||"—"))}
+    ${any?`<table class="mop"><thead><tr><th style="width:30px">Step</th>${VL_COLS.map(c=>`<th>${c.n}</th>`).join("")}<th>Note</th></tr></thead><tbody>${rows}</tbody></table>
+    ${sRow("Steps marked N — read aloud",String(nCount("read")))}
+    ${sRow("Steps marked N — label matched",String(nCount("match")))}
+    ${sRow("Steps marked N — signed at rack",String(nCount("sign")))}`
+    :`<div style="font-size:12.5px">No entries made in the tracking log.</div>`}
+    <div style="font-size:12.5px;line-height:1.6;margin-top:6px"><b>Observer's notes:</b><br>${esc(p.notes||"—")}</div>`;
+}
+
 /* ---------- paint ---------- */
 function paint(){
   const el=$("mopView");
+  showPacket(false);
   let html="";
   if(S.pane==="doc") html=paneDoc();
   else if(S.pane==="rack") html=paneRack();
@@ -1336,6 +1621,7 @@ function bindPane(){
       case "btnSaveRed": saveRedline(); flash("Redline saved."); paint(); break;
       case "btnBuildSheet": buildSheet(); break;
       case "btnPrintSheet": window.print(); break;
+      case "btnPrintFieldCopy": printPacket(); break;
     }
   };
   const sum=$("rbSum"); if(sum) sum.oninput=()=>{S.rbSummary=sum.value;};
@@ -1368,6 +1654,7 @@ function resetRun(){
   S.rbSummary=""; S.rbDone={}; S.rbOtherUsed=[]; S.rbActions=[]; S.rbSubmitted=false; S.rbSubmittedAt="";
   S.rbOutstanding=[]; S.rbAdminMissing=[];
   S.redline={}; S.redlineSaved=""; S.initials=""; S.stepStart=0; S.stepSecs=[];
+  S.packet={}; renderPacket();
   S.start=startState(V.id); S.st=cloneState(S.start);
   $("statusBadge").textContent="Ready"; $("statusBadge").className="badge";
   if(S.timer) clearInterval(S.timer);
@@ -1375,27 +1662,33 @@ function resetRun(){
   paint();
 }
 function showConsole(){
-  $("sysname").textContent="524."+labNo()+" · UCI 2227 · "+labName()+" · objective M"+labNo()+
-    " · TRAINING SIMULATOR — not connected to any live plant";
   $("toolbar").classList.remove("hidden");
   $("mopView").classList.remove("hidden");
   resetRun();
 }
 
 /* ---------- wiring ---------- */
-function go(p){ if(S.pane==="red") saveRedline(); S.pane=p; paint(); }
+function go(p){
+  if(S.pane==="red") saveRedline();
+  if(p==="packet"){ showPacket(true); return; }
+  showPacket(false);
+  S.pane=p; paint();
+}
 $("btnDoc").onclick=()=>go("doc");
 $("btnRack").onclick=()=>go("rack");
 $("btnExec").onclick=()=>go("exec");
 $("btnRoll").onclick=()=>go("roll");
 $("btnRed").onclick=()=>go("red");
+$("btnPacket").onclick=()=>go("packet");
 $("btnHalt").onclick=()=>{ if(S.pane==="red") saveRedline(); doHalt(); };
 $("btnRestart").onclick=()=>{ resetRun(); flash("Run restarted. Rack returned to the state recorded at the start."); };
 showConsole();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.4.2", "title": "Execute a Rack PDU Replacement MOP", "handout": "GLAB 524.4.2 - Execute a Rack PDU Replacement MOP", "file": "524-4-2_MOPExec.html", "set": "—", "items": [{"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 1. Open the 524.4.2 file your instructor gives you. It opens straight into the lab. Decide with your partner who executes first. The executor holds the printed script and the pen. The observer holds the validation tracking log and says nothing during execution except to record what they see. Record below which of you executes first, which observes, and the time you start."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 2. Read the entire MOP from start to finish before touching anything, including Appendix A and the rollback section. Confirm the rollback section is present and that you understand what it returns the rack to. A rollback plan written before you start is written calmly by someone with time to think. One improvised at 02:30 with load at risk is not the same document and does not produce the same outcome. Write below, in one line, the rack state the rollback section returns you to."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 3. Check the script against the six elements a MOP must contain: scope and system state, numbered single-action steps, a rollback plan, go and no-go criteria, verification points, and sign-off spaces. Clause 5.3.2 also requires the steps to comply with local statutory requirements, equipment manufacturer requirements and Microsoft Preventive Maintenance Standards, and to include shutdown, isolation and start-up steps where the maintenance task requires them, as it does here. Write down anything missing or thin. If a MOP handed to you is missing any of these, that is a finding, and you raise it before the window opens rather than during it."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 4. Confirm the six pre-conditions PC-1 to PC-6 are true. Walk to each one and look at it. PC-1, change record CHG-4471 approved and the work inside the 04:00 to 06:00 window. PC-2, shift lead briefed and on the floor. PC-3, replacement A-side PDU staged, unpacked and visually undamaged. PC-4, redundant B-side path in service with board breaker CB-16 CLOSED and carrying no tags. PC-5, torch, insulated gloves and safety glasses to hand and the aisle clear. PC-6, field copy of Rev C printed with a blank field redline form. If any pre-condition is not true, stop and say so. Ticking a pre-condition you did not physically go and check is the same as not checking it."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 7. Execute step 1 and step 2 with the full five-action sequence. Step 1: confirm the rack identification label reads R-14 and that your field copy is revision C, reading both aloud and comparing them with the title block. Step 2: read the A-side and B-side rack PDU displays and record both load currents on the field copy. State both figures aloud before you write them down, and read them off the displays rather than copying them out of Appendix A. Record the two figures you actually observed."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 11. Execute step 6 and step 7, the two lead transfers. Step 6: transfer the SW-3750-01 power lead from outlet A-05 to outlet B-06, reading both outlet labels aloud before the lead leaves A-05 and reading the destination label again before it goes in. Expect the switch to restart on the B-side with uplink and access port indicators restored within ninety seconds. Step 7: transfer the SRV-R630-01 PSU1 lead from outlet A-03 to outlet B-05, stating the PSU1 indicator condition aloud before the lead moves and again after it is seated. The server should not restart. State expected and observed out loud at both verification points before continuing."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 14. If at any point you notice something that is not in the script — a loose cable, a mislabeled port, a lead routed the wrong way — note it on the script and keep going. Do not act on it. Every unplanned action inside a MOP is an unreviewed change to live infrastructure, however helpful it is. Write what you saw and where, and raise it after the script is closed."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "image", "p": "Step 15. At completion, confirm the end state matches what the MOP said it would be: rack running on the B-side path only, CB-11 and CB-14 open, PDU-A dead, front tag removed, rear tag in place, all nine steps initialled in real time. Type your name into the submission panel, press Build submission sheet and print it, and attach it with your signed script."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 16. Swap roles and repeat the full nine steps with your partner executing. The observer role teaches as much as the executor role, because catching somebody else’s skipped step is what makes the mechanism obvious. Record on the validation tracking log every silent step, every signature taken out of order and every paraphrase you hear, with the step number against each."}, {"s": "Part 2: Reflection", "k": "text", "p": "At which step number did your voice first drop, or the reading first stop? Do not guess — ask your observer, because they will know and you will not. What was happening at that point in the script?"}, {"s": "Part 2: Reflection", "k": "text", "p": "Name the step you were most tempted to do from memory. What made it feel obvious, and what would have happened if the label had disagreed with the script on exactly that step?"}, {"s": "Part 2: Reflection", "k": "text", "p": "Your observer recorded what they saw. Write down one thing they caught that you did not notice yourself, and what you will do differently because of it."}, {"s": "Part 2: Reflection", "k": "text", "p": "You will meet people on site who skip this, and some of them will be good at their jobs and well liked. Write the sentence you will actually say when you are told you do not need to read it. Keep it short and non-confrontational, and make it true."}]};</script>
-<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+<script id="lqData">
+var LQ={"lab": "GLAB 524.4.2", "title": "Execute a Rack PDU Replacement MOP", "handout": "GLAB 524.4.2 - Execute a Rack PDU Replacement MOP", "file": "524-4-2_MOPExec.html", "set": "—", "items": [{"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 1. Open the 524.4.2 file your instructor gives you. It opens straight into the lab. Decide with your partner who executes first. The executor holds the printed script and the pen. The observer holds the validation tracking log and says nothing during execution except to record what they see. Record in the lab tool which of you executes first, which observes, and the time you start."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 2. Read the entire MOP from start to finish before touching anything, including Appendix A and the rollback section. Confirm the rollback section is present and that you understand what it returns the rack to. A rollback plan written before you start is written calmly by someone with time to think. One improvised at 02:30 with load at risk is not the same document and does not produce the same outcome. Write in the lab tool, in one line, the rack state the rollback section returns you to."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 3. Check the script against the six elements a MOP must contain: scope and system state, numbered single-action steps, a rollback plan, go and no-go criteria, verification points, and sign-off spaces. Clause 5.3.2 also requires the steps to comply with local statutory requirements, equipment manufacturer requirements and Microsoft Preventive Maintenance Standards, and to include shutdown, isolation and start-up steps where the maintenance task requires them, as it does here. Write down anything missing or thin. If a MOP handed to you is missing any of these, that is a finding, and you raise it before the window opens rather than during it."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 4. Confirm the six pre-conditions PC-1 to PC-6 are true. Walk to each one and look at it. PC-1, change record CHG-4471 approved and the work inside the 04:00 to 06:00 window. PC-2, shift lead briefed and on the floor. PC-3, replacement A-side PDU staged, unpacked and visually undamaged. PC-4, redundant B-side path in service with board breaker CB-16 CLOSED and carrying no tags. PC-5, torch, insulated gloves and safety glasses to hand and the aisle clear. PC-6, field copy of Rev C printed with a blank field redline form. If any pre-condition is not true, stop and say so. Ticking a pre-condition you did not physically go and check is the same as not checking it."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 7. Execute step 1 and step 2 with the full five-action sequence. Step 1: confirm the rack identification label reads R-14 and that your field copy is revision C, reading both aloud and comparing them with the title block. Step 2: read the A-side and B-side rack PDU displays and record both load currents on the field copy. State both figures aloud before you write them down, and read them off the displays rather than copying them out of Appendix A. Record the two figures you actually observed."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 11. Execute step 6 and step 7, the two lead transfers. Step 6: transfer the SW-3750-01 power lead from outlet A-05 to outlet B-06, reading both outlet labels aloud before the lead leaves A-05 and reading the destination label again before it goes in. Expect the switch to restart on the B-side with uplink and access port indicators restored within ninety seconds. Step 7: transfer the SRV-R630-01 PSU1 lead from outlet A-03 to outlet B-05, stating the PSU1 indicator condition aloud before the lead moves and again after it is seated. The server should not restart. State expected and observed out loud at both verification points before continuing."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 14. If at any point you notice something that is not in the script — a loose cable, a mislabelled port, a lead routed the wrong way — note it on the script and keep going. Do not act on it. Every unplanned action inside a MOP is an unreviewed change to live infrastructure, however helpful it is. Write what you saw and where, and raise it after the script is closed."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "image", "p": "Step 15. At completion, confirm the end state matches what the MOP said it would be: rack running on the B-side path only, CB-11 and CB-14 open, PDU-A dead, front tag removed, rear tag in place, all nine steps initialled in real time. Photograph the signed field copy of the script, all nine steps initialled, and attach it as Q8. Enter your name and cohort in the lab tool, then press Build submission PDF and save the file — that single PDF is what you hand in."}, {"s": "Part 1: Executing MOP-2227-041 Rev C on rack R-14", "k": "text", "p": "Step 16. Swap roles and repeat the full nine steps with your partner executing. The observer role teaches as much as the executor role, because catching somebody else’s skipped step is what makes the mechanism obvious. Record on the validation tracking log every silent step, every signature taken out of order and every paraphrase you hear, with the step number against each."}, {"s": "Part 2: Reflection", "k": "text", "p": "At which step number did your voice first drop, or the reading first stop? Do not guess — ask your observer, because they will know and you will not. What was happening at that point in the script?"}, {"s": "Part 2: Reflection", "k": "text", "p": "Name the step you were most tempted to do from memory. What made it feel obvious, and what would have happened if the label had disagreed with the script on exactly that step?"}, {"s": "Part 2: Reflection", "k": "text", "p": "Your observer recorded what they saw. Write down one thing they caught that you did not notice yourself, and what you will do differently because of it."}, {"s": "Part 2: Reflection", "k": "text", "p": "You will meet people on site who skip this, and some of them will be good at their jobs and well liked. Write the sentence you will actually say when you are told you do not need to read it. Keep it short and non-confrontational, and make it true."}]};
+</script>
+<!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
      Self-contained. No external libraries. Safe to re-inject (idempotent).
@@ -1405,6 +1698,12 @@ showConsole();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
+     v2.1 — window.lqRecord() hook: a simulator can hand the module its record
+     directly, so the harvest no longer depends on which pane is showing; loose
+     `.sheet` tiles outside a `.result.show` are ignored; the learner name is
+     copied into the simulator's own name field before the harvest; the
+     completeness banner and the Set line respect no-simulator / single-set labs;
+     the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -1643,6 +1942,8 @@ showConsole();
     return LQ.set||"—";
   }
 
+  function hasSet(){ var l=setLetter(); return !!l&&l!=="—"; }
+
   /* ---------- downscale an image before it goes anywhere near storage ----------
      A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
      about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
@@ -1689,7 +1990,8 @@ showConsole();
    +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
    +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
    +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
-   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<b>What is saved:</b> everything you type in this panel is kept in this browser as you type, so a refresh will not lose your answers. '
+   +(LQ.nosim?'':'<b>What is not:</b> the simulator above starts again on a refresh — if you refresh mid-lab, work the simulator again before you build the PDF.')+'</p>'
    +'<div id="lqStoreErr" role="alert"></div>'
    +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
    +'<div class="lqid">'
@@ -1809,7 +2111,21 @@ showConsole();
   })();
 
   /* ---------- harvest the simulator's own record ---------- */
-  var REC_SEL=".sheet, .result.show";
+  var REC_SEL=".result.show, .result.show .sheet";
+  function syncSimName(){
+    /* the simulator keeps its own name field; the learner is told to fill the
+       module's. Copy across so the harvested record never reports the name blank. */
+    try{
+      var n=document.getElementById("lqName"); if(!n||!n.value.trim()) return;
+      var sim=document.getElementById("learnerName")||document.getElementById("learner")
+            ||document.querySelector('input[name="learnerName"]');
+      if(sim&&!card.contains(sim)&&!sim.value.trim()){
+        sim.value=n.value.trim();
+        sim.dispatchEvent(new Event("input",{bubbles:true}));
+        sim.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }catch(e){}
+  }
   function collect(){
     var raw=[];
     Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
@@ -1839,7 +2155,33 @@ showConsole();
     });
   }
 
+  function cleanClone(s){
+    var c=s.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    stripDuplicateName(c);
+    /* paper-era close line some simulators still print under their sheet */
+    Array.prototype.forEach.call(c.querySelectorAll("p,div,span,small"),function(n){
+      if(n.children.length===0&&/hand this sheet to your instructor/i.test(n.textContent||"")){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      }
+    });
+    return c;
+  }
   function toolRecord(){
+    syncSimName();
+    /* Preferred path: the simulator hands over its record itself. A simulator
+       defines window.lqRecord() to (re)build its sheet from its current state and
+       return the element or an HTML string — so the harvest no longer depends on
+       which pane or tab happens to be showing when the learner presses the button. */
+    if(typeof window.lqRecord==="function"){
+      try{
+        var r=window.lqRecord();
+        if(typeof r==="string"&&r.replace(/\s/g,"")) return r;
+        if(r&&r.nodeType===1&&r.textContent.replace(/\s/g,"")) return cleanClone(r).innerHTML;
+      }catch(e){}
+    }
     var found=collect();
     if(!found.length){
       var btns=document.querySelectorAll("button");
@@ -1863,14 +2205,7 @@ showConsole();
     }
     if(!found.length) return null;
     var wrap=document.createElement("div");
-    found.forEach(function(s){
-      var c=s.cloneNode(true);
-      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
-        if(n.parentNode) n.parentNode.removeChild(n);
-      });
-      stripDuplicateName(c);
-      wrap.appendChild(c);
-    });
+    found.forEach(function(s){ wrap.appendChild(cleanClone(s)); });
     return wrap.innerHTML;
   }
 
@@ -1887,21 +2222,24 @@ showConsole();
      +'<div class="lqsheet">'
      +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
      +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
-       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+       +(hasSet()?' · Set '+esc(setLetter()):'')+' · submission sheet</div>'
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
-     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
+       +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
      +'<div class="lqrow"><span class="k">Built</span><span class="v">'
        +esc(new Date().toLocaleString())+'</span></div>';
 
-    var rec=LQ.nosim?null:toolRecord();
-    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
-    else if(!LQ.nosim){
-      gaps.push("The simulator record — work through the lab tool above and press its own "
-               +"“Build submission sheet” button before you build this PDF");
-    }else{
+    /* a response tool (nosim) can still carry an in-tool packet record via window.lqRecord() */
+    var rec=(LQ.nosim&&typeof window.lqRecord!=="function")?null:toolRecord();
+    if(rec){ h+='<h2>'+(LQ.nosim?'Packet record':'Simulator record')+'</h2>'+rec; }
+    if(!rec&&!LQ.nosim){
+      var why=(typeof window.lqRecordReason==="string"&&window.lqRecordReason)?" ("+window.lqRecordReason+")":"";
+      gaps.push("The simulator record — the lab tool above has nothing to record yet"+why
+               +". Work through the lab, then build this PDF again");
+    }else if(LQ.nosim){
       h+='<h2>Assessed on the floor</h2>'
         +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
         +'Observed and signed off by the instructor against the handout. '
@@ -1926,7 +2264,8 @@ showConsole();
         +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
     }else{
       h+='<div class="lqgap ok">'
-        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+        +'<b>Complete.</b> Every question on this sheet carries a response'
+        +(LQ.nosim?'.':' and the simulator record is attached.')+'</div>';
     }
 
     h+='<div class="lqsign">Learner signature: ______________________________'
@@ -1972,7 +2311,7 @@ showConsole();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+    var runHead='<span class="r">'+esc(LQ.lab)+(hasSet()?' · Set '+esc(setLetter()):'')+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -2009,6 +2348,5 @@ showConsole();
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
-
 </body>
 </html>

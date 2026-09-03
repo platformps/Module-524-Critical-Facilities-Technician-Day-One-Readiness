@@ -120,6 +120,38 @@
   .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
     color:var(--blue);margin-bottom:8px}
   .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
+
+  /* ---------- packet (previous-test baseline sheet), printable ---------- */
+  .packet{background:#fbfaf6;color:#111;border:1px solid #c9c4b4;border-radius:9px;padding:22px 26px;
+    margin-bottom:14px;font-family:var(--sans);font-size:13px;line-height:1.5}
+  .packet h2{font-size:17px;margin:0 0 2px;color:#111}
+  .packet h3{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#345;margin:20px 0 8px;font-weight:700}
+  .packet .pkmeta{font-size:12px;color:#555;margin-bottom:12px}
+  .packet p{margin:0 0 10px;color:#222}
+  .packet table{font-size:12.5px}
+  .packet th{color:#345;border-bottom:1px solid #999;font-size:10px}
+  .packet td{border-bottom:1px solid #ddd;color:#111;vertical-align:top;padding:6px 8px}
+  .packet td.mono,.packet .mono{font-family:var(--mono)}
+  .packet input[type=text],.packet textarea{background:#fff;color:#111;border:1px solid #b9b3a3;border-radius:4px;
+    padding:5px 7px;font-size:12.5px;width:100%;font-family:inherit}
+  .packet textarea{min-height:44px;resize:vertical}
+  .packet label.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .packet label{display:block;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:#345;font-weight:700;margin:0 0 4px}
+  .packet .pkbtns{display:flex;gap:9px;margin-top:16px;align-items:center}
+  .packet .pkbtns button{background:#fff;color:#111;border-color:#999}
+  .packet .pkbtns button:hover{background:#eee}
+  .packet .pkfoot{font-size:11px;color:#666;margin-top:16px;border-top:1px solid #ccc;padding-top:8px}
+  @media print{
+    body.pk-print{background:#fff!important;color:#000!important;overflow:visible!important;height:auto!important}
+    body.pk-print>*{display:none!important}
+    body.pk-print>#packetPane{display:block!important}
+    body.pk-print .packet{border:0;padding:0;background:#fff;color:#000;border-radius:0}
+    body.pk-print .packet *{color:#000!important;background:transparent!important;box-shadow:none!important}
+    body.pk-print .packet input[type=text],body.pk-print .packet textarea{border:0;border-bottom:1px solid #888;border-radius:0;resize:none}
+    body.pk-print .packet .pkbtns,body.pk-print .noprint{display:none!important}
+    body.pk-print .packet tr{page-break-inside:avoid;break-inside:avoid}
+    body.pk-print .packet thead{display:table-header-group}
+  }
 </style>
 </head>
 <body>
@@ -140,6 +172,7 @@
     <button id="btnStart" class="primary">Start run</button>
     <button id="btnPause">Pause</button>
     <button id="btnStep">Step +1 min</button>
+    <button id="btnPacket" title="Previous-test baseline sheet, readable and printable here">Packet</button>
     <span style="width:10px"></span>
     <div class="fld"><label>Speed</label>
       <select id="speed">
@@ -157,6 +190,7 @@
 
   <main>
     <div class="wrap">
+      <section id="packetPane" class="hidden" aria-label="Previous-test baseline sheet"></section>
       <section id="genView"></section>
     </div>
   </main>
@@ -177,7 +211,8 @@ const RUNKEY=(0x9E3779B1 ^ Math.imul(SET+1,2654435761))>>>0;
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 let rnd=mulberry32(1);
-function noise(amp){return (rnd()*2-1)*amp;}
+let QUIET=false;                       /* true = model without noise (packet reference rows) */
+function noise(amp){return QUIET?0:(rnd()*2-1)*amp;}
 function fmtClock(mins){
   const base=3*60+14; // scenarios run from 03:14 site time
   const total=base+mins;
@@ -244,10 +279,12 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","
 
 /* ---------- this lab ---------- */
 const LAB={lab:"GLAB 524.2.3",obj:"M2.3",title:"Telemetry Simulation Audit",duration:24};
-const SCENARIOS=[{id:"A1"},{id:"A2"},{id:"A3"},{id:"A4"},{id:"A0"}];
+/* Set letter → variant, as in 5_Instructor_ONLY/SET_KEY.md:
+   A = A0 healthy control · B = A1 frequency droop · C = A2 fuel +18 % · D = A3 coolant never plateaus · E = A4 oil sag */
+const SCENARIOS=[{id:"A0"},{id:"A1"},{id:"A2"},{id:"A3"},{id:"A4"}];
 
-const S={learner:"",t:0,running:false,timer:null,speed:12,
-  series:{},last:null};
+const S={learner:"",t:0,started:false,running:false,timer:null,speed:12,
+  series:{},last:null,packet:{exp:{}}};
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let V=SCENARIOS[SET];
@@ -282,6 +319,17 @@ function genSample(t,v){
           baselineRate:baseRate};
 }
 
+
+/* Pre-load reading: the set is running warm at no load, breaker closed, load bank at 0 %.
+   This is what the console shows in the Ready state, before Start — the true baseline. */
+function idleSample(v){
+  const baseRate=68.1;                            // the model's fuel line at 0 % load
+  return {load:0,loadPct:0,stepIdx:-1,idle:true,
+          hz:60.0+noise(0.02),volts:480+noise(1.0),
+          coolant:42+noise(0.35),oil:55.5+noise(0.3),
+          rate:(v==="A2"?baseRate*1.18:baseRate)+noise(2.0),
+          baselineRate:baseRate};
+}
 const PARAMS=["None","Frequency","Voltage","Real power","Coolant temperature","Oil pressure","Fuel rate"];
 const BASEFIELDS=[["bHz","Frequency","Hz"],["bV","Voltage L-L","V"],["bKw","Real power","kW"],
                   ["bCo","Coolant temp","°C"],["bOil","Oil pressure","psi"],["bFu","Fuel rate","L/h"]];
@@ -292,8 +340,18 @@ const STEPPCT=[25,40,55,70,85,100];
 function val(id){const e=$(id);return e?e.value.trim():"";}
 
 function buildSheet(){
+  const r=$("genResult"); if(!r) return;
+  r.className="result show";
+  r.innerHTML=sheetHTML(false);
+  const pb=$("btnPrint"); if(pb) pb.onclick=()=>window.print();
+  if(r.scrollIntoView) r.scrollIntoView({behavior:"smooth",block:"start"});
+}
+/* The submission module calls this when the learner presses Build submission PDF. It rebuilds
+   the record from the current entries whatever is on screen and does not touch the visible panes. */
+window.lqRecord=function(){ return sheetHTML(true); };
+function sheetHTML(forRecord){
   const missing=[];
-  S.learner=val("learnerName");
+  S.learner=val("learnerName")||S.learner;
   if(!S.learner) missing.push("Your name");
   const baseMissing=BASEFIELDS.filter(f=>!val(f[0])).map(f=>f[1]);
   if(baseMissing.length) missing.push("Baseline record: "+baseMissing.join(", "));
@@ -308,15 +366,14 @@ function buildSheet(){
   const rows=[];
   const row=(k,v)=>`<div class="srow"><span>${esc(k)}</span><span>${esc(v||"—")}</span></div>`;
   rows.push(`<h2>${LAB.lab} — ${LAB.title}</h2>
-             <div class="sheetsub">UCI 2227 · objective ${LAB.obj} · Set ${SETLETTER} · submission sheet</div>
-             <div class="learnerline"><b>Name:</b> ${esc(S.learner)||"\u2014"}</div>`);
+             <div class="sheetsub">UCI 2227 · objective ${LAB.obj} · Set ${SETLETTER} · submission sheet</div>`+
+             (forRecord?"":`<div class="learnerline"><b>Name:</b> ${esc(S.learner)||"\u2014"}</div>`));
   rows.push(`<h4>Session</h4>`);
-  rows.push(row("Learner",S.learner));
   rows.push(row("Set",SETLETTER));
   rows.push(row("Completed",now.toLocaleDateString()+" "+now.toLocaleTimeString()));
   rows.push(row("Run time reached",fmtElapsed(S.t)+" of "+LAB.duration+":00 simulated"));
 
-  rows.push(`<h4>Baseline recorded before the run</h4>`);
+  rows.push(`<h4>Baseline recorded before the run (no load, before Start)</h4>`);
   BASEFIELDS.forEach(f=>rows.push(row(f[1]+" ("+f[2]+")",val(f[0]))));
 
   rows.push(`<h4>Logged readings at each load step</h4>`);
@@ -330,19 +387,124 @@ function buildSheet(){
   rows.push(row("Time flagged",val("ansTime")));
   rows.push(row("Log entry",val("ansText")));
 
+  rows.push(packetRecordHTML());
+  if(!packetAnyFilled()) missing.push("Packet — previous-test baseline sheet: what each parameter did last time / what you expect");
+
   let html=`<div class="sheet">`+rows.join("");
   if(missing.length){
     html+=`<div class="missing"><b>Not yet filled in:</b><br>`+
           missing.map(m=>"· "+esc(m)).join("<br>")+
-          `<br><br>This is a completeness check only. Fill these in and build the sheet again, or hand it in as it stands and explain the gaps.</div>`;
+          `<br><br>This is a completeness check only. Fill these in and build the sheet again, or build the PDF as it stands and explain the gaps.</div>`;
   }
-  html+=`<div class="closing">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>
-         <div class="noprint" style="margin-top:12px"><button id="btnPrint">Print submission sheet</button></div></div>`;
-  const r=$("genResult");
-  r.className="result show";
-  r.innerHTML=html;
-  $("btnPrint").onclick=()=>window.print();
-  if(r.scrollIntoView) r.scrollIntoView({behavior:"smooth",block:"start"});
+  html+=`<div class="closing">This record is embedded in your submission PDF.</div>`;
+  if(!forRecord) html+=`<div class="noprint" style="margin-top:12px"><button id="btnPrint">Print submission sheet</button></div>`;
+  html+=`</div>`;
+  return html;
+}
+
+/* ---------- packet: previous-test baseline sheet ----------
+   Reference rows come from the healthy model (A0) with the noise switched off, read three
+   minutes into each step — the same points a learner logs — so the sheet agrees with the
+   "baseline at this load" fuel figure on the tile and with the grey line on the fuel chart.
+   The fillable "what it did last time / what I expect" rows are held in S.packet and written
+   into the submission sheet. The pane is never repainted, so entries survive the run. */
+const PK_PARAMS=[["hz","Frequency","Hz",v=>v.hz.toFixed(2)],["v","Voltage L-L","V",v=>v.volts.toFixed(0)],
+  ["kw","Real power","kW",v=>v.load.toFixed(0)],["co","Coolant temp","°C",v=>v.coolant.toFixed(1)],
+  ["oil","Oil pressure","psi",v=>v.oil.toFixed(1)],["fu","Fuel rate","L/h",v=>v.rate.toFixed(1)]];
+function prevTestRows(){
+  QUIET=true;
+  const out=[{lbl:"No load · pre-test idle",d:idleSample("A0")}];
+  [0,4,8,12,16,20].forEach((s,i)=>out.push({lbl:"Step "+(i+1)+" · "+STEPPCT[i]+" % · read at T+"+String(s+3).padStart(2,"0")+":00",d:genSample(s+3,"A0")}));
+  QUIET=false;
+  return out;
+}
+function pkExp(k,f){ const e=S.packet.exp[k]; return e&&e[f]?e[f]:""; }
+function packetAnyFilled(){ return PK_PARAMS.some(p=>pkExp(p[0],"last").trim()||pkExp(p[0],"expect").trim()); }
+function packetHTML(){
+  const ref=prevTestRows();
+  const refRows=ref.map(r=>`<tr><td class="mono" style="white-space:nowrap">${esc(r.lbl)}</td>`+
+    PK_PARAMS.map(p=>`<td class="mono">${p[3](r.d)}</td>`).join("")+`</tr>`).join("");
+  const expRows=PK_PARAMS.map(p=>`<tr>
+      <td style="width:150px"><b>${esc(p[1])}</b><br><span style="font-size:11px;color:#555">${esc(p[2])}</span></td>
+      <td><label class="vh" for="pk_last_${p[0]}">What it did last time</label>
+          <textarea id="pk_last_${p[0]}" data-pk="${p[0]}" data-k="last">${esc(pkExp(p[0],"last"))}</textarea></td>
+      <td><label class="vh" for="pk_exp_${p[0]}">What I expect this run</label>
+          <textarea id="pk_exp_${p[0]}" data-pk="${p[0]}" data-k="expect">${esc(pkExp(p[0],"expect"))}</textarea></td>
+    </tr>`).join("");
+  return `<div class="packet" id="packetPaper">
+    <h2>${LAB.lab} — Previous-test baseline sheet</h2>
+    <div class="pkmeta">${esc(LAB.title)} · Set ${SETLETTER} · 1,500 kW standby diesel · monthly load-bank test, previous run (healthy, no findings)</div>
+    <p>This is the site baseline sheet from the last load-bank test on this machine: the same six steps at 25, 40, 55, 70,
+      85 and 100 % of nameplate, four minutes each, readings taken three minutes into each step once the set had settled.
+      That test was signed off with no findings. Use it two ways: before you press Start, write beside each parameter what
+      it did last time and what you therefore expect to see; during the run, compare what the console shows against these
+      numbers. The fuel tile's &ldquo;baseline at this load&rdquo; figure and the grey line on the fuel chart are taken
+      from this sheet. Everything you type here is written into your submission sheet.</p>
+
+    <h3>Readings from the previous test</h3>
+    <div style="overflow-x:auto"><table><thead><tr><th>Load step</th>${PK_PARAMS.map(p=>`<th>${esc(p[1])} (${esc(p[2])})</th>`).join("")}</tr></thead>
+    <tbody>${refRows}</tbody></table></div>
+    <p style="margin-top:10px;font-size:12px;color:#444">Shapes to expect on a healthy machine: frequency dips about 0.3 Hz at each load step and is back at 60.00 within a
+      minute; voltage sags a few volts with the dip and recovers; coolant climbs from idle and flattens at about 88 °C by
+      the third step; oil pressure eases a fraction of a psi per step and stays in the mid-50s; fuel rate steps up with load
+      in a straight line. Alarm points: frequency 58.8–61.2 Hz, voltage 480 V ±10 %, coolant 105 °C, oil 30 psi.</p>
+
+    <h3>What it did last time / what I expect — one line per parameter (Step 2)</h3>
+    <table><thead><tr><th>Parameter</th><th>What it did last time</th><th>What I expect this run</th></tr></thead>
+    <tbody>${expRows}</tbody></table>
+
+    <div class="pkbtns noprint">
+      <button type="button" id="btnPrintPacket">Print packet</button>
+      <button type="button" id="btnClosePacket">Close packet</button>
+      <span style="font-size:12px;color:#555">Your entries here are carried into the submission sheet automatically.</span>
+    </div>
+    <div class="pkfoot">UCI 2227 · ${LAB.lab} ${esc(LAB.title)} · Previous-test baseline sheet · Set ${SETLETTER}</div>
+  </div>`;
+}
+function renderPacket(){
+  const p=$("packetPane"); if(!p) return;
+  p.innerHTML=packetHTML();
+  p.oninput=e=>{
+    const t=e.target; if(!t||!t.dataset.pk) return;
+    S.packet.exp[t.dataset.pk]=S.packet.exp[t.dataset.pk]||{};
+    S.packet.exp[t.dataset.pk][t.dataset.k]=t.value;
+  };
+  $("btnPrintPacket").onclick=printPacket;
+  $("btnClosePacket").onclick=()=>togglePacket(false);
+}
+function togglePacket(force){
+  const p=$("packetPane"); if(!p) return;
+  const open=typeof force==="boolean"?force:p.classList.contains("hidden");
+  p.classList.toggle("hidden",!open);
+  $("btnPacket").classList.toggle("primary",open);
+  if(open&&p.scrollIntoView) p.scrollIntoView({block:"start"});
+}
+function printPacket(){
+  /* print only the packet: lift the pane to <body>, print, put it back where it was */
+  const p=$("packetPane"), parent=p.parentNode, next=p.nextSibling;
+  const wasHidden=p.classList.contains("hidden");
+  p.classList.remove("hidden");
+  document.body.appendChild(p);
+  document.body.classList.add("pk-print");
+  const restore=()=>{
+    if(!document.body.classList.contains("pk-print")) return;
+    document.body.classList.remove("pk-print");
+    parent.insertBefore(p,next);
+    if(wasHidden) p.classList.add("hidden");
+    window.removeEventListener("afterprint",restore);
+  };
+  window.addEventListener("afterprint",restore);
+  try{ window.print(); }catch(e){}
+  setTimeout(restore,1500);
+}
+function packetRecordHTML(){
+  const cell=v=>esc((v||"").trim())||"—";
+  const ref=prevTestRows();
+  const fuel=ref.slice(1).map(r=>r.d.rate.toFixed(1)).join(" / ");
+  const row=(k,v)=>`<div class="srow"><span>${esc(k)}</span><span>${v}</span></div>`;
+  return `<h4>Packet — Previous-test baseline sheet</h4>`+
+    row("Reference used","previous healthy test · fuel at steps 1–6: "+fuel+" L/h · coolant plateau "+ref[6].d.coolant.toFixed(1)+" °C · oil "+ref[1].d.oil.toFixed(1)+"–"+ref[6].d.oil.toFixed(1)+" psi")+
+    PK_PARAMS.map(p=>row(p[1]+" — last time / expect",cell(pkExp(p[0],"last"))+"  |  "+cell(pkExp(p[0],"expect")))).join("");
 }
 
 /* ---------- view ---------- */
@@ -366,7 +528,7 @@ function renderGen(){
 
       <div class="submit noprint">
         <h3>Baseline record</h3>
-        <div class="sub">Read these off the console before the first load step and write them down. Everything you log later is compared against this row.</div>
+        <div class="sub">Read these off the console while the set is idling at no load, before you press Start, and write them down. Everything you log later is compared against this row and against the previous-test baseline sheet behind <b>Packet</b>.</div>
         <div class="fgrid3" id="baseFields"></div>
       </div>
 
@@ -415,12 +577,12 @@ function renderGen(){
   $("genTiles").innerHTML=
     tile("Frequency",d.hz.toFixed(2),"Hz","alarm 58.80 – 61.20",alarmHz?"alarm":"")+
     tile("Voltage L-L",d.volts.toFixed(0),"V","nominal 480 ±10%")+
-    tile("Real power",d.load.toFixed(0),"kW",`step ${d.stepIdx+1} of 6 · ${d.loadPct}% of nameplate`)+
+    tile("Real power",d.load.toFixed(0),"kW",d.idle?"no load · pre-test idle — record your baseline, then Start":`step ${d.stepIdx+1} of 6 · ${d.loadPct}% of nameplate`)+
     tile("Coolant temp",d.coolant.toFixed(1),"°C","alarm 105.0",alarmCo?"alarm":"")+
     tile("Oil pressure",d.oil.toFixed(1),"psi","alarm 30.0",alarmOil?"alarm":"")+
     tile("Fuel rate",d.rate.toFixed(1),"L/h",`baseline at this load ${d.baselineRate.toFixed(1)}`);
   $("genSteps").innerHTML=steps.map((s,i)=>
-    `<div class="stepchip ${S.t>=s?'on':''}">Step ${i+1} · ${[25,40,55,70,85,100][i]}% · T+${String(s).padStart(2,"0")}:00</div>`).join("");
+    `<div class="stepchip ${S.started&&S.t>=s?'on':''}">Step ${i+1} · ${[25,40,55,70,85,100][i]}% · T+${String(s).padStart(2,"0")}:00</div>`).join("");
 
   const xmax=LAB.duration;
   drawChart($("cHz"),{min:58.6,max:60.6,xmax,steps,xstep:0.25,band:{lo:58.8,hi:61.2},fmt:v=>v.toFixed(1),
@@ -436,7 +598,7 @@ function renderGen(){
 
 /* ---------- run loop ---------- */
 function pushSeries(){
-  const dd=genSample(S.t,V.id);
+  const dd=S.started?genSample(S.t,V.id):idleSample(V.id);
     S.last=dd;
     (S.series.hz=S.series.hz||[]).push(dd.hz);
     (S.series.coolant=S.series.coolant||[]).push(dd.coolant);
@@ -451,11 +613,14 @@ function render(){
 }
 function tick(){
   if(S.t>=LAB.duration){stopRun(true);return;}
+  S.started=true;                                   // step 1 begins on Start (or the first Step +1 min)
   S.t=Math.min(LAB.duration,S.t+0.25);
   pushSeries(); render();
+  if(S.t>=LAB.duration) stopRun(true);              // badge flips the moment the run reaches T+24:00
 }
 function startRun(){
   if(S.running)return;
+  if(S.t>=LAB.duration){stopRun(true);return;}
   S.running=true;
   $("statusBadge").textContent="Running"; $("statusBadge").className="badge run";
   clearInterval(S.timer);
@@ -469,16 +634,22 @@ function stopRun(done){
 function resetRun(){
   stopRun(false);
   rnd=mulberry32(RUNKEY);
-  S.t=0; S.series={}; S.last=null;
-  pushSeries(); render();
+  S.t=0; S.started=false; S.series={}; S.last=null;
+  S.packet={exp:{}};
+  pushSeries(); render(); renderPacket(); togglePacket(false);
   $("statusBadge").textContent="Ready"; $("statusBadge").className="badge";
 }
 
 /* ---------- wiring ---------- */
 $("btnStart").onclick=startRun;
 $("btnPause").onclick=()=>stopRun(false);
-$("btnStep").onclick=()=>{if(S.running)stopRun(false);for(let i=0;i<4;i++)tick();};
+$("btnStep").onclick=()=>{
+  if(S.running)stopRun(false);
+  for(let i=0;i<4;i++)tick();
+  if(!S.running&&S.t<LAB.duration){$("statusBadge").textContent="Held";$("statusBadge").className="badge hold";}
+};
 $("btnRestart").onclick=resetRun;
+$("btnPacket").onclick=()=>togglePacket();
 $("speed").onchange=()=>{S.speed=+$("speed").value;if(S.running){stopRun(false);startRun();}};
 window.addEventListener("resize",render);
 document.addEventListener("keydown",e=>{
@@ -492,8 +663,10 @@ $("setTag").textContent="Set "+SETLETTER;
 resetRun();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.2.3", "title": "Telemetry Simulation Audit", "handout": "GLAB 524.2.3 - Telemetry Simulation Audit", "file": "524-2-3-E_LoadBank.html", "set": "E", "items": [{"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 1. Log in to the simulated BMS and SCADA terminal and open the generator control interface — the 524.2.3 file your instructor gives you opens straight into the lab. Record below the machine rating and the load step schedule shown on the console. Do not start the run yet."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 3. Write down, before you start, what each parameter should do. Frequency should dip at each load step and recover. Coolant should rise and then plateau once the engine is at temperature. Oil pressure should hold. Fuel rate should track load and sit close to the previous test at the same load. Committing to the expected shape in writing is what makes a departure from it visible."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 5. Watch the interval between the steps, not only the moment of the step. Every parameter moves when load is applied — that is normal and it is not the finding. The question is what happens in the twenty or thirty seconds afterwards. Record, for each step, whether each parameter returned to where it started."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 6. Note anything that does not return to where it started, anything that keeps climbing when it should have flattened, and anything that sits consistently above or below the previous test at the same load. Those three shapes are the only ones you are looking for. Write down every candidate at this stage; you will narrow them down at step 8."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 8. Narrow your candidates to one. For each candidate you are discarding, write one sentence saying why it is normal behavior. This step is where false positives are caught, and a false positive counts against you in the assessment."}, {"s": "Part 1: Auditing the load-bank run", "k": "image", "p": "Step 10. Capture the console trace for the parameter you have identified, showing the whole run window and the load steps. This is the evidence you will present."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 11. State in one line whether you believe the run should have been halted, and why or why not. Take a position and support it from your own logged readings."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain the difference between an alarm and a trend, and say why a technician is required to sit through a load-bank test that the console is already monitoring."}, {"s": "Part 2: Reflection", "k": "text", "p": "You discarded at least one parameter as normal. Name one, describe what it did during the run, and explain how you satisfied yourself it was normal rather than simply unremarkable."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose you had not recorded a baseline before the run. Which of the six parameters would still have been judgeable, and which would have become impossible to assess? Explain why."}, {"s": "Part 2: Reflection", "k": "text", "p": "The pass criteria for this lab count a false positive against you. Explain, in terms of what happens in a real control room, why flagging an extra parameter is treated as a failure rather than as caution."}]};</script>
-<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+<script id="lqData">
+var LQ={"lab": "GLAB 524.2.3", "title": "Telemetry Simulation Audit", "handout": "GLAB 524.2.3 - Telemetry Simulation Audit", "file": "524-2-3-E_LoadBank.html", "set": "E", "items": [{"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 1. Log in to the simulated BMS and SCADA terminal and open the generator control interface — the 524.2.3 file your instructor gives you opens straight into the lab. Record in the lab tool the machine rating and the load step schedule shown on the console. Do not start the run yet."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 3. Write down, before you start, what each parameter should do. Frequency should dip at each load step and recover. Coolant should rise and then plateau once the engine is at temperature. Oil pressure should hold. Fuel rate should track load and sit close to the previous test at the same load. Committing to the expected shape in writing is what makes a departure from it visible."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 5. Watch the interval between the steps, not only the moment of the step. Every parameter moves when load is applied — that is normal and it is not the finding. The question is what happens in the twenty or thirty seconds afterwards. Record, for each step, whether each parameter returned to where it started."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 6. Note anything that does not return to where it started, anything that keeps climbing when it should have flattened, and anything that sits consistently above or below the previous test at the same load. Those three shapes are the only ones you are looking for. Write down every candidate at this stage; you will narrow them down at step 8."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 8. Narrow your candidates to one. For each candidate you are discarding, write one sentence saying why it is normal behaviour. This step is where false positives are caught, and a false positive counts against you in the assessment."}, {"s": "Part 1: Auditing the load-bank run", "k": "image", "p": "Step 10. Capture the console trace for the parameter you have identified, showing the whole run window and the load steps. This is the evidence you will present."}, {"s": "Part 1: Auditing the load-bank run", "k": "text", "p": "Step 11. State in one line whether you believe the run should have been halted, and why or why not. Take a position and support it from your own logged readings."}, {"s": "Part 2: Reflection", "k": "text", "p": "Explain the difference between an alarm and a trend, and say why a technician is required to sit through a load-bank test that the console is already monitoring."}, {"s": "Part 2: Reflection", "k": "text", "p": "You discarded at least one parameter as normal. Name one, describe what it did during the run, and explain how you satisfied yourself it was normal rather than simply unremarkable."}, {"s": "Part 2: Reflection", "k": "text", "p": "Suppose you had not recorded a baseline before the run. Which of the six parameters would still have been judgeable, and which would have become impossible to assess? Explain why."}, {"s": "Part 2: Reflection", "k": "text", "p": "The pass criteria for this lab count a false positive against you. Explain, in terms of what happens in a real control room, why flagging an extra parameter is treated as a failure rather than as caution."}]};
+</script>
+<!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
      Self-contained. No external libraries. Safe to re-inject (idempotent).
@@ -503,6 +676,12 @@ resetRun();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
+     v2.1 — window.lqRecord() hook: a simulator can hand the module its record
+     directly, so the harvest no longer depends on which pane is showing; loose
+     `.sheet` tiles outside a `.result.show` are ignored; the learner name is
+     copied into the simulator's own name field before the harvest; the
+     completeness banner and the Set line respect no-simulator / single-set labs;
+     the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -741,6 +920,8 @@ resetRun();
     return LQ.set||"—";
   }
 
+  function hasSet(){ var l=setLetter(); return !!l&&l!=="—"; }
+
   /* ---------- downscale an image before it goes anywhere near storage ----------
      A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
      about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
@@ -787,7 +968,8 @@ resetRun();
    +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
    +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
    +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
-   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<b>What is saved:</b> everything you type in this panel is kept in this browser as you type, so a refresh will not lose your answers. '
+   +(LQ.nosim?'':'<b>What is not:</b> the simulator above starts again on a refresh — if you refresh mid-lab, work the simulator again before you build the PDF.')+'</p>'
    +'<div id="lqStoreErr" role="alert"></div>'
    +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
    +'<div class="lqid">'
@@ -907,7 +1089,21 @@ resetRun();
   })();
 
   /* ---------- harvest the simulator's own record ---------- */
-  var REC_SEL=".sheet, .result.show";
+  var REC_SEL=".result.show, .result.show .sheet";
+  function syncSimName(){
+    /* the simulator keeps its own name field; the learner is told to fill the
+       module's. Copy across so the harvested record never reports the name blank. */
+    try{
+      var n=document.getElementById("lqName"); if(!n||!n.value.trim()) return;
+      var sim=document.getElementById("learnerName")||document.getElementById("learner")
+            ||document.querySelector('input[name="learnerName"]');
+      if(sim&&!card.contains(sim)&&!sim.value.trim()){
+        sim.value=n.value.trim();
+        sim.dispatchEvent(new Event("input",{bubbles:true}));
+        sim.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }catch(e){}
+  }
   function collect(){
     var raw=[];
     Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
@@ -937,7 +1133,33 @@ resetRun();
     });
   }
 
+  function cleanClone(s){
+    var c=s.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    stripDuplicateName(c);
+    /* paper-era close line some simulators still print under their sheet */
+    Array.prototype.forEach.call(c.querySelectorAll("p,div,span,small"),function(n){
+      if(n.children.length===0&&/hand this sheet to your instructor/i.test(n.textContent||"")){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      }
+    });
+    return c;
+  }
   function toolRecord(){
+    syncSimName();
+    /* Preferred path: the simulator hands over its record itself. A simulator
+       defines window.lqRecord() to (re)build its sheet from its current state and
+       return the element or an HTML string — so the harvest no longer depends on
+       which pane or tab happens to be showing when the learner presses the button. */
+    if(typeof window.lqRecord==="function"){
+      try{
+        var r=window.lqRecord();
+        if(typeof r==="string"&&r.replace(/\s/g,"")) return r;
+        if(r&&r.nodeType===1&&r.textContent.replace(/\s/g,"")) return cleanClone(r).innerHTML;
+      }catch(e){}
+    }
     var found=collect();
     if(!found.length){
       var btns=document.querySelectorAll("button");
@@ -961,14 +1183,7 @@ resetRun();
     }
     if(!found.length) return null;
     var wrap=document.createElement("div");
-    found.forEach(function(s){
-      var c=s.cloneNode(true);
-      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
-        if(n.parentNode) n.parentNode.removeChild(n);
-      });
-      stripDuplicateName(c);
-      wrap.appendChild(c);
-    });
+    found.forEach(function(s){ wrap.appendChild(cleanClone(s)); });
     return wrap.innerHTML;
   }
 
@@ -985,21 +1200,24 @@ resetRun();
      +'<div class="lqsheet">'
      +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
      +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
-       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+       +(hasSet()?' · Set '+esc(setLetter()):'')+' · submission sheet</div>'
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
-     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
+       +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
      +'<div class="lqrow"><span class="k">Built</span><span class="v">'
        +esc(new Date().toLocaleString())+'</span></div>';
 
-    var rec=LQ.nosim?null:toolRecord();
-    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
-    else if(!LQ.nosim){
-      gaps.push("The simulator record — work through the lab tool above and press its own "
-               +"“Build submission sheet” button before you build this PDF");
-    }else{
+    /* a response tool (nosim) can still carry an in-tool packet record via window.lqRecord() */
+    var rec=(LQ.nosim&&typeof window.lqRecord!=="function")?null:toolRecord();
+    if(rec){ h+='<h2>'+(LQ.nosim?'Packet record':'Simulator record')+'</h2>'+rec; }
+    if(!rec&&!LQ.nosim){
+      var why=(typeof window.lqRecordReason==="string"&&window.lqRecordReason)?" ("+window.lqRecordReason+")":"";
+      gaps.push("The simulator record — the lab tool above has nothing to record yet"+why
+               +". Work through the lab, then build this PDF again");
+    }else if(LQ.nosim){
       h+='<h2>Assessed on the floor</h2>'
         +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
         +'Observed and signed off by the instructor against the handout. '
@@ -1024,7 +1242,8 @@ resetRun();
         +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
     }else{
       h+='<div class="lqgap ok">'
-        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+        +'<b>Complete.</b> Every question on this sheet carries a response'
+        +(LQ.nosim?'.':' and the simulator record is attached.')+'</div>';
     }
 
     h+='<div class="lqsign">Learner signature: ______________________________'
@@ -1070,7 +1289,7 @@ resetRun();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+    var runHead='<span class="r">'+esc(LQ.lab)+(hasSet()?' · Set '+esc(setLetter()):'')+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1107,6 +1326,5 @@ resetRun();
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
-
 </body>
 </html>

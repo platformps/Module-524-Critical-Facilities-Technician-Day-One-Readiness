@@ -197,6 +197,48 @@
   .cmpstat.none{background:#22303a;color:#8ba6bd}
   .split{background:#2a1512;border:1px solid #6d3129;border-radius:6px;padding:9px 11px;
     font-size:12px;line-height:1.5;margin-top:7px}
+
+  /* ---------- additive: the reference packet, read and printed from inside the tool ---------- */
+  .packet{background:#fff;color:#111;border-radius:9px;padding:28px 34px;max-width:1040px;margin:0 auto;
+    font-size:13px;line-height:1.55;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+  .packet h2{font-size:18px;margin:0 0 4px;color:#111}
+  .packet h3{font-size:14px;margin:26px 0 8px;color:#111;border-bottom:2px solid #111;padding-bottom:4px;
+    page-break-after:avoid;break-after:avoid}
+  .packet h4{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:#333;margin:16px 0 6px}
+  .packet p,.packet li{color:#222;font-size:12.5px;line-height:1.55}
+  .packet p{margin:0 0 8px}
+  .packet ol,.packet ul{margin:0 0 8px;padding-left:20px}
+  .packet table{border-collapse:collapse;width:100%;font-size:12px;margin-bottom:8px}
+  .packet th,.packet td{border:1px solid #999;padding:6px 8px;color:#111;vertical-align:top;text-align:left;font-size:11.5px;line-height:1.45}
+  .packet th{background:#eee;letter-spacing:.6px;text-transform:uppercase;font-size:9.5px;color:#222;cursor:default;white-space:normal}
+  .packet th:hover{color:#222}
+  .packet td.n{font-family:var(--mono);font-weight:700;width:30px}
+  .packet td.lo{background:#e6f4ea;font-weight:700;text-align:center}
+  .packet td.me{background:#fff3d6;font-weight:700;text-align:center}
+  .packet td.hi{background:#f9dcd6;font-weight:700;text-align:center}
+  .packet td.sv{font-family:var(--mono);font-weight:700;white-space:nowrap}
+  .packet .box{display:inline-block;width:13px;height:13px;border:1px solid #333;vertical-align:-2px;margin-right:5px}
+  .packet .cover{border:2px solid #111;padding:16px 18px;margin-bottom:22px}
+  .packet .cover .tag{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#444;font-weight:700;margin-bottom:6px}
+  .packet .brk{page-break-before:always;break-before:page}
+  .packet .foot{font-size:10.5px;color:#555;margin-top:22px;border-top:1px solid #999;padding-top:6px}
+  .packet .pkbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 0}
+  .packet .pkbar button{background:#111;color:#fff;border-color:#111}
+  .packet .pkbar button:hover{background:#333}
+  .packet .pkbar .counter{color:#555}
+  .packet .callout{border-left:4px solid #111;padding:8px 12px;margin:10px 0;background:#f4f4f4}
+  @media print{ .packet{box-shadow:none} }
+  /* Print packet — only the packet reaches the paper, ink on white */
+  body.pk-print{background:#fff!important;color:#000!important;overflow:visible!important;height:auto!important}
+  body.pk-print>*{display:none!important}
+  body.pk-print>#app{display:block!important;height:auto!important}
+  body.pk-print #app>header,body.pk-print #app>.toolbar,body.pk-print #libView,body.pk-print #sheetView,
+  body.pk-print #cmpView,body.pk-print #lqCard,body.pk-print #lqPrint{display:none!important}
+  body.pk-print main{overflow:visible!important;padding:0!important}
+  body.pk-print #packetPane{display:block!important}
+  body.pk-print .packet{box-shadow:none;border-radius:0;max-width:none;padding:0;color:#000}
+  body.pk-print .packet .noprint,body.pk-print .packet .pkbar{display:none!important}
+  body.pk-print .packet tr{page-break-inside:avoid;break-inside:avoid}
 </style>
 </head>
 <body>
@@ -217,6 +259,7 @@
     <button id="btnLib" class="primary">Library</button>
     <button id="btnSheet">Classification sheet</button>
     <button id="btnCmp">Partner compare</button>
+    <button id="btnPacket" title="Reference packet: the Level of Risk matrix, the Incident Severity table and the six-element MOP checklist — readable and printable from here">Packet</button>
     <span class="spacer"></span>
     <span class="counter" id="elapsed">T+00:00</span>
     <button id="btnRestart">Restart</button>
@@ -227,6 +270,7 @@
       <section id="libView" class="hidden"></section>
       <section id="sheetView" class="hidden"></section>
       <section id="cmpView" class="hidden"></section>
+      <section id="packetPane" class="hidden"></section>
     </div>
   </main>
 </div>
@@ -317,17 +361,32 @@ const TIERS=[
   {k:"MOP",n:"MOP",d:"Method of Procedure — preventive or corrective maintenance performed in house by CE Technicians. Classified by activity Level of Risk."},
   {k:"DSP",n:"DSP",d:"Drill Scenario Procedure — training built on an EOP failure scenario, per the Global Standard – Incident Drills."},
   {k:"AP",n:"AP",d:"Administrative Procedure — an administrative or support process related to CE operations."},
-  {k:"OUTSIDE",n:"Not a CE procedure",d:"Project, installation or contractor work — it is none of the five types, and saying so is a correct answer"},
-  {k:"DEPENDS",n:"Level of Risk depends",d:"The type is clear; the Level of Risk cannot be set without knowing the plant state — name the conditions."}
+  {k:"OUTSIDE",n:"Not a CE procedure",d:"Project, installation or contractor work — it is none of the five types, and saying so is a correct answer"}
 ];
+/* Level of Risk (SOP, MOP) or Incident Severity (EOP) — set separately from the type, never instead of it.
+   COND is the answer when the paper alone cannot settle it: the type stays, the conditions get named. */
+const LORS=[
+  {k:"LOW", n:"Low",   g:"Level of Risk"},
+  {k:"MED", n:"Medium",g:"Level of Risk"},
+  {k:"HIGH",n:"High",  g:"Level of Risk"},
+  {k:"SEV1",n:"Sev 1", g:"Incident Severity (EOP)"},
+  {k:"SEV2",n:"Sev 2", g:"Incident Severity (EOP)"},
+  {k:"SEV3",n:"Sev 3", g:"Incident Severity (EOP)"},
+  {k:"SEV4",n:"Sev 4", g:"Incident Severity (EOP)"},
+  {k:"COND",n:"Cannot be set from the paper — conditions apply",g:"Conditional"}
+];
+const RISKTYPES={EOP:1,SOP:1,MOP:1};   /* types that carry a Level of Risk or an Incident Severity */
+/* The six required MOP elements, under the handout's names and in the handout's order.
+   The keys are the same keys used in every extract().elements object below. */
 const ELEMENTS=[
-  {k:"scope",n:"Scope and system state"},
-  {k:"pre",n:"Numbered, single-action steps"},
-  {k:"steps",n:"A rollback plan"},
-  {k:"verify",n:"Go / no-go criteria"},
-  {k:"rollback",n:"Verification points"},
-  {k:"approve",n:"Sign-off spaces"}
+  {k:"scope",   n:"Scope and system state"},
+  {k:"steps",   n:"Numbered, single-action steps"},
+  {k:"rollback",n:"A rollback plan"},
+  {k:"gono",    n:"Go / no-go criteria"},
+  {k:"verify",  n:"Verification points"},
+  {k:"signoff", n:"Sign-off spaces"}
 ];
+const ELSTATUS=[["present","Present"],["partial","Partial"],["absent","Absent"]];
 
 /* ---------- the library ---------- */
 const DOCS=[
@@ -388,7 +447,7 @@ ${v==="D1"?"Reviewed 2023-05 — no change required.":"Rev 8 · 2024-06-27 · Re
     ],
     rollback:true,
     rollbackNote:"Section 6 covers what to do if the unit does not restart. It is a call-out instruction rather than a staged reversal, but the document does address the failed end state.",
-    elements:{scope:"present",pre:"present",steps:"present",verify:"present",rollback:"partial",approve:"partial"},
+    elements:{scope:"present",steps:"present",rollback:"partial",gono:v==="D1"?"present":"partial",verify:"present",signoff:"absent"},
     blind:v==="D1"
       ? "The document states at 3.2 that the redundant unit CRAH-08 must be confirmed running before work starts, and at 3.3 that row 4 is a standard density row. It does not tell me whether that pre-condition is actually satisfied today."
       : "The document states at 3.2 that the redundant unit CRAH-08 is out of service under works order WO 44118, and at 3.3 that the row was re-designated to a higher density in 2023 without the document being reviewed. It does not tell me what the row is drawing right now or how long it would hold temperature with no air handler running."
@@ -447,7 +506,7 @@ ${v==="D1"?"Marked for review 2020 — review not recorded.":"Rev 4 · 2022-02-1
     ],
     rollback:false,
     rollbackNote:"There is no rollback section. The notes on the last page say to carry out the sequence in reverse order and to call the duty engineer if the inverter will not synchronize. That is an instruction, not a rollback procedure with defined decision points.",
-    elements:{scope:"present",pre:"present",steps:"present",verify:"partial",rollback:"absent",approve:"partial"},
+    elements:{scope:"present",steps:"present",rollback:"absent",gono:"present",verify:"partial",signoff:"partial"},
     blind:"The document does not say how long the load will be on maintenance bypass, what the condition of the incoming supply is expected to be during that window, or what is to happen if a supply disturbance occurs while the module is out. It names the approver only as the responsible electrical engineer, with no named individual and no record of when the approval was given."
   })
 },
@@ -492,7 +551,7 @@ ${v==="D1"?"Next review due 2026-01.":"Rev 13 · 2025-04-08 · Autonomy figures 
     ],
     rollback:false,
     rollbackNote:"There is no rollback section. Step 12 covers staged restoration, which is recovery rather than rollback — there is no earlier state to return to.",
-    elements:{scope:"present",pre:"partial",steps:"present",verify:"partial",rollback:"absent",approve:"present"},
+    elements:{scope:"present",steps:"present",rollback:"absent",gono:"partial",verify:"partial",signoff:"absent"},
     blind:"The document states that no approval is required to execute it and that notification comes after the immediate actions. It carries explicit time limits measured from an event rather than from a scheduled start."
   })
 },
@@ -549,7 +608,7 @@ ${v==="D1"?"Audit action to add a defined abort route remains open.":"Rev 3 · 2
     ],
     rollback:false,
     rollbackNote:"There is no rollback section. Step 5 says to stop and reassess if the way is live, and the revision history records an open audit action to add a defined abort route. What happens if the work has to be abandoned with the cover off is not written down.",
-    elements:{scope:"present",pre:"present",steps:"present",verify:"present",rollback:"absent",approve:"partial"},
+    elements:{scope:"present",steps:"present",rollback:"absent",gono:"present",verify:"present",signoff:"partial"},
     blind:"The approval block is a signature line with no named role. The document does not say who is competent to authorize live working here, nor what the loss of PDU-04 would do to the cabinets if the board were tripped during the work — it only asks that the B side be confirmed healthy first."
   })
 },
@@ -603,7 +662,7 @@ ${v==="D1"?"Marked for review 2022 following the CH-3 decommissioning — review
     ],
     rollback:true,
     rollbackNote:"Yes. The section headed 'If the changeover fails' gives a defined return to the previous state, including the anti-recycle timer constraint that limits how quickly that return can be made.",
-    elements:{scope:"present",pre:"present",steps:"present",verify:"present",rollback:"present",approve:"partial"},
+    elements:{scope:"present",steps:"present",rollback:"present",gono:"present",verify:"present",signoff:"partial"},
     blind:v==="D1"
       ? "The pre-conditions ask that the standby machine be available but do not say what the plant configuration is. The only reference to a third machine at (d) is marked as decommissioned in 2022. The document does not tell me how many chillers are actually on line today, what the load is, or what the outside conditions are."
       : "Pre-condition (d) requires CH-3 to be confirmed on line and carrying load before the changeover starts, and explicitly excludes a changeover under reduced redundancy from the scope of this document."
@@ -629,15 +688,25 @@ let V=SETS[SET];
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const docById=id=>DOCS.filter(d=>d.id===id)[0];
 const ctrlNo=d=>"DC-"+String((S.rk%9000)+d.id.charCodeAt(0)*31%900+1000);
-function blank(id){ return {tier:"",why:"",cond:"",missing:"",mop:{}}; }
+function blank(id){ return {tier:"",lor:"",why:"",cond:"",missing:"",mop:{}}; }
 function cls(id){ if(!S.cls[id]) S.cls[id]=blank(id); return S.cls[id]; }
+function lorName(k){ const x=LORS.filter(l=>l.k===k)[0]; return x?x.n:(k||""); }
+function tierChip(t){
+  if(!t) return '<span class="counter">—</span>';
+  return `<span class="sev ${t==="EOP"?"critical":t==="MOP"?"high":t==="SOP"?"medium":"low"}">${esc(tierName(t))}</span>`;
+}
+function lorChip(k){
+  if(!k) return "";
+  const cls=k==="COND"?"low":k==="HIGH"||k==="SEV1"?"critical":k==="MED"||k==="SEV2"?"high":"medium";
+  return ` <span class="sev ${cls}" title="Level of Risk / Incident Severity">${k==="COND"?"LoR: conditions":esc(lorName(k))}</span>`;
+}
 
 /* ---------- library view ---------- */
 function renderLib(){
   const el=$("libView");
   if(!el.dataset.built){
     el.innerHTML=`
-      <div class="caveat noprint">A confident answer from an assistant is not the same as a correct one. The assistant can read a document faster than you can and will list what it touches without missing a section. It can quote the line that states the purpose of the activity, and the purpose is what fixes the type. It cannot see your plant, your redundancy configuration or today's load, so it cannot set the Level of Risk. The extraction column can be delegated. The reasoning column is yours. The document number prefix is not evidence of type, any more than the title or the page count is — a document numbered SOP- may describe maintenance, and a four page document may carry more risk than an eleven page one. Classify from the purpose, not from the header.</div>
+      <div class="caveat noprint">A confident answer from an assistant is not the same as a correct one. The assistant can read a document faster than you can and will list what it touches without missing a section. It can quote the line that states the purpose of the activity, and the purpose is what fixes the type. It cannot see your plant, your redundancy configuration or today's load, so it cannot set the Level of Risk. The extraction column can be delegated. The reasoning column is yours. The document number prefix is not evidence of type, any more than the title or the page count is — a document numbered SOP- may describe maintenance, and a four page document may carry more risk than an eleven page one. Classify from the purpose, not from the header. The Level of Risk matrix, the Incident Severity table and the six-element MOP checklist are under <b>Packet</b> in the toolbar, readable and printable from there.</div>
       <div class="tile" style="margin-bottom:14px">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
           <span class="counter" id="libCount"></span>
@@ -657,17 +726,17 @@ function renderLib(){
        <th style="cursor:default">Revision</th>
        <th style="cursor:default">Pages</th>
        <th style="cursor:default">Owner</th>
-       <th style="cursor:default">Your type</th>
+       <th style="cursor:default">Your type · Level of Risk</th>
      </tr></thead><tbody>`+
     DOCS.map(d=>{
-      const t=cls(d.id).tier;
+      const c=cls(d.id);
       return `<tr class="docrow ${S.open===d.id?'sel':''}" data-d="${d.id}">
         <td class="docno">${d.no}</td>
         <td><div class="doctitle">${esc(d.title)}</div><div class="docmeta">${esc(d.sys)}</div></td>
         <td class="mono" style="white-space:nowrap;font-size:12px">${d.rev(V.id)}</td>
         <td class="mono">${d.pages}</td>
         <td style="font-size:12px">${esc(d.owner)}</td>
-        <td>${t?`<span class="sev ${t==="EOP"?"critical":t==="MOP"?"high":t==="SOP"?"medium":"low"}">${t==="DEPENDS"?"DEPENDS":t}</span>`:`<span class="counter">—</span>`}</td>
+        <td>${tierChip(c.tier)}${lorChip(c.lor)}</td>
       </tr>`;}).join("")+`</tbody>`;
   $("docTable").onclick=e=>{
     const r=e.target.closest(".docrow"); if(!r)return;
@@ -715,7 +784,7 @@ function copSummary(d){
     <div class="cb">
       <div class="blk"><h5>System touched</h5><div>${esc(x.system)}</div></div>
       <div class="blk"><h5>What changes state</h5><ul>${x.changes.map(c=>"<li>"+esc(c)+"</li>").join("")}</ul></div>
-      <div class="blk"><h5>Rollback section</h5><div>${x.rollback?"Present.":"Not present."} ${esc(x.rollbackNote)}</div></div>
+      <div class="blk"><h5>Rollback section</h5><div>${x.elements.rollback==="present"?"Present.":x.elements.rollback==="partial"?"Partly present.":"Not present."} ${esc(x.rollbackNote)}</div></div>
       <div class="blk"><h5>Six MOP elements, as found in the text</h5><ul>${ELEMENTS.map(rowEl).join("")}</ul></div>
       <div class="blk" style="margin-bottom:0"><h5>What the document does not tell me</h5><div>${esc(x.blind)}</div></div>
     </div>
@@ -742,7 +811,7 @@ function renderSheet(){
   if(el.dataset.built==="1"){return;}
   el.dataset.built="1";
   el.innerHTML=`
-    <div class="caveat noprint">One type per document, and the evidence that decided it. The type follows from the purpose of the activity: quote the line in the document that states that purpose. "It is routine" is not evidence, it is the conclusion written again. Having fixed the type, set the Level of Risk from the state of the plant — or, for an EOP, the Incident Severity from the CEN Matrix. If the Level of Risk cannot be set without knowing the state of the plant, say so and name the conditions.</div>`+
+    <div class="caveat noprint">One type per document, and the evidence that decided it. The type follows from the purpose of the activity: quote the line in the document that states that purpose. "It is routine" is not evidence, it is the conclusion written again. Having fixed the type, set the Level of Risk from the state of the plant — or, for an EOP, the Incident Severity from the CEN Matrix. If the Level of Risk cannot be set without knowing the state of the plant, say so in the Level of Risk field and name the conditions — the type still stands. The matrix, the severity table and the six-element checklist are under <b>Packet</b>.</div>`+
     DOCS.map(sheetBlock).join("")+
     `<div class="submit">
        <h3>Submission sheet</h3>
@@ -776,27 +845,36 @@ function sheetBlock(d){
         <span><b>${t.n}</b> <span class="tdesc">${t.d}</span></span>
       </label>`).join("")}</div>
     <div class="fld">
-      <label>Evidence that decided it — required, and be specific</label>
-      <textarea rows="3" data-why="${d.id}" placeholder="Quote the section or line that states the purpose of the activity, and say what that purpose makes this document: incident response, routine operation, maintenance, drill or administration.">${esc(c.why)}</textarea>
+      <label for="why_${d.id}">Evidence that decided it — required, and be specific</label>
+      <textarea id="why_${d.id}" rows="3" data-why="${d.id}" placeholder="Quote the section or line that states the purpose of the activity, and say what that purpose makes this document: incident response, routine operation, maintenance, drill or administration.">${esc(c.why)}</textarea>
+    </div>
+    <div class="row" style="margin-top:12px;align-items:flex-start">
+      <div class="fld">
+        <label for="lor_${d.id}">Level of Risk (SOP, MOP) or Incident Severity (EOP) — set after the type, from the state of the plant</label>
+        <select id="lor_${d.id}" data-lor="${d.id}" style="min-width:340px">
+          <option value="">— not set —</option>
+          ${LORS.map(l=>`<option value="${l.k}" ${c.lor===l.k?"selected":""}>${esc(l.n)}${l.k==="COND"?"":" — "+esc(l.g)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="hint" style="margin-top:0;max-width:520px">Low, Medium or High from the Level of Risk matrix for an SOP or a MOP; Sev 1 to Sev 4 from the CEN Matrix for an EOP — both are in the <b>Packet</b>. A DSP, an AP and anything that is not a CE procedure is not risk classified: leave it unset.</div>
     </div>
     <div class="subblk hidden" id="cond_${d.id}">
       <div class="fld">
-        <label>Conditions — required. What state of the plant drives the Level of Risk up, and what state brings it back down?</label>
-        <textarea rows="3" data-cond="${d.id}" placeholder="Name the things you would have to know before you could answer: redundancy configuration, what is already out of service, current load, operating conditions.">${esc(c.cond)}</textarea>
+        <label for="cond_in_${d.id}">Conditions — required. The type stands; what state of the plant drives the Level of Risk up, and what state brings it back down?</label>
+        <textarea id="cond_in_${d.id}" rows="3" data-cond="${d.id}" placeholder="Name both Levels of Risk and the things you would have to know before you could choose between them: redundancy configuration, what is already out of service, current load, operating conditions.">${esc(c.cond)}</textarea>
       </div>
     </div>
     <div class="subblk hidden" id="mop_${d.id}">
       <div class="fld" style="margin-bottom:10px"><label>Six-element check — required for a Method of Procedure</label></div>
       <table class="eltab"><thead><tr>
-        <th style="cursor:default">Element</th><th style="cursor:default">Present</th>
-        <th style="cursor:default">Missing</th><th style="cursor:default">Not clear</th>
+        <th style="cursor:default">Element</th>${ELSTATUS.map(st=>`<th style="cursor:default">${st[1]}</th>`).join("")}
       </tr></thead><tbody>${ELEMENTS.map(e=>`<tr>
         <td class="elname">${e.n}</td>
-        ${["present","missing","unclear"].map(st=>`<td><label><input type="radio" name="el_${d.id}_${e.k}" data-el="${d.id}|${e.k}" value="${st}" ${(c.mop||{})[e.k]===st?'checked':''}></label></td>`).join("")}
+        ${ELSTATUS.map(st=>`<td><label><input type="radio" name="el_${d.id}_${e.k}" data-el="${d.id}|${e.k}" value="${st[0]}" aria-label="${esc(e.n)}: ${st[1]}" ${(c.mop||{})[e.k]===st[0]?'checked':''}></label></td>`).join("")}
       </tr>`).join("")}</tbody></table>
       <div class="fld" style="margin-top:12px">
-        <label>What is missing, and what would you add before this is approved</label>
-        <textarea rows="2" data-missing="${d.id}" placeholder="Name the gaps you have marked missing or not clear, and what you would write to close them.">${esc(c.missing)}</textarea>
+        <label for="missing_${d.id}">What is missing, and what would you add before this is approved</label>
+        <textarea id="missing_${d.id}" rows="2" data-missing="${d.id}" placeholder="For each element marked partial or absent: what a technician standing at the plant would not know because it is missing, and what you would write to close the gap.">${esc(c.missing)}</textarea>
       </div>
     </div>
   </div>`;
@@ -808,6 +886,10 @@ function onSheetChange(e){
     [...document.querySelectorAll(`#blk_${id} .tchip`)].forEach(l=>
       l.classList.toggle("on",l.dataset.tier===t.value));
     syncBlock(id); renderLib();
+  }
+  if(t.dataset.lor){
+    cls(t.dataset.lor).lor=t.value;
+    syncBlock(t.dataset.lor); renderLib();
   }
   if(t.dataset.el){
     const p=t.dataset.el.split("|"); const c=cls(p[0]);
@@ -824,8 +906,8 @@ function onSheetInput(e){
 function syncBlock(id){
   const c=cls(id);
   const cd=$("cond_"+id), mp=$("mop_"+id);
-  if(cd) cd.classList.toggle("hidden",c.tier!=="DEPENDS");
-  if(mp) mp.classList.toggle("hidden",c.tier!=="MOP");
+  if(cd) cd.classList.toggle("hidden",c.lor!=="COND");   /* conditions box follows the Level of Risk select */
+  if(mp) mp.classList.toggle("hidden",c.tier!=="MOP");   /* six-element block follows the type, whatever the risk */
 }
 
 /* ---------- submission sheet ---------- */
@@ -835,12 +917,15 @@ function tierName(k){
   return t?t.n:k;
 }
 function srow(k,v){ return '<div class="srow"><div class="sk">'+k+'</div><div class="sv">'+v+'</div></div>'; }
-function buildSheet(){
+/* sheetHTML() builds the record from state alone \u2014 it does not need the classification sheet to be
+   showing. buildSheet() writes it into the sheet view; window.lqRecord() hands it to the submission module. */
+function sheetHTML(){
   const missing=[];
   let h='<div class="sheet"><h4>'+LAB.lab+" \u2014 "+LAB.title+'</h4>';
   const nm=($("subName")?$("subName").value.trim():"")||S.learner;
   S.learner=nm;
   h+=srow("Your name",esc(nm)||"&mdash;");
+  h+=srow("Set",esc(V.id));
   h+=srow("Completed",stamp());
   h+=srow("Elapsed in session",fmtElapsed(S.t));
   DOCS.forEach(d=>{
@@ -848,17 +933,23 @@ function buildSheet(){
     h+='<h4>'+esc(d.no)+" \u2014 "+esc(d.title)+'</h4>';
     h+=srow("Type recorded",c.tier?esc(tierName(c.tier)):"not recorded");
     h+=srow("Evidence that decided it",esc(c.why)||"not recorded");
+    const lorLabel=c.tier==="EOP"?"Incident Severity (CEN Matrix)":"Level of Risk";
+    if(c.tier&&!RISKTYPES[c.tier]) h+=srow(lorLabel,c.lor?esc(lorName(c.lor)):"not risk classified for this type");
+    else h+=srow(lorLabel,c.lor?esc(lorName(c.lor)):"not set");
     if(!c.tier) missing.push(d.no+": type");
     if(!(c.why||"").trim()) missing.push(d.no+": evidence");
+    if(RISKTYPES[c.tier]&&!c.lor) missing.push(d.no+": "+(c.tier==="EOP"?"Incident Severity":"Level of Risk"));
+    if(c.lor==="COND"){
+      h+=srow("Conditions named",esc(c.cond)||"not recorded");
+      if(!(c.cond||"").trim()) missing.push(d.no+": conditions");
+    }
     if(c.tier==="MOP"){
-      h+=srow("Six-element check",ELEMENTS.map(e=>e.n+": "+(((c.mop||{})[e.k])||"not marked")).join("\n"));
+      h+=srow("Six-element check",ELEMENTS.map(e=>{
+        const v=(c.mop||{})[e.k]; const lab=(ELSTATUS.filter(s=>s[0]===v)[0]||[])[1];
+        return e.n+": "+(lab||"not marked");}).join("\n"));
       h+=srow("What is missing, and what you would add",esc(c.missing)||"not recorded");
       ELEMENTS.forEach(e=>{ if(!((c.mop||{})[e.k])) missing.push(d.no+": six-element check ("+e.n.toLowerCase()+")"); });
       if(!(c.missing||"").trim()) missing.push(d.no+": what is missing");
-    }
-    if(c.tier==="DEPENDS"){
-      h+=srow("Conditions named",esc(c.cond)||"not recorded");
-      if(!(c.cond||"").trim()) missing.push(d.no+": conditions");
     }
     const r=S.res[d.id]||{}, p=S.partner[d.id];
     if(p||r.tier||(r.note||"").trim()){
@@ -871,13 +962,22 @@ function buildSheet(){
   if(missing.length)
     h+='<div class="note" style="margin-top:14px"><b>Not yet filled in:</b> '+missing.map(esc).join("; ")+
        ". This is a completeness check only \u2014 it says nothing about what you have written.</div>";
-  h+='<div class="note" style="margin-top:12px">Check every field before printing. Hand this sheet to your instructor with your worksheet.</div>';
-  h+='<div class="row noprint" style="margin-top:12px"><button id="btnPrintSheet">Print submission sheet</button></div></div>';
-  const r=$("clsResult");
-  r.className="result show";
-  r.innerHTML=h;
-  $("btnPrintSheet").onclick=()=>window.print();
+  h+='<div class="note" style="margin-top:12px">This record is embedded in your submission PDF.</div>';
+  h+='</div>';
+  return h;
 }
+function buildSheet(){
+  const h=sheetHTML();
+  const r=$("clsResult");
+  if(r){
+    r.className="result show";
+    r.innerHTML=h+'<div class="row noprint" style="margin-top:12px"><button id="btnPrintSheet">Print submission sheet</button></div>';
+    $("btnPrintSheet").onclick=()=>window.print();
+  }
+  return h;
+}
+/* Called by the submission module on Build submission PDF, whichever view is showing. */
+window.lqRecord=function(){ return sheetHTML(); };
 
 /* ---------- partner compare ---------- */
 function renderCmp(){
@@ -898,7 +998,7 @@ function renderCmp(){
     };
   }
   const opt=(sel,extra)=>`<option value="">${extra||"— not entered —"}</option>`+
-    TIERS.map(t=>`<option value="${t.k}" ${sel===t.k?"selected":""}>${t.k==="DEPENDS"?"Level of Risk depends":t.k}</option>`).join("");
+    TIERS.map(t=>`<option value="${t.k}" ${sel===t.k?"selected":""}>${esc(t.n)}</option>`).join("");
   $("cmpTable").innerHTML=
     `<thead><tr>
        <th style="cursor:default">Document</th>
@@ -916,7 +1016,7 @@ function renderCmp(){
       const split = mine&&theirs&&res.tier&&res.tier!==mine&&res.tier!==theirs;
       return `<tr>
         <td><div class="doctitle">${esc(d.title)}</div><div class="docmeta">${d.no} · ${d.rev(V.id)}</div></td>
-        <td>${mine?`<span class="sev ${mine==="EOP"?"critical":mine==="MOP"?"high":mine==="SOP"?"medium":"low"}">${mine==="DEPENDS"?"DEPENDS":mine}</span>`:'<span class="counter">—</span>'}</td>
+        <td>${tierChip(mine)}${lorChip(cls(d.id).lor)}</td>
         <td><select data-partner="${d.id}">${opt(theirs)}</select></td>
         <td>${st}${mine&&theirs&&mine!==theirs?'<div class="docmeta" style="margin-top:5px">One of you has read something the other has not. Find out which.</div>':''}</td>
         <td style="min-width:280px">
@@ -925,6 +1025,83 @@ function renderCmp(){
           ${split?'<div class="split">You have both moved to a type neither of you argued for. That is splitting the difference, and it means the argument was never had. Go back and make the case for one of the two answers on the table.</div>':''}
         </td>
       </tr>`;}).join("")+`</tbody>`;
+}
+
+/* ---------- the reference packet ----------
+   The Level of Risk matrix, the Incident Severity table and the six-element MOP checklist, held
+   inside the tool and printable from it. Reference only — the responses go on the classification
+   sheet, which is the record. Built once; hidden and shown, never destroyed on repaint. */
+function packetHTML(){
+  const LIK=[["Unlikely","The activity is routine and rehearsed, the equipment is healthy and the document is current — nothing in the pre-conditions is in doubt."],
+             ["Possible","Something is untested: a machine not run for a month, a document not reviewed against a plant change, a load figure nobody has read off the display recently."],
+             ["Likely","A known weakness is in play: a stale reference, a unit that has refused to start before, an anti-recycle timer, work on a rising loop or a hot day."]];
+  const IMP=[["Minor","Full redundancy stays in place throughout. If the activity goes wrong, a healthy standby unit carries the load and nothing the critical load depends on changes state."],
+             ["Significant","Redundancy is given up for the duration — the load runs on one path, one machine or one air handler, or on raw mains with no stored energy behind it. Nothing is lost unless a second thing fails."],
+             ["Severe","The critical load itself is exposed. A single further failure, or the activity going wrong, drops load, loses cooling to a hall or leaves no route back within the ride-through time."]];
+  const CELL=[["lo","Low"],["lo","Low"],["me","Medium"],
+              ["me","Medium"],["hi","High"],["hi","High"],
+              ["hi","High"],["hi","High"],["hi","High"]];
+  const SEV=[["Sev 1","Critical load lost, or loss imminent with no remaining margin: the site on stored energy with no generation, a hall losing cooling with temperature rising, both feeds down. Site-wide or multi-hall effect.","Execute the EOP immediately. Every action logged with its time. Notification after the immediate actions, never before them."],
+             ["Sev 2","Redundancy lost on a system the critical load depends on — running at N with nothing behind it, one power path or one chiller carrying the load — but no load has been lost.","EOP executed; shift lead and duty engineer notified within the first minutes; recovery planned before the next failure, not after it."],
+             ["Sev 3","A single component failure or alarm with redundancy intact and no effect on the critical load: one unit of an N+1 set tripped, a sensor fault, a nuisance alarm with a known cause.","Respond within the shift, record it, raise the work order. Watch it: two Sev 3 events on the same system are a Sev 2 in the making."],
+             ["Sev 4","Advisory or housekeeping condition with no immediate risk: a reading drifting inside its band, a label missing, a record overdue.","Record and schedule. No emergency response. It is still logged, because the log is how the next shift finds out."]];
+  const ELX=[["Scope and system state","Exactly which equipment, what state the system must be in before step one, what redundancy is being given up, and the Level of Risk the MOP is classified at.","A technician does not know whether the plant in front of them is the plant the author assumed, or what they are about to give up."],
+             ["Numbered, single-action steps","One action per step. 'Open breaker 3, then verify' is two steps, not one. Ambiguity in a step is a hazard.","Two people read the same line and do two different things, and neither of them is wrong by the paper."],
+             ["A rollback plan","The specific sequence to return the system to its starting state, written before anyone starts — not improvised when it goes wrong.","The way back is invented at 02:30 with load at risk, by the person least placed to think it through."],
+             ["Go / no-go criteria","The conditions that must be true to proceed, and the conditions that require a stop. Written down, not left to judgement.","The decision to start, or to stop, is made on the floor from habit, and 'it is probably fine' has no written answer."],
+             ["Verification points","Steps where the expected result is confirmed before continuing. A MOP without checks is a hope with numbers on it.","An action that did not do what it was supposed to goes unnoticed until the next action makes it worse."],
+             ["Sign-off spaces","A place to initial each step as it completes, in real time. Signing several steps at the end defeats the purpose.","Nobody can tell afterwards which steps were actually done, in what order, or when — the record and the plant no longer agree."]];
+  return `<div class="packet" id="packetDoc">
+    <div class="cover">
+      <div class="tag">${esc(LAB.lab)} &middot; objective ${esc(LAB.obj)} &middot; Lesson 524.4 — Procedure Discipline</div>
+      <h2>Reference packet — Level of Risk matrix, Incident Severity table, six-element MOP checklist</h2>
+      <p>The three references the classification asks you to use, held inside the lab tool so they cannot be separated from the exercise. They grade a document; they never pick its type. Type comes first, from the purpose of the activity, and only then is the Level of Risk (for an SOP or a MOP) or the Incident Severity (for an EOP) set — from the state of the plant on the day, which is not written in the document. Your answers go on the <b>Classification sheet</b>; that sheet is the record.</p>
+      <div class="pkbar noprint">
+        <button id="btnPrintPacket">Print packet</button>
+        <span class="counter">Prints this packet only, ink on paper. Nothing else on the screen is printed.</span>
+      </div>
+    </div>
+
+    <h3>1 · Level of Risk matrix — for an SOP or a MOP, once its type is settled</h3>
+    <p>Read the impact row first, then the likelihood column. <b>Impact</b> is what happens to the critical load if the activity goes wrong, and it is set almost entirely by the redundancy you actually have on the day. <b>Likelihood</b> is how probable it is that the activity does go wrong, and it is set by the condition of the equipment, the currency of the document, the load and the outside conditions. Neither is written in the procedure — which is why the assistant cannot set it and you can.</p>
+    <table><thead><tr><th style="width:26%">Impact on the critical load, if it goes wrong</th>${LIK.map(l=>`<th>Likelihood: ${l[0]}<br><span style="font-weight:400;text-transform:none;letter-spacing:0">${esc(l[1])}</span></th>`).join("")}</tr></thead><tbody>
+      ${IMP.map((im,i)=>`<tr><td><b>${im[0]}</b><br>${esc(im[1])}</td>${[0,1,2].map(j=>`<td class="${CELL[i*3+j][0]}">${CELL[i*3+j][1]}</td>`).join("")}</tr>`).join("")}
+    </tbody></table>
+    <h4>What each level means for the work</h4>
+    <table><thead><tr><th style="width:14%">Level</th><th>Before it starts</th><th>While it runs</th></tr></thead><tbody>
+      <tr><td class="lo">Low</td><td>Routine authorisation. Pre-conditions confirmed at the plant, shift lead informed.</td><td>Point-and-read discipline as always. One person may execute; the document still travels with them.</td></tr>
+      <tr><td class="me">Medium</td><td>Approved change record. Redundancy state and current load confirmed and written down before step one. Rollback read and understood.</td><td>Two people where the document says so. Verification points stated aloud. Any pre-condition that has changed since approval is a stop.</td></tr>
+      <tr><td class="hi">High</td><td>Approved change record inside a named window. Named approver. Rollback written out in the executor's own words before anything is touched. Shift lead briefed and on the floor.</td><td>Two people: one executes, one reads and witnesses. Every step signed at the equipment as it completes. A field variance of any kind is a halt, a rollback and a redline — not a judgement call.</td></tr>
+    </tbody></table>
+    <div class="callout"><b>Reading it against the plant.</b> The same document moves cells when the plant moves. A changeover with a healthy standby machine on line and the loop at setpoint sits at <b>Minor × Unlikely — Low</b>. The same eleven steps with one machine already out for service, on a hot afternoon, with an anti-recycle timer that refuses a restart for fifteen minutes, sit at <b>Severe × Likely — High</b>. Nothing on the paper changed. What you would have to know before you could choose the cell: how many machines are on line and healthy, whether anything is already out for service, the current load, and the outside conditions. When you cannot answer those from the document, the Level of Risk <i>cannot be set from the paper</i> — say so, keep the type, and name the conditions.</div>
+
+    <h3 class="brk">2 · Incident Severity — for an EOP, against the CEN Matrix</h3>
+    <p>An EOP is a pre-approved response to an event already in progress, so it is not graded by the risk of doing it — it is graded by how hard the site is hit. Every BAS and EPMS alarm has an EOP, each EOP is Primary or Secondary (which sets its approval route), and each carries the Incident Severity of the event it answers. The four levels below are the course's working summary of the CEN Matrix; your site's matrix governs on the floor.</p>
+    <table><thead><tr><th style="width:9%">Severity</th><th style="width:48%">The event</th><th>The response the EOP is written for</th></tr></thead><tbody>
+      ${SEV.map(x=>`<tr><td class="sv">${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td></tr>`).join("")}
+    </tbody></table>
+    <div class="callout"><b>What it is not.</b> Incident Severity is not the Level of Risk with a different name. A total loss of utility with a generator that has not started is Sev 1 whatever the weather, because the event has already happened; a chiller changeover is Low or High depending on the plant, because the event has not happened yet and the document exists to keep it that way.</div>
+
+    <h3 class="brk">3 · Six-element MOP checklist</h3>
+    <p>A Method of Procedure covers preventive or corrective maintenance carried out in house by CE Technicians, and per clause 5.3.2 its steps must comply with local statutory requirements, equipment manufacturer requirements and Microsoft Preventive Maintenance Standards, and must include shutdown, isolation and start-up steps where the maintenance task requires them. Before anyone starts, it must contain all six of the elements below. Mark each one <b>Present</b>, <b>Partial</b> or <b>Absent</b> on the classification sheet for every document you have typed as a MOP, and for every gap write what a technician standing at the plant would not know because of it. A gap is a finding. Raise it before the window opens, not during it.</p>
+    <table><thead><tr><th style="width:30px">#</th><th style="width:20%">Element</th><th>What it must contain</th><th style="width:30%">What is missing on the floor when it is absent</th><th style="width:15%">Present · Partial · Absent</th></tr></thead><tbody>
+      ${ELX.map((e,i)=>`<tr><td class="n">${i+1}</td><td><b>${esc(e[0])}</b></td><td>${esc(e[1])}</td><td>${esc(e[2])}</td><td><span class="box"></span>P &nbsp; <span class="box"></span>Pa &nbsp; <span class="box"></span>A</td></tr>`).join("")}
+    </tbody></table>
+    <p>The lab tool's classification sheet lists the same six, under the same names and in the same order, so tick straight against them when you enter the check.</p>
+    <div class="foot">${esc(LAB.lab)} — ${esc(LAB.title)} · Reference packet · UCI 2227 · Level of Risk matrix and Incident Severity table are the course's working summaries; the site CEN Matrix and Level of Risk procedure govern on the floor.</div>
+  </div>`;
+}
+function renderPacket(){
+  const el=$("packetPane"); if(!el||el.dataset.built==="1") return;
+  el.dataset.built="1";
+  el.innerHTML=packetHTML();
+  el.onclick=e=>{ const b=e.target.closest("button"); if(b&&b.id==="btnPrintPacket") printPacket(); };
+}
+function printPacket(){
+  renderPacket();
+  document.body.classList.add("pk-print");
+  try{ window.print(); }
+  finally{ setTimeout(()=>document.body.classList.remove("pk-print"),400); }
 }
 
 /* ---------- run loop ---------- */
@@ -972,12 +1149,15 @@ function showView(v){
   $("libView").classList.toggle("hidden",v!=="lib");
   $("sheetView").classList.toggle("hidden",v!=="sheet");
   $("cmpView").classList.toggle("hidden",v!=="cmp");
+  $("packetPane").classList.toggle("hidden",v!=="packet");
   $("btnLib").className=v==="lib"?"primary":"";
   $("btnSheet").className=v==="sheet"?"primary":"";
   $("btnCmp").className=v==="cmp"?"primary":"";
+  $("btnPacket").className=v==="packet"?"primary":"";
   if(v==="lib")renderLib();
   if(v==="sheet")renderSheet();
   if(v==="cmp")renderCmp();
+  if(v==="packet")renderPacket();
   const m=document.querySelector("main"); if(m)m.scrollTop=0;
 }
 function showConsole(){
@@ -988,14 +1168,17 @@ function showConsole(){
 $("btnLib").onclick=()=>showView("lib");
 $("btnSheet").onclick=()=>showView("sheet");
 $("btnCmp").onclick=()=>showView("cmp");
+$("btnPacket").onclick=()=>showView("packet");
 $("btnRestart").onclick=resetRun;
 window.addEventListener("resize",()=>{render();});
 render();
 showConsole();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
-<script id="lqData">var LQ={"lab": "GLAB 524.4.1", "title": "Classify the Document Library", "handout": "GLAB 524.4.1 - Classify the Document Library", "file": "524-4-1-B_DocSort.html", "set": "B", "items": [{"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 2. Open the document library and read all five scripts from start to finish before you classify any of them. Do not sort as you go. The first document you read will look obvious, and at that point you have nothing to compare it with. Record the document number, the title and the owning department for each of the five."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 3. For each script in turn, use Microsoft Copilot to summarize two things and only two things: which system the document touches, and what changes state when it is executed. Copy both answers onto your sheet. These are extraction questions. The assistant is faster and more complete at them than you are, and using it here is the point of the exercise. Record below, for each of the five documents, the system it touches and what changes state when it is executed."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 4. Ask the assistant to classify one of the documents for you. It will decline. Read the refusal, then write one sentence in your own words explaining why the refusal is correct and not a limitation of the tool."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 5. Answer the classifying question in writing for each of the five: what is the purpose of the activity this document exists to carry out? Write the purpose, not the type. Routine operation under normal conditions or a step supporting an EOP, preventive or corrective maintenance done in house by CE Technicians, response to an event already in progress, drill training built on an EOP failure scenario, or an administrative or support process."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 6. Assign each script to one of the five procedure types: EOP, SOP, MOP, DSP or AP. One of the five is not a CE procedure at all — it is project or contractor work that none of the five definitions reaches. Marking it Not a CE procedure is a correct answer and you are expected to find it. Then assign the Level of Risk separately, and for anything you have made an EOP record the Incident Severity from the CEN Matrix instead. For each one, quote the specific line from the document that decided the type. A type with no quoted evidence is a partial pass and will be marked as one."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 7. Two of the five document numbers carry a prefix that contradicts the content. Name both, and for each say what the number claims and what the content actually shows. If you have not found two, go back; you have classified at least one document by its number."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 8. For every script you have classified as a MOP, check it against the six required elements: scope and system state, numbered single-action steps, a rollback plan, go and no-go criteria, verification points, and sign-off spaces. Tick each element present, partial or absent. Clause 5.3.2 also requires the steps to comply with local statutory requirements, equipment manufacturer requirements and Microsoft Preventive Maintenance Standards, and to include shutdown, isolation and start-up steps where the maintenance task requires them. The lab tool lists the same six under the same names, so tick straight against them when you enter the check."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 9. For each element you have marked partial or absent, write what a technician standing at the plant would not know because it is missing. Missing is a finding. A MOP handed to you with no rollback plan is something you raise before the window opens, not during it, and an entry-level technician raising it is doing the job correctly."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 10. One of the five carries a Level of Risk that cannot be settled from the paper alone. Its procedure type is not in doubt; the risk is. Identify it. State what the Level of Risk would be under full redundancy with a healthy standby machine available, and what it becomes when a unit is already out of service. Then list the conditions that decide it: how many machines are on line and healthy, whether anything is already out for service, the current load and the outside conditions."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 11. Write your conditional answer out as you would hand it to a shift lead. One short paragraph. It should name the document, its procedure type, both possible Levels of Risk, and the specific facts you would need to check before starting. Somebody reading it should be able to go and check those facts without ringing you."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 12. Compare all five classifications with your partner. Where you agree, move on. Where you disagree, each of you states the quoted line you relied on, and one of you changes position. Do not split the difference and do not average two types. Two learners who compromise have both stopped thinking. Record which document you disagreed on and what evidence changed your mind, or why it did not."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "image", "p": "Step 13. Type your name into the submission panel, press Build submission sheet, print or export it, and attach or paste the sheet with your five procedure types, your Level of Risk assignments, your evidence and your six-element check."}, {"s": "Part 2: Reflection", "k": "text", "p": "Which document did you classify wrongly on first reading, and what did you lean on when you did it: the prefix on the number, the page count, or the content? Be specific about the habit, because it is the habit that will follow you onto the floor."}, {"s": "Part 2: Reflection", "k": "text", "p": "You will be handed a MOP with no rollback section within your first month on site. Write, in the words you would actually say out loud, what you would say to the person who handed it to you."}, {"s": "Part 2: Reflection", "k": "text", "p": "The assistant read all five documents faster and more completely than you did, and it still could not answer the only question that mattered. Describe one other task on a data center floor where a tool can do the extraction but not the decision."}, {"s": "Part 2: Reflection", "k": "text", "p": "The procedure type is a property of the purpose of the work and does not move. The Level of Risk is a property of the plant on the day. What would you need to find out about your own site on your first morning before you could put a Level of Risk on anything held in its library?"}]};</script>
-<!-- ===== UCI 2227 · Submission module v2.0 =====================================
+<script id="lqData">
+var LQ={"lab": "GLAB 524.4.1", "title": "Classify the Document Library", "handout": "GLAB 524.4.1 - Classify the Document Library", "file": "524-4-1-B_DocSort.html", "set": "B", "items": [{"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 2. Open the document library and read all five scripts from start to finish before you classify any of them. Do not sort as you go. The first document you read will look obvious, and at that point you have nothing to compare it with. Record the document number, the title and the owning department for each of the five."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 3. For each script in turn, use Microsoft Copilot to summarise two things and only two things: which system the document touches, and what changes state when it is executed. Copy both answers onto your sheet. These are extraction questions. The assistant is faster and more complete at them than you are, and using it here is the point of the exercise. Record in the lab tool, for each of the five documents, the system it touches and what changes state when it is executed."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 4. Ask the assistant to classify one of the documents for you. It will decline. Read the refusal, then write one sentence in your own words explaining why the refusal is correct and not a limitation of the tool."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 5. Answer the classifying question in writing for each of the five: what is the purpose of the activity this document exists to carry out? Write the purpose, not the type. Routine operation under normal conditions or a step supporting an EOP, preventive or corrective maintenance done in house by CE Technicians, response to an event already in progress, drill training built on an EOP failure scenario, or an administrative or support process."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 6. Assign each script to one of the five procedure types: EOP, SOP, MOP, DSP or AP. One of the five is not a CE procedure at all — it is project or contractor work that none of the five definitions reaches. Marking it Not a CE procedure is a correct answer and you are expected to find it. Then assign the Level of Risk separately, and for anything you have made an EOP record the Incident Severity from the CEN Matrix instead. For each one, quote the specific line from the document that decided the type. A type with no quoted evidence is a partial pass and will be marked as one."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 7. Three of the five document numbers carry a prefix that contradicts the content. Name all three, and for each say what the number claims and what the content actually shows. If you have not found three, go back; you have classified at least one document by its number."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 8. For every script you have classified as a MOP, check it against the six required elements: scope and system state, numbered single-action steps, a rollback plan, go and no-go criteria, verification points, and sign-off spaces. Tick each element present, partial or absent. Clause 5.3.2 also requires the steps to comply with local statutory requirements, equipment manufacturer requirements and Microsoft Preventive Maintenance Standards, and to include shutdown, isolation and start-up steps where the maintenance task requires them. The lab tool lists the same six under the same names, so tick straight against them when you enter the check."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 9. For each element you have marked partial or absent, write what a technician standing at the plant would not know because it is missing. Missing is a finding. A MOP handed to you with no rollback plan is something you raise before the window opens, not during it, and an entry-level technician raising it is doing the job correctly."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 10. One of the five carries a Level of Risk that cannot be settled from the paper alone. Its procedure type is not in doubt; the risk is. Identify it. State what the Level of Risk would be under full redundancy with a healthy standby machine available, and what it becomes when a unit is already out of service. Then list the conditions that decide it: how many machines are on line and healthy, whether anything is already out for service, the current load and the outside conditions."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 11. Write your conditional answer out as you would hand it to a shift lead. One short paragraph. It should name the document, its procedure type, both possible Levels of Risk, and the specific facts you would need to check before starting. Somebody reading it should be able to go and check those facts without ringing you."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "text", "p": "Step 12. Compare all five classifications with your partner. Where you agree, move on. Where you disagree, each of you states the quoted line you relied on, and one of you changes position. Do not split the difference and do not average two types. Two learners who compromise have both stopped thinking. Record which document you disagreed on and what evidence changed your mind, or why it did not."}, {"s": "Part 1: Reading the library and classifying by purpose", "k": "image", "p": "Step 13. Take a screenshot of your completed classification sheet in the tool, or photograph your hand-written notes, and attach it as Q12. Enter your name and cohort in the lab tool, then press Build submission PDF and save the file — that single PDF is what you hand in."}, {"s": "Part 2: Reflection", "k": "text", "p": "Which document did you classify wrongly on first reading, and what did you lean on when you did it: the prefix on the number, the page count, or the content? Be specific about the habit, because it is the habit that will follow you onto the floor."}, {"s": "Part 2: Reflection", "k": "text", "p": "You will be handed a MOP with no rollback section within your first month on site. Write, in the words you would actually say out loud, what you would say to the person who handed it to you."}, {"s": "Part 2: Reflection", "k": "text", "p": "The assistant read all five documents faster and more completely than you did, and it still could not answer the only question that mattered. Describe one other task on a data centre floor where a tool can do the extraction but not the decision."}, {"s": "Part 2: Reflection", "k": "text", "p": "The procedure type is a property of the purpose of the work and does not move. The Level of Risk is a property of the plant on the day. What would you need to find out about your own site on your first morning before you could put a Level of Risk on anything held in its library?"}]};
+</script>
+<!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
      exports ONE print-to-PDF submission sheet for Canvas grading.
      Self-contained. No external libraries. Safe to re-inject (idempotent).
@@ -1005,6 +1188,12 @@ showConsole();
      visible error if the quota still throws; Save-as-PDF filename set from the
      learner name; print pagination and running header; duplicate learner-name
      rows stripped from the harvested simulator record.
+     v2.1 — window.lqRecord() hook: a simulator can hand the module its record
+     directly, so the harvest no longer depends on which pane is showing; loose
+     `.sheet` tiles outside a `.result.show` are ignored; the learner name is
+     copied into the simulator's own name field before the harvest; the
+     completeness banner and the Set line respect no-simulator / single-set labs;
+     the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
   #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
@@ -1243,6 +1432,8 @@ showConsole();
     return LQ.set||"—";
   }
 
+  function hasSet(){ var l=setLetter(); return !!l&&l!=="—"; }
+
   /* ---------- downscale an image before it goes anywhere near storage ----------
      A phone photo is 2-5 MB and base64 inflates it by a third; localStorage is
      about 5 MB for the whole origin. Downscaling to 1600px JPEG brings a typical
@@ -1289,7 +1480,8 @@ showConsole();
    +'<h2 id="lqCardTitle">Lab submission — questions and responses</h2>'
    +'<p class="lqsub">Every question from the <b>'+esc(LQ.handout)+'</b> handout is answered here, not on paper. '
    +'Your responses, together with the record this simulator builds, print to a <b>single PDF</b> that you upload to Canvas. '
-   +'Your work is kept in this browser as you type, so a refresh will not lose it.</p>'
+   +'<b>What is saved:</b> everything you type in this panel is kept in this browser as you type, so a refresh will not lose your answers. '
+   +(LQ.nosim?'':'<b>What is not:</b> the simulator above starts again on a refresh — if you refresh mid-lab, work the simulator again before you build the PDF.')+'</p>'
    +'<div id="lqStoreErr" role="alert"></div>'
    +'<p id="lqStatus" class="lqvh" role="status" aria-live="polite"></p>'
    +'<div class="lqid">'
@@ -1409,7 +1601,21 @@ showConsole();
   })();
 
   /* ---------- harvest the simulator's own record ---------- */
-  var REC_SEL=".sheet, .result.show";
+  var REC_SEL=".result.show, .result.show .sheet";
+  function syncSimName(){
+    /* the simulator keeps its own name field; the learner is told to fill the
+       module's. Copy across so the harvested record never reports the name blank. */
+    try{
+      var n=document.getElementById("lqName"); if(!n||!n.value.trim()) return;
+      var sim=document.getElementById("learnerName")||document.getElementById("learner")
+            ||document.querySelector('input[name="learnerName"]');
+      if(sim&&!card.contains(sim)&&!sim.value.trim()){
+        sim.value=n.value.trim();
+        sim.dispatchEvent(new Event("input",{bubbles:true}));
+        sim.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }catch(e){}
+  }
   function collect(){
     var raw=[];
     Array.prototype.forEach.call(document.querySelectorAll(REC_SEL),function(s){
@@ -1439,7 +1645,33 @@ showConsole();
     });
   }
 
+  function cleanClone(s){
+    var c=s.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+    stripDuplicateName(c);
+    /* paper-era close line some simulators still print under their sheet */
+    Array.prototype.forEach.call(c.querySelectorAll("p,div,span,small"),function(n){
+      if(n.children.length===0&&/hand this sheet to your instructor/i.test(n.textContent||"")){
+        if(n.parentNode) n.parentNode.removeChild(n);
+      }
+    });
+    return c;
+  }
   function toolRecord(){
+    syncSimName();
+    /* Preferred path: the simulator hands over its record itself. A simulator
+       defines window.lqRecord() to (re)build its sheet from its current state and
+       return the element or an HTML string — so the harvest no longer depends on
+       which pane or tab happens to be showing when the learner presses the button. */
+    if(typeof window.lqRecord==="function"){
+      try{
+        var r=window.lqRecord();
+        if(typeof r==="string"&&r.replace(/\s/g,"")) return r;
+        if(r&&r.nodeType===1&&r.textContent.replace(/\s/g,"")) return cleanClone(r).innerHTML;
+      }catch(e){}
+    }
     var found=collect();
     if(!found.length){
       var btns=document.querySelectorAll("button");
@@ -1463,14 +1695,7 @@ showConsole();
     }
     if(!found.length) return null;
     var wrap=document.createElement("div");
-    found.forEach(function(s){
-      var c=s.cloneNode(true);
-      Array.prototype.forEach.call(c.querySelectorAll(".noprint, button"),function(n){
-        if(n.parentNode) n.parentNode.removeChild(n);
-      });
-      stripDuplicateName(c);
-      wrap.appendChild(c);
-    });
+    found.forEach(function(s){ wrap.appendChild(cleanClone(s)); });
     return wrap.innerHTML;
   }
 
@@ -1487,21 +1712,24 @@ showConsole();
      +'<div class="lqsheet">'
      +'<h1>'+esc(LQ.lab)+' — '+esc(LQ.title)+'</h1>'
      +'<div class="lqmeta">UCI 2227 · Module 524 · '+esc(LQ.handout)
-       +' · Set '+esc(setLetter())+' · submission sheet</div>'
+       +(hasSet()?' · Set '+esc(setLetter()):'')+' · submission sheet</div>'
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
-     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'+esc(setLetter())+'</span></div>'
+     +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
+       +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
      +'<div class="lqrow"><span class="k">Built</span><span class="v">'
        +esc(new Date().toLocaleString())+'</span></div>';
 
-    var rec=LQ.nosim?null:toolRecord();
-    if(rec){ h+='<h2>Simulator record</h2>'+rec; }
-    else if(!LQ.nosim){
-      gaps.push("The simulator record — work through the lab tool above and press its own "
-               +"“Build submission sheet” button before you build this PDF");
-    }else{
+    /* a response tool (nosim) can still carry an in-tool packet record via window.lqRecord() */
+    var rec=(LQ.nosim&&typeof window.lqRecord!=="function")?null:toolRecord();
+    if(rec){ h+='<h2>'+(LQ.nosim?'Packet record':'Simulator record')+'</h2>'+rec; }
+    if(!rec&&!LQ.nosim){
+      var why=(typeof window.lqRecordReason==="string"&&window.lqRecordReason)?" ("+window.lqRecordReason+")":"";
+      gaps.push("The simulator record — the lab tool above has nothing to record yet"+why
+               +". Work through the lab, then build this PDF again");
+    }else if(LQ.nosim){
       h+='<h2>Assessed on the floor</h2>'
         +'<div class="lqrow"><span class="k">Practical steps</span><span class="v">'
         +'Observed and signed off by the instructor against the handout. '
@@ -1526,7 +1754,8 @@ showConsole();
         +'or hand the sheet in as it stands and explain the gaps to your instructor.</div>';
     }else{
       h+='<div class="lqgap ok">'
-        +'<b>Complete.</b> Every question on this sheet carries a response and the simulator record is attached.</div>';
+        +'<b>Complete.</b> Every question on this sheet carries a response'
+        +(LQ.nosim?'.':' and the simulator record is attached.')+'</div>';
     }
 
     h+='<div class="lqsign">Learner signature: ______________________________'
@@ -1572,7 +1801,7 @@ showConsole();
 
     /* The sheet goes inside a one-cell table whose thead repeats on every printed
        page, so pages 2+ still carry the learner name, the lab and the set. */
-    var runHead='<span class="r">'+esc(LQ.lab)+' · Set '+esc(setLetter())+'</span>'
+    var runHead='<span class="r">'+esc(LQ.lab)+(hasSet()?' · Set '+esc(setLetter()):'')+'</span>'
       +esc(document.getElementById("lqName").value.trim()||"Name not entered")
       +' · '+esc(LQ.title);
     var pr=document.createElement("div"); pr.id="lqPrint";
@@ -1609,6 +1838,5 @@ showConsole();
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
-
 </body>
 </html>
