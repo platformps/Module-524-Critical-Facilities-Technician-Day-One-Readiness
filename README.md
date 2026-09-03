@@ -90,8 +90,7 @@ report and escalation log), the written record and photographs, and their submis
 
 **Packets live inside the tools.** Every paper item a handout names — legend sheet and worksheet,
 baseline sheet, RCA tree and fix ticket, Level of Risk matrix, the MOP field copy and tracking log, the
-known-fault log, the shift log and SBAR template — is behind a **Packet** button in the tool (a
-**Packet ↗** popup in 524.1.1 and 524.5.1). Each packet prints on its own, and any field a packet asks the
+known-fault log, the shift log and SBAR template — is behind a **Packet** button in the tool . Each packet prints on its own, and any field a packet asks the
 learner to fill is captured into the submission PDF.
 
 ---

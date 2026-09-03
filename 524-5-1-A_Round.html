@@ -149,6 +149,54 @@
     font-weight:700;margin:18px 0 8px}
   .sheet h3{font-size:15px;margin-bottom:4px}
 </style>
+<style id="pkStyle">
+  /* ---------- Round Route Packet (in-tool, printable) ---------- */
+  .packet{background:#fbfaf6;color:#111;border:1px solid #c9c4b4;border-radius:9px;padding:22px 26px;
+    font-size:13px;line-height:1.5;margin-bottom:14px}
+  .packet h2{font-size:19px;margin:0 0 2px;color:#1a3a5c}
+  .packet h3{font-size:14px;color:#1a3a5c;margin:22px 0 8px;border-bottom:1px solid #c3ced7;padding-bottom:4px;font-weight:700}
+  .packet .pkeyebrow{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#0b6ea8;font-weight:700;margin:0 0 8px}
+  .packet .pklede{color:#5a6b78;margin:0 0 14px;max-width:82ch}
+  .packet p{margin:0 0 10px;color:#222}
+  .packet table{font-size:12.5px;border-collapse:collapse;width:100%;margin:8px 0 4px}
+  .packet th,.packet td{border:1px solid #c3ced7;padding:5px 8px;text-align:left;vertical-align:top;color:#111}
+  .packet th{background:#1a3a5c;color:#fff;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;cursor:default;white-space:normal}
+  .packet th:hover{color:#fff}
+  .packet .pkcover td:first-child{width:190px;background:#f2f6f9;font-weight:600}
+  .packet td.st{background:#f2f6f9;font-weight:700;color:#1a3a5c;width:58px;text-align:center;font-family:var(--mono)}
+  .packet td.mono{font-family:var(--mono)}
+  .packet td.dim{color:#7a8791;font-style:italic}
+  .packet td.now{background:#fff8e6}
+  .packet input[type=text],.packet select{background:#fff;color:#111;border:1px solid #b9b3a3;border-radius:4px;
+    padding:5px 7px;font-size:12.5px;width:100%;font-family:inherit}
+  .packet label.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .packet .pkval{display:inline-block;min-width:60%;border-bottom:1px solid #888;padding:0 4px 1px;color:#111}
+  .packet .pknote{background:#f2f6f9;border-left:3px solid #0b6ea8;padding:10px 14px;margin:14px 0;color:#222;font-size:13px;line-height:1.5}
+  .packet .pknote strong{color:#1a3a5c}
+  .packet .pknote.bad{border-left-color:#c8501e}
+  .packet .pkline{font-size:12px;color:#5a6b78;margin:4px 0 8px}
+  .packet svg#pkRoute{width:100%;height:auto;border:1px solid #c3ced7;background:#fff;display:block}
+  .packet .pkbtns{display:flex;gap:9px;margin-top:16px;align-items:center;flex-wrap:wrap}
+  .packet .pkbtns button{background:#fff;color:#111;border-color:#999}
+  .packet .pkbtns button:hover{background:#eee}
+  .packet .pkbtns .pkhint{font-size:12px;color:#555}
+  .packet .pkfoot{font-size:11px;color:#666;margin-top:16px;border-top:1px solid #ccc;padding-top:8px}
+  .packet .pkbreak{border-top:2px dashed #c3ced7;margin:28px 0 22px}
+  @media print{
+    body.pk-print{background:#fff!important;color:#000!important;overflow:visible!important;height:auto!important}
+    body.pk-print>*{display:none!important}
+    body.pk-print>#packetPane{display:block!important}
+    body.pk-print .packet{border:0;padding:0;background:#fff;color:#000;border-radius:0;margin:0}
+    body.pk-print .packet *{color:#000!important;background:transparent!important;box-shadow:none!important}
+    body.pk-print .packet th{border-bottom:2px solid #000}
+    body.pk-print .packet input[type=text],body.pk-print .packet select{border:0;border-bottom:1px solid #888;border-radius:0;appearance:none;-webkit-appearance:none}
+    body.pk-print .packet .pkbtns,body.pk-print .noprint{display:none!important}
+    body.pk-print .packet tr{page-break-inside:avoid;break-inside:avoid}
+    body.pk-print .packet thead{display:table-header-group}
+    body.pk-print .packet .pkbreak{page-break-before:always;break-before:page;border:0;margin:0;height:0}
+    body.pk-print .packet svg#pkRoute{border-color:#888}
+  }
+</style>
 </head>
 <body>
 <div id="app">
@@ -171,7 +219,7 @@
     <button id="btnPane_fuel">Fuel</button>
     <button id="btnPane_therm">Thermal</button>
     <button id="btnPane_log">Shift log</button>
-    <button id="btnPacket" title="Opens the Round Route Packet (route, check sheet) in its own window, so it can sit beside this console">Packet ↗</button>
+    <button id="btnPacket" title="Round Route Packet: cover, route and the round check sheet — readable, fillable and printable here">Packet</button>
     <span class="spacer"></span>
     <span class="counter" id="progress">Station 1 of 12</span>
     <span class="counter" id="elapsed">T+00:00</span>
@@ -180,6 +228,7 @@
 
   <main>
     <div class="wrap">
+      <section id="packetPane" class="hidden" aria-label="Round Route Packet"></section>
       <section id="roundView"></section>
     </div>
   </main>
@@ -302,7 +351,8 @@ const STATIONS=[
 const S={ci:SET,learner:"",t:0,running:false,timer:null,speed:12,
   series:{},alarms:[],sortKey:"time",sortDir:1,filters:new Set(),acked:new Set(),marks:{},
   pane:"prev",prevAck:false,prevAckAt:"",idx:0,draft:{},stnLog:{},leakRec:{},leakAt:{},
-  fuelRec:{},thermCap:{},thermRec:{},log:[],shortcuts:0,routeMsg:"",routeMsgKind:"block",find:[{},{},{},{}],handover:"",fuelMsg:"",thermMsg:"",rkey:0,sheetBuilt:false};
+  fuelRec:{},thermCap:{},thermRec:{},log:[],shortcuts:0,routeMsg:"",routeMsgKind:"block",find:[{},{},{},{}],handover:"",fuelMsg:"",thermMsg:"",rkey:0,sheetBuilt:false,
+  packet:{startAt:"",doneAt:"",watch:["","",""]}};
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let V=CONFIGS[SET];
@@ -373,6 +423,7 @@ function buildRound(v){
 /* ---------- logging ---------- */
 function logIt(src,item,value,tag,note){
   S.log.push({t:fmtClock(S.t),src:src,item:item,value:value,tag:tag||"norm",note:note||""});
+  paintPacketMirrors();
 }
 
 /* ---------- canvas: leak map ---------- */
@@ -588,6 +639,7 @@ function paintAck(){
       <button class="primary" id="btnAckPrev">I have read the previous round record</button>`;
     $("btnAckPrev").onclick=()=>{
       S.prevAck=true; S.prevAckAt=fmtClock(S.t);
+      if(!String(S.packet.startAt||"").trim()) S.packet.startAt=S.prevAckAt;
       logIt("Handover","Previous round record","read and acknowledged","norm",
         "Watch item noted: CT-2 basin make-up valve cycling, re-read the basin level at the mechanical yard.");
       paintAck(); setPane("route");
@@ -706,7 +758,9 @@ function renderStationCard(){
       <textarea id="stNaWhy" rows="2" placeholder="e.g. the item could not be reached or read — say what it was, why, and what you did instead.">${esc(d.nawhy||"")}</textarea>
     </div>
     <button class="primary" id="btnDone">Complete station and log</button>`;
-  reads.forEach((r,i)=>{ $("rd_"+i).oninput=e=>{d["r"+i]=e.target.value;}; });
+  reads.forEach((r,i)=>{ $("rd_"+i).oninput=e=>{d["r"+i]=e.target.value;
+    const m=document.querySelector(`#packetPane input[data-ps="${s.id}"][data-pr="${i}"]`);
+    if(m&&m.value!==e.target.value) m.value=e.target.value; }; });
   $("stObs").oninput=e=>{d.obs=e.target.value;};
   $("stTag").onchange=e=>{d.tag=e.target.value;};
   $("stNa").onchange=e=>{d.na=!!e.target.value; $("naWrap").classList.toggle("hidden",!d.na);};
@@ -734,10 +788,10 @@ function completeStation(){
   logIt(s.id+" "+s.name,"Observation",d.obs,d.tag,"");
   if(d.na) logIt(s.id+" "+s.name,"Could not check",d.nawhy,"na","Recorded as not checked with a reason.");
   S.idx++;
-  if(S.idx>=STATIONS.length) stopRun(true);
+  if(S.idx>=STATIONS.length){ stopRun(true); if(!String(S.packet.doneAt||"").trim()) S.packet.doneAt=stamp; }
   S.routeMsgKind="info";
   S.routeMsg="<b>"+s.id+" logged at "+stamp+".</b>"+(S.idx<STATIONS.length?" Next station: "+STATIONS[S.idx].id+" · "+esc(STATIONS[S.idx].name)+".":" That is the whole route.");
-  render(); renderRoute();
+  render(); renderRoute(); paintPacketMirrors();
 }
 
 /* ---------- view: leak panel ---------- */
@@ -979,13 +1033,15 @@ function renderLog(){
       <div class="tiny" style="margin-top:12px">Keep this log. It is the input to the SBAR handover gate in GLAB 524.5.3, where SBAR means Situation, Background, Assessment, Recommendation. You cannot write a handover from memory, and you will be asked to.</div>
     </div>
     <div class="result${S.sheetBuilt?" show":""}" id="roundResult">${S.sheetBuilt?sheetHTML():""}</div>`;
+  const pkm=(sel,v)=>{const m=$("packetPane").querySelector(sel); if(m&&m.value!==v) m.value=v;};
   el.querySelectorAll("select[data-fi]").forEach(s=>s.onchange=e=>{
-    const i=+e.target.dataset.fi; S.find[i]=S.find[i]||{}; S.find[i].item=e.target.value;});
+    const i=+e.target.dataset.fi; S.find[i]=S.find[i]||{}; S.find[i].item=e.target.value; pkm(`select[data-pfi="${i}"]`,e.target.value);});
   el.querySelectorAll("select[data-fu]").forEach(s=>s.onchange=e=>{
-    const i=+e.target.dataset.fu; S.find[i]=S.find[i]||{}; S.find[i].urg=e.target.value;});
+    const i=+e.target.dataset.fu; S.find[i]=S.find[i]||{}; S.find[i].urg=e.target.value; pkm(`select[data-pfu="${i}"]`,e.target.value);});
   el.querySelectorAll("input[data-fn]").forEach(s=>s.oninput=e=>{
-    const i=+e.target.dataset.fn; S.find[i]=S.find[i]||{}; S.find[i].note=e.target.value;});
-  $("learnerName").oninput=e=>{S.learner=e.target.value;};
+    const i=+e.target.dataset.fn; S.find[i]=S.find[i]||{}; S.find[i].note=e.target.value; pkm(`input[data-pfn="${i}"]`,e.target.value);});
+  $("learnerName").oninput=e=>{S.learner=e.target.value;
+    const m=$("pk_learner"); if(m&&m.value!==e.target.value) m.value=e.target.value;};
   $("hoText").oninput=e=>{S.handover=e.target.value;};
   $("btnSubmit").onclick=buildSheet;
 }
@@ -1024,6 +1080,7 @@ function sheetHTML(){
   });
   if(!S.find.some(f=>f&&(f.item||f.urg||String(f.note||"").trim()))) miss.push("no findings routed — every finding on the route must be raised and given an urgency");
   if(!String(S.handover||"").trim()) miss.push("handover sentence");
+  if(!S.packet.watch.some(w=>String(w||"").trim())) miss.push("packet — what am I watching for (from the previous shift record; Packet button)");
 
   const stnRows=STATIONS.map(s=>{
     const rec=S.stnLog[s.id], reads=D.stn[s.id].reads;
@@ -1111,6 +1168,8 @@ function sheetHTML(){
     <h4>Handover sentence</h4>
     <div class="small" style="white-space:pre-wrap">${esc(S.handover||"— not written —")}</div>
 
+    ${packetRecordHTML()}
+
     ${miss.length?`<h4>Fields still blank</h4><div class="small">${miss.map(m=>"— "+esc(m)).join("<br>")}</div>`:""}
 
     <div class="small" style="margin-top:16px">This record is embedded in your submission PDF.</div>
@@ -1161,125 +1220,36 @@ function resetRun(){
   S.leakRec={}; S.leakAt={}; S.fuelRec={}; S.thermCap={}; S.thermRec={};
   S.log=[]; S.shortcuts=0; S.routeMsg=""; S.routeMsgKind="block"; S.fuelMsg=""; S.thermMsg="";
   S.find=[{},{},{},{}]; S.handover="";
+  S.packet={startAt:"",doneAt:"",watch:["","",""]};
   D=buildRound(V);
   const vw=$("roundView"); vw.dataset.built=""; vw.innerHTML="";
   buildView();
   pushSeries(); render();
   setPane("prev");
+  renderPacket(); togglePacket(false);
   startRun();
 }
 
 /* ---------- boot ---------- */
 PANES.forEach(p=>{ $("btnPane_"+p).onclick=()=>setPane(p); });
 $("btnRestart").onclick=resetRun;
-/* Round Route Packet — reference copy, opened in its own window so it can sit beside the console.
-   Source is embedded below in #packetSrc; nothing is fetched. */
-$("btnPacket").onclick=()=>{
-  const w=window.open("","glab5251_packet","width=1240,height=900,resizable=yes,scrollbars=yes");
-  if(!w){alert("The browser blocked the packet window. Allow pop-ups for this file and press Packet again.");return;}
-  w.document.open(); w.document.write($("packetSrc").textContent); w.document.close(); w.focus();
-};
-window.addEventListener("resize",()=>{
-  if(S.pane==="leak"&&$("leakMap"))drawLeakMap($("leakMap"));
-  if(S.pane==="fuel")renderFuel();
-  if(S.pane==="therm")renderTherm();
-});
-resetRun();
-</script>
-<!-- ===== GLAB 524.5.1 Round Route Packet — embedded reference copy (3_Handouts/524-5-1_Round_Route_Packet.html).
-     Opened by the Packet toolbar button in a separate window. Inert here: type="text/html" is never executed. ===== -->
-<script type="text/html" id="packetSrc"><!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>GLAB 524.5.1 — Round Route Packet — UCI 2227</title>
-<style>
-  :root{
-    --ink:#12232e; --mut:#5a6b78; --line:#c3ced7; --blue:#1a3a5c;
-    --accent:#0b6ea8; --route:#0b6ea8; --paper:#fff; --soft:#f2f6f9;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;padding:24px;background:#e9eef2;color:var(--ink);
-       font:13px/1.5 Arial,Helvetica,sans-serif}
-  .sheet{background:var(--paper);max-width:1180px;margin:0 auto 22px;padding:26px 30px;
-         border:1px solid var(--line);border-radius:4px}
-  h1{font-size:22px;color:var(--blue);margin:0 0 2px}
-  h2{font-size:15px;color:var(--blue);margin:26px 0 8px;
-     border-bottom:1px solid var(--line);padding-bottom:4px}
-  .eyebrow{font:600 10px/1 Arial;letter-spacing:.10em;text-transform:uppercase;
-           color:var(--accent);margin:0 0 8px}
-  .lede{color:var(--mut);margin:0 0 16px;max-width:82ch}
-  table{border-collapse:collapse;width:100%;margin:8px 0 4px}
-  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
-  th{background:var(--blue);color:#fff;font-size:11px;letter-spacing:.04em;
-     text-transform:uppercase;font-weight:600}
-  .cover td:first-child{width:190px;background:var(--soft);font-weight:600}
-  .fill{color:var(--mut);font-style:italic}
-  .st{background:var(--soft);font-weight:700;color:var(--blue);width:58px;text-align:center}
-  .val{width:120px}.tm{width:78px}
-  .note{background:var(--soft);border-left:3px solid var(--accent);padding:10px 14px;margin:14px 0}
-  .note strong{color:var(--blue)}
-  .bad{border-left-color:#c8501e}
-  svg{width:100%;height:auto;border:1px solid var(--line);background:#fff}
-  .foot{color:var(--mut);font-size:11px;margin-top:18px;border-top:1px solid var(--line);padding-top:8px}
-  code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:12px}
-  .bar{max-width:1180px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;color:var(--mut);font-size:12px}
-  .bar button{font:600 13px Arial;padding:7px 14px;border-radius:4px;border:0;background:var(--accent);color:#fff;cursor:pointer}
-  .bar button:hover{background:#095a89}
-  @media print{
-    body{background:#fff;padding:0}
-    .bar{display:none}
-    .sheet{border:0;margin:0;max-width:none;padding:14mm;page-break-after:always}
-    .sheet:last-child{page-break-after:auto}
-    @page{size:A4 portrait;margin:8mm}
-  }
-</style>
-</head>
-<body>
-
-<div class="bar">
-  <button onclick="window.print()">Print packet</button>
-  <span>Reference copy opened from the lab tool. Keep this window beside the console; your readings, findings and handover sentence are entered in the console, not here — the console record is what goes into your submission PDF.</span>
-</div>
-
-<section class="sheet">
-  <p class="eyebrow">UCI 2227 · Module 524 · Lesson 524.5 — Shift Ops &amp; Handoffs</p>
-  <h1>GLAB 524.5.1 — Round Route Packet</h1>
-  <p class="lede">Twelve stations, walked in this order, every time. A round is a comparison instrument:
-  it only works if the thing you are comparing against was collected the same way. Record
-  <strong>actual values with times</strong>, never ticks — <em>Fuel OK</em> is worthless;
-  <em>1,840 litres at 09:15</em> can be compared against every previous round.</p>
-
-  <table class="cover">
-    <tr><td>Route</td><td><strong>ROUND ROUTE — ST01 to ST12, in order</strong></td></tr>
-    <tr><td>Order</td><td>Walk the defined order, not the order that is convenient today. Record at the
-        same points every time so consecutive rounds are directly comparable.</td></tr>
-    <tr><td>Before you start</td><td><strong>Read the previous shift's round record at the desk.</strong>
-        It takes ninety seconds and it is the only thing that makes your own round mean anything.</td></tr>
-    <tr><td>Learner name</td><td class="fill">&nbsp;</td></tr>
-    <tr><td>Round started</td><td class="fill">&nbsp;</td></tr>
-    <tr><td>Round completed</td><td class="fill">&nbsp;</td></tr>
-  </table>
-
-  <h2>From the previous shift record — what am I watching for?</h2>
-  <table>
-    <tr class="sheetrow"><td style="height:26px">1.</td></tr>
-    <tr class="sheetrow"><td style="height:26px">2.</td></tr>
-    <tr class="sheetrow"><td style="height:26px">3.</td></tr>
-  </table>
-
-  <h2>The route, in order</h2>
-  <svg viewBox="0 0 1140 240" role="img" aria-label="Round route sequence, station ST01 through ST12">
+/* ---------- Round Route Packet — lives in #packetPane, which is never repainted ----------
+   Cover fields (Round started / completed are auto-filled from the site clock when the previous record
+   is acknowledged and when ST12 is logged, and stay editable) and the three "what am I watching for"
+   lines are real inputs held in S.packet. The check-sheet tables are live mirrors of the console: the
+   station you are at is editable here and on the console (same S.draft), logged stations are fixed as
+   a log should be, stations not yet reached are blank; findings are the console's S.find, two-way. */
+const PK_ROUTE_SVG=`<svg id="pkRoute" viewBox="0 0 1140 240" role="img" aria-label="Round route sequence, station ST01 through ST12">
     <defs>
       <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
         <path d="M0,0 L10,5 L0,10 z" fill="#0b6ea8"/>
       </marker>
       <style>
-        .lnk{stroke:#0b6ea8;stroke-width:2.4;fill:none}
-        .node{fill:#e8f1f7;stroke:#1a3a5c;stroke-width:1.6}
-        .nid{font:700 12px Arial;fill:#1a3a5c}
-        .nnm{font:10.5px Arial;fill:#12232e}
-        .cap{font:600 10px Arial;fill:#5a6b78;letter-spacing:.05em}
+        #pkRoute .lnk{stroke:#0b6ea8;stroke-width:2.4;fill:none}
+        #pkRoute .node{fill:#e8f1f7;stroke:#1a3a5c;stroke-width:1.6}
+        #pkRoute .nid{font:700 12px Arial;fill:#1a3a5c}
+        #pkRoute .nnm{font:10.5px Arial;fill:#12232e}
+        #pkRoute .cap{font:600 10px Arial;fill:#5a6b78;letter-spacing:.05em}
       </style>
     </defs>
 
@@ -1316,97 +1286,259 @@ resetRun();
       <rect class="node" x="925"  y="142" width="130" height="48" rx="4"/><text class="nid" x="934" y="160">ST12</text><text class="nnm" x="934" y="178">BMS desk</text>
     </g>
     <text class="cap" x="25" y="220">SEQUENCE ONLY — STATION POSITIONS ARE SITE-SPECIFIC. THE ORDER IS WHAT MATTERS.</text>
-  </svg>
+  </svg>`;
+function pkClock(){ return fmtClock(S.t); }
+function pkStnRowsHTML(mode){
+  const live=mode!=="static";
+  return STATIONS.map((s,si)=>{
+    const reads=D.stn[s.id].reads, rec=S.stnLog[s.id], cur=(si===S.idx&&S.prevAck&&!rec), d=S.draft[s.id]||{};
+    const prev=D.prev.stn[si];
+    const rows=reads.map((r,i)=>{
+      let val, cls="mono";
+      if(rec) val=esc(rec.vals[i])+" "+esc(r.unit);
+      else if(cur) { cls="now"; val=live
+          ?`<label class="vh" for="pk_${s.id}_${i}">${esc(r.label)} (${esc(r.unit)}) — value you are logging</label><input type="text" id="pk_${s.id}_${i}" data-ps="${s.id}" data-pr="${i}" value="${esc(d["r"+i]||"")}" placeholder="value" autocomplete="off">`
+          :`<span class="pkval">${esc(String(d["r"+i]||"").trim())||"&nbsp;"}</span>`; }
+      else { cls="dim"; val=si<S.idx?"—":"not reached"; }
+      const tm=rec?esc(rec.t):(cur?"<span style='color:#7a8791;font-style:italic'>now</span>":"");
+      const pv=prev?esc(prev.vals[i])+" "+esc(r.unit)+" <span style='color:#7a8791'>at "+esc(prev.t)+"</span>":"—";
+      return `<tr>${i===0?`<td class="st" rowspan="${reads.length+1}">${s.id}</td>`:""}
+        <td>${esc(r.label)} (${esc(r.unit)})${s.need?(i===reads.length-1?` · <strong>${esc(pkNeedWord(s.need))}</strong>`:""):""}</td>
+        <td class="${cls}">${val}</td><td class="mono">${tm}</td><td class="mono">${pv}</td></tr>`;
+    }).join("");
+    const obs=rec?esc(rec.obs):(cur&&String(d.obs||"").trim()?esc(d.obs):"");
+    const tag=rec?(rec.tag==="dev"?"Deviation":"Within normal"):(cur&&d.tag?(d.tag==="dev"?"Deviation":"Within normal"):"");
+    const obsRow=`<tr><td class="dim">${esc(s.name)} — observation</td>
+        <td colspan="3" class="${obs?"":"dim"}">${obs||(rec?"—":(cur?"being written on the console":""))}${tag?` <span style="color:#5a6b78">· ${tag}</span>`:""}</td></tr>`;
+    return rows+obsRow;
+  }).join("");
+}
+function pkNeedWord(need){
+  const p=need.split(":");
+  if(p[0]==="therm") return p[1]==="SW"?"IR: CB-101 lugs, phase A / B / C":"IR: PDU-03 subfeed F2 lugs, phase A / B / C";
+  if(p[0]==="fuel") return p[1]==="BULK"?"bulk tank gauge":"day tanks DT1 and DT2";
+  if(p[0]==="leak") return "record all nine segments";
+  return "";
+}
+function pkNaRowsHTML(){
+  const rows=[];
+  STATIONS.forEach((s,si)=>{
+    const rec=S.stnLog[s.id];
+    if(rec&&rec.na) rows.push(`<tr><td class="mono">${s.id} · ${esc(s.name)}</td><td>${esc(rec.nawhy)}</td><td class="mono">${esc(rec.t)}</td></tr>`);
+    else if(si===S.idx&&!rec){ const d=S.draft[s.id]||{}; if(d.na) rows.push(`<tr><td class="mono">${s.id} · ${esc(s.name)}</td><td class="now">${esc(d.nawhy||"")||"<span style='color:#7a8791;font-style:italic'>being written on the console</span>"}</td><td class="dim">now</td></tr>`); }
+  });
+  return rows.length?rows.join(""):`<tr><td colspan="3" class="dim">Nothing recorded as not checked so far. A locked room or a blocked access point is a finding, not an omission — record it at the station (Could not check).</td></tr>`;
+}
+function pkFindRowsHTML(mode){
+  const live=mode!=="static", opts=findOptions();
+  return [0,1,2,3].map(i=>{
+    const f=S.find[i]||{};
+    if(!live) return `<tr><td class="mono">${i+1}</td><td>${f.item?esc(findLabel(f.item)):"<span class='pkval'>&nbsp;</span>"}</td>
+      <td>${f.urg?urgWord(f.urg):"<span class='pkval'>&nbsp;</span>"}</td><td>${esc(String(f.note||"").trim())||"<span class='pkval'>&nbsp;</span>"}</td></tr>`;
+    return `<tr><td class="mono">${i+1}</td>
+      <td><label class="vh" for="pk_fi_${i}">Finding ${i+1} — logged item</label><select id="pk_fi_${i}" data-pfi="${i}">${opts.map(o=>`<option value="${o.v}" ${f.item===o.v?"selected":""}>${esc(o.l)}</option>`).join("")}</select></td>
+      <td><label class="vh" for="pk_fu_${i}">Finding ${i+1} — urgency</label><select id="pk_fu_${i}" data-pfu="${i}">
+        <option value="">— urgency —</option><option value="now" ${f.urg==="now"?"selected":""}>Escalate now</option><option value="carry" ${f.urg==="carry"?"selected":""}>Carry to handover</option></select></td>
+      <td><label class="vh" for="pk_fn_${i}">Finding ${i+1} — one line note</label><input type="text" id="pk_fn_${i}" data-pfn="${i}" value="${esc(f.note||"")}" placeholder="what you observed — describe, do not diagnose" autocomplete="off"></td></tr>`;
+  }).join("");
+}
+function pkIn(id,k,val,ph,mode,lbl){
+  if(mode==="static") return `<span class="pkval">${esc(String(val||"").trim())||"&nbsp;"}</span>`;
+  return `<label class="vh" for="${id}">${esc(lbl||ph||k)}</label><input type="text" id="${id}" data-pkf="${k}" value="${esc(val||"")}" placeholder="${esc(ph||"")}" autocomplete="off">`;
+}
+function packetHTML(mode){
+  const live=mode!=="static", P=S.packet, setL="ABCDEFGH".charAt(SET);
+  const learner=live
+    ?`<label class="vh" for="pk_learner">Learner name</label><input type="text" id="pk_learner" value="${esc(S.learner)}" placeholder="first and last name — the same field as the console's Your name" autocomplete="off">`
+    :`<span class="pkval">${esc(S.learner)||"&nbsp;"}</span>`;
+  const watch=[0,1,2].map(i=>`<tr><td style="width:36px" class="mono">${i+1}.</td><td>${live
+      ?`<label class="vh" for="pk_watch${i}">Watching for — line ${i+1}</label><input type="text" id="pk_watch${i}" data-pkw="${i}" value="${esc(P.watch[i]||"")}" placeholder="${i===0?"an open work order, a note left at a station, a value already drifting":""}" autocomplete="off">`
+      :`<span class="pkval" style="min-width:90%">${esc(String(P.watch[i]||"").trim())||"&nbsp;"}</span>`}</td></tr>`).join("");
+  return `<div class="packet" id="packetPaper">
+    <div class="pkeyebrow">UCI 2227 · Module 524 · Lesson 524.5 — Shift Ops &amp; Handoffs</div>
+    <h2>${LAB.lab} — Round Route Packet</h2>
+    <p class="pklede">Twelve stations, walked in this order, every time. A round is a comparison instrument:
+      it only works if the thing you are comparing against was collected the same way. Record
+      <strong>actual values with times</strong>, never ticks — <em>Fuel OK</em> is worthless;
+      <em>1,840 litres at 09:15</em> can be compared against every previous round.${live?" Everything you type here is written into your submission sheet.":""}</p>
 
-  <p class="foot">UCI 2227 — GLAB 524.5.1 Round Route Packet · Stations ST01–ST12</p>
-</section>
+    <table class="pkcover">
+      <tr><td>Route</td><td><strong>ROUND ROUTE — ST01 to ST12, in order</strong> · Set ${setL}</td></tr>
+      <tr><td>Order</td><td>Walk the defined order, not the order that is convenient today. Record at the
+          same points every time so consecutive rounds are directly comparable.</td></tr>
+      <tr><td>Before you start</td><td><strong>Read the previous shift's round record at the desk.</strong>
+          It takes ninety seconds and it is the only thing that makes your own round mean anything.</td></tr>
+      <tr><td>${live?'<label for="pk_learner" style="font-weight:600">Learner name</label>':'Learner name'}</td><td>${learner}</td></tr>
+      <tr><td>${live?'<label for="pk_startAt" style="font-weight:600">Round started</label>':'Round started'}</td><td>${pkIn("pk_startAt","startAt",P.startAt,"site time — filled in for you when you acknowledge the previous round record; correct it if you need to",mode,"Round started")}</td></tr>
+      <tr><td>${live?'<label for="pk_doneAt" style="font-weight:600">Round completed</label>':'Round completed'}</td><td>${pkIn("pk_doneAt","doneAt",P.doneAt,"site time — filled in for you when ST12 is logged; correct it if you need to",mode,"Round completed")}</td></tr>
+    </table>
 
-<section class="sheet">
-  <p class="eyebrow">GLAB 524.5.1 · Round route</p>
-  <h1>Round check sheet</h1>
-  <p class="lede">Write values in the moment. Reconstructing from memory at the desk produces plausible
-  fiction. Record the time on every entry — <em>this morning</em> is not a timestamp anyone can work with.</p>
+    <h3>From the previous shift record — what am I watching for?</h3>
+    <table>${watch}</table>
 
-  <table>
-    <thead><tr><th class="st">St</th><th>Station and what you read</th>
-      <th class="val">Value</th><th class="tm">Time</th><th class="val">vs previous</th></tr></thead>
-    <tbody>
-      <tr><td class="st" rowspan="2">ST01</td><td>Incomer A ammeter (A)</td><td></td><td></td><td></td></tr>
-      <tr><td>Switchroom ambient (°C) · <strong>IR: CB-101 lugs, phase A / B / C</strong></td><td></td><td></td><td></td></tr>
+    <h3>The route, in order</h3>
+    ${PK_ROUTE_SVG}
+    <div class="pkfoot">UCI 2227 — ${LAB.lab} Round Route Packet · Stations ST01–ST12 · Set ${setL}</div>
 
-      <tr><td class="st" rowspan="2">ST02</td><td>UPS-A output load (%)</td><td></td><td></td><td></td></tr>
-      <tr><td>UPS-A battery autonomy (min)</td><td></td><td></td><td></td></tr>
+    <div class="pkbreak"></div>
+    <div class="pkeyebrow">${LAB.lab} · Round route</div>
+    <h2>Round check sheet</h2>
+    <p class="pklede">Write values in the moment. Reconstructing from memory at the desk produces plausible
+      fiction. Record the time on every entry — <em>this morning</em> is not a timestamp anyone can work with.</p>
+    <div class="pkline">${live
+      ?"These cells are the console's station fields, live: the station you are at is editable here and on the console; a logged station is fixed, as a log should be; a station not yet reached is blank. The time is stamped when you press <b>Complete station and log</b>."
+      :"Values as logged on the console at site time "+esc(pkClock())+"."}</div>
+    <table>
+      <thead><tr><th style="width:58px">St</th><th>Station and what you read</th>
+        <th style="width:150px">Value</th><th style="width:84px">Time</th><th style="width:170px">vs previous round</th></tr></thead>
+      <tbody id="pkStnBody">${pkStnRowsHTML(mode)}</tbody>
+    </table>
 
-      <tr><td class="st" rowspan="2">ST03</td><td>UPS-B output load (%)</td><td></td><td></td><td></td></tr>
-      <tr><td>UPS-B battery autonomy (min)</td><td></td><td></td><td></td></tr>
+    <div class="pknote bad">
+      <strong>A leak segment showing FAULT is not the same as showing NO LEAK.</strong> A faulted segment is a
+      blind spot — that stretch of floor is no longer monitored and it will not alarm when water arrives.
+      Record every segment at ST11, including the normal ones.
+    </div>
 
-      <tr><td class="st" rowspan="2">ST04</td><td>PDU-03 load (%)</td><td></td><td></td><td></td></tr>
-      <tr><td>PDU-07 load (%) · <strong>IR: PDU-03 subfeed F2 lugs, phase A / B / C</strong></td><td></td><td></td><td></td></tr>
+    <h3>Not checked, and why</h3>
+    <p class="pklede">A locked room or a blocked access point is a finding, not an omission. Record it at the station on the console
+      (Could not check) — it appears here.</p>
+    <table>
+      <thead><tr><th style="width:24%">Station / location</th><th>Why it could not be checked</th><th style="width:84px">Time</th></tr></thead>
+      <tbody id="pkNaBody">${pkNaRowsHTML()}</tbody>
+    </table>
 
-      <tr><td class="st" rowspan="2">ST05</td><td>GEN-1 jacket water heater (°C)</td><td></td><td></td><td></td></tr>
-      <tr><td>GEN-2 starting battery (V dc) · <strong>day tanks DT1 and DT2</strong></td><td></td><td></td><td></td></tr>
+    <h3>Findings — and which cannot wait for the handover</h3>
+    <div class="pkline">${live?"The same four finding rows as the Shift log pane — fill them in either place.":""}</div>
+    <table>
+      <thead><tr><th style="width:36px">#</th><th style="width:36%">Logged item</th>
+        <th style="width:20%">Escalate now?</th><th>What you observed (describe, do not diagnose)</th></tr></thead>
+      <tbody id="pkFindBody">${pkFindRowsHTML(mode)}</tbody>
+    </table>
 
-      <tr><td class="st" rowspan="2">ST06</td><td>Transfer pump hour meter (h)</td><td></td><td></td><td></td></tr>
-      <tr><td>Bund water level (mm) · <strong>bulk tank gauge</strong></td><td></td><td></td><td></td></tr>
+    <div class="pknote">
+      <strong>Some findings wait for the handover and some do not.</strong> A connection running twenty
+      degrees above its neighbors does not wait. Decide for each finding and mark it.
+    </div>
 
-      <tr><td class="st" rowspan="2">ST07</td><td>Chilled water supply (°C)</td><td></td><td></td><td></td></tr>
-      <tr><td>CT-2 basin level (mm)</td><td></td><td></td><td></td></tr>
-
-      <tr><td class="st" rowspan="2">ST08</td><td>P-2 discharge pressure (kPa)</td><td></td><td></td><td></td></tr>
-      <tr><td>P-2 bearing temperature (°C) — listen as well as look</td><td></td><td></td><td></td></tr>
-
-      <tr><td class="st" rowspan="2">ST09</td><td>Hall A cold aisle temperature (°C)</td><td></td><td></td><td></td></tr>
-      <tr><td>Hall A containment differential (Pa) — at the marked point</td><td></td><td></td><td></td></tr>
-
-      <tr><td class="st" rowspan="2">ST10</td><td>Hall B cold aisle temperature (°C)</td><td></td><td></td><td></td></tr>
-      <tr><td>Hall B containment differential (Pa) — at the marked point</td><td></td><td></td><td></td></tr>
-
-      <tr><td class="st" rowspan="2">ST11</td><td>Panel supply (V dc)</td><td></td><td></td><td></td></tr>
-      <tr><td>Segments not in normal state (count) — <strong>record all nine segments</strong></td><td></td><td></td><td></td></tr>
-
-      <tr><td class="st" rowspan="2">ST12</td><td>Active alarms (count)</td><td></td><td></td><td></td></tr>
-      <tr><td>Oldest unacknowledged alarm (min)</td><td></td><td></td><td></td></tr>
-    </tbody>
-  </table>
-
-  <div class="note bad">
-    <strong>A leak segment showing FAULT is not the same as showing NO LEAK.</strong> A faulted segment is a
-    blind spot — that stretch of floor is no longer monitored and it will not alarm when water arrives.
-    Record every segment at ST11, including the normal ones.
-  </div>
-
-  <h2>Not checked, and why</h2>
-  <p class="lede">A locked room or a blocked access point is a finding, not an omission. Record it.</p>
-  <table>
-    <thead><tr><th style="width:22%">Station / location</th><th>Why it could not be checked</th><th class="tm">Time</th></tr></thead>
-    <tbody>
-      <tr><td style="height:30px"></td><td></td><td></td></tr>
-      <tr><td style="height:30px"></td><td></td><td></td></tr>
-    </tbody>
-  </table>
-
-  <h2>Findings — and which cannot wait for the handover</h2>
-  <table>
-    <thead><tr><th style="width:20%">Where</th><th>What you observed (describe, do not diagnose)</th>
-      <th class="tm">Time</th><th style="width:15%">Escalate now?</th></tr></thead>
-    <tbody>
-      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
-      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
-      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
-      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
-    </tbody>
-  </table>
-
-  <div class="note">
-    <strong>Some findings wait for the handover and some do not.</strong> A connection running twenty
-    degrees above its neighbors does not wait. Decide for each finding and mark it.
-  </div>
-
-  <p class="foot">Keep this sheet — its findings are the input to the SBAR gate, GLAB 524.5.3, this afternoon.</p>
-</section>
-
-</body>
-</html></script>
+    ${live?`<div class="pkbtns noprint">
+      <button type="button" id="btnPrintPacket">Print packet</button>
+      <button type="button" id="btnPacketWindow" title="Opens a read-only copy of this packet, as filled in, in its own window so it can sit beside the console">Open in window ↗</button>
+      <button type="button" id="btnClosePacket">Close packet</button>
+      <span class="pkhint">Your entries here are carried into the submission sheet automatically.</span>
+    </div>`:""}
+    <div class="pkfoot">Keep this sheet — its findings are the input to the SBAR gate, GLAB 524.5.3, this afternoon.</div>
+  </div>`;
+}
+function paintPacketMirrors(){
+  /* refresh the mirrored tables and the auto-filled cover times; never touches a field that has focus */
+  const p=$("packetPane"); if(!p||!D||!p.firstChild) return;
+  const a=document.activeElement;
+  const b1=$("pkStnBody"), b2=$("pkNaBody"), b3=$("pkFindBody");
+  if(b1&&!(a&&b1.contains(a))) b1.innerHTML=pkStnRowsHTML("live");
+  if(b2) b2.innerHTML=pkNaRowsHTML();
+  if(b3&&!(a&&b3.contains(a))) b3.innerHTML=pkFindRowsHTML("live");
+  const s=$("pk_startAt"); if(s&&s!==a&&s.value!==S.packet.startAt) s.value=S.packet.startAt;
+  const e=$("pk_doneAt"); if(e&&e!==a&&e.value!==S.packet.doneAt) e.value=S.packet.doneAt;
+}
+function renderPacket(){
+  const p=$("packetPane"); if(!p||!D) return;
+  p.innerHTML=packetHTML("live");
+  p.oninput=e=>{
+    const t=e.target; if(!t) return;
+    if(t.id==="pk_learner"){
+      S.learner=t.value;
+      const m=$("learnerName"); if(m&&m.value!==t.value) m.value=t.value;
+    } else if(t.dataset.pkf){ S.packet[t.dataset.pkf]=t.value; }
+    else if(t.dataset.pkw!==undefined){ S.packet.watch[+t.dataset.pkw]=t.value; }
+    else if(t.dataset.ps){ /* current-station reading, two-way with the console's rd_i */
+      const sid=t.dataset.ps, i=+t.dataset.pr;
+      const d=S.draft[sid]||(S.draft[sid]={}); d["r"+i]=t.value;
+      const m=$("rd_"+i); if(m&&STATIONS[S.idx]&&STATIONS[S.idx].id===sid&&m.value!==t.value) m.value=t.value;
+    } else if(t.dataset.pfn!==undefined){
+      const i=+t.dataset.pfn; S.find[i]=S.find[i]||{}; S.find[i].note=t.value;
+      const m=document.querySelector(`#paneLog input[data-fn="${i}"]`); if(m&&m.value!==t.value) m.value=t.value;
+    }
+  };
+  p.onchange=e=>{
+    const t=e.target; if(!t) return;
+    if(t.dataset.pfi!==undefined){ const i=+t.dataset.pfi; S.find[i]=S.find[i]||{}; S.find[i].item=t.value;
+      const m=document.querySelector(`#paneLog select[data-fi="${i}"]`); if(m) m.value=t.value; }
+    else if(t.dataset.pfu!==undefined){ const i=+t.dataset.pfu; S.find[i]=S.find[i]||{}; S.find[i].urg=t.value;
+      const m=document.querySelector(`#paneLog select[data-fu="${i}"]`); if(m) m.value=t.value; }
+  };
+  $("btnPrintPacket").onclick=printPacket;
+  $("btnPacketWindow").onclick=openPacketWindow;
+  $("btnClosePacket").onclick=()=>togglePacket(false);
+}
+function togglePacket(force){
+  const p=$("packetPane"); if(!p) return;
+  const open=typeof force==="boolean"?force:p.classList.contains("hidden");
+  if(open) paintPacketMirrors();
+  p.classList.toggle("hidden",!open);
+  $("btnPacket").classList.toggle("primary",open);
+  if(open) p.scrollIntoView({block:"start"});
+}
+function printPacket(){
+  /* print only the packet: lift the pane to <body>, print, put it back where it was */
+  paintPacketMirrors();
+  const p=$("packetPane"), parent=p.parentNode, next=p.nextSibling;
+  const wasHidden=p.classList.contains("hidden");
+  p.classList.remove("hidden");
+  document.body.appendChild(p);
+  document.body.classList.add("pk-print");
+  const restore=()=>{
+    if(!document.body.classList.contains("pk-print")) return;
+    document.body.classList.remove("pk-print");
+    parent.insertBefore(p,next);
+    if(wasHidden) p.classList.add("hidden");
+    window.removeEventListener("afterprint",restore);
+  };
+  window.addEventListener("afterprint",restore);
+  try{ window.print(); }catch(e){}
+  setTimeout(restore,1500);
+}
+function openPacketWindow(){
+  /* secondary: a read-only copy of the packet AS FILLED IN, in its own window beside the console */
+  const w=window.open("","glab5251_packet","width=1240,height=900,resizable=yes,scrollbars=yes");
+  if(!w){alert("The browser blocked the packet window. Allow pop-ups for this file and press Open in window again.");return;}
+  const css=($("pkStyle")||{}).textContent||"";
+  const doc=`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${LAB.lab} — Round Route Packet — UCI 2227</title>
+<style>:root{--mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+${css}
+  body{margin:0;padding:24px;background:#e9eef2;color:#12232e;font:13px/1.5 Arial,Helvetica,sans-serif}
+  .packet{max-width:1180px;margin:0 auto 22px;border-radius:4px;font-family:inherit}
+  .bar{max-width:1180px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;font-size:12px;color:#5a6b78}
+  .bar button{font:600 12px Arial,Helvetica,sans-serif;padding:7px 14px;border-radius:4px;border:1px solid #0b6ea8;background:#0b6ea8;color:#fff;cursor:pointer}
+  @media print{body{background:#fff;padding:0}.bar{display:none}.packet{border:0;margin:0;max-width:none;padding:0}
+    .packet .pkbreak{page-break-before:always;break-before:page;border:0;margin:0;height:0}@page{size:A4 portrait;margin:10mm}}
+</style></head><body>
+<div class="bar"><button onclick="window.print()">Print</button>
+  <span>Read-only copy of the packet as it stands in the lab tool at site time ${esc(pkClock())}. Readings, findings and the cover fields are entered in the tool (Packet button and the panes), not here — open this window again for a fresh copy.</span></div>
+${packetHTML("static")}
+</body></html>`;
+  w.document.open(); w.document.write(doc); w.document.close(); w.focus();
+}
+function packetRecordHTML(){
+  const cell=v=>esc(String(v||"").trim())||"—";
+  const P=S.packet;
+  return `<h4>Packet — Round Route Packet</h4>
+    ${sRow("Route","Round route — ST01 to ST12, in order · Set "+"ABCDEFGH".charAt(SET))}
+    ${sRow("Round started (cover)",cell(P.startAt))}
+    ${sRow("Round completed (cover)",cell(P.doneAt))}
+    ${sRow("Watching for — 1",cell(P.watch[0]))}
+    ${sRow("Watching for — 2",cell(P.watch[1]))}
+    ${sRow("Watching for — 3",cell(P.watch[2]))}
+    <div class="small" style="margin-top:6px">The packet's round check sheet, not-checked table and findings table are live mirrors of the console — they are the tables printed once above (Stations, readings and timestamps · Recorded as not checked · Findings raised and urgency assigned).</div>`;
+}
+$("btnPacket").onclick=()=>togglePacket();
+window.addEventListener("resize",()=>{
+  if(S.pane==="leak"&&$("leakMap"))drawLeakMap($("leakMap"));
+  if(S.pane==="fuel")renderFuel();
+  if(S.pane==="therm")renderTherm();
+});
+resetRun();
+</script>
 <!-- LQ_SUBMISSION_MODULE -->
 <script id="lqData">
 var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 524.5.1 - Full Facility Round", "file": "524-5-1-A_Round.html", "set": "A", "items": [{"s": "Part 1: Walking the round", "k": "text", "p": "Step 1. Open the previous shift round record before you leave the desk and read all of it, including entries that look routine. Write down the two or three things it tells you to watch: an open work order, a note left at a particular station, a value that was already drifting. Acknowledge the record in the lab tool. The route will not unlock until you have, and that is deliberate — ninety seconds of reading is the only thing that makes your own numbers mean anything."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 4. At ST01, main switchgear room, take the three assigned infrared captures on the MSB-A CB-101 outgoing lugs — phase A, phase B and phase C. Log each temperature next to the other two phases of the same connection. The differential between phases on an evenly loaded three-phase joint is the whole diagnosis, and it takes four extra words to record. Paste your switchgear thermal captures in the lab tool."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 5. At ST04, PDU rows, take the three assigned infrared captures on the PDU-03 subfeed F2 lugs, again phase by phase. A power distribution unit (PDU) subfeed carries hall load, so a hot lug here has a direct route to the floor. Heat at a connection means resistance, resistance means a loosening or corroding joint, and that joint is on its way to an arcing fault. Paste your PDU thermal captures in the lab tool."}, {"s": "Part 1: Walking the round", "k": "text", "p": "Step 12. Escalate now any finding that does not wait. State it in one sentence containing the measurement, the comparison, the location and what you are asking for, in this shape: “[device and location] reading [value] against [the values it is compared with], [the size of the difference] — requesting [the action you want] before [the deadline].” Write your escalation sentence in the lab tool."}, {"s": "Part 2: Reflection", "k": "text", "p": "Of the findings on your route, which travelled to the handover and which did not wait? Explain where you drew the line and what makes that line sit where it does rather than one finding further along. A technician who escalates everything will be ignored by the fourth call; a technician who escalates nothing hands over the one thing that mattered in a sentence nobody reads."}, {"s": "Part 2: Reflection", "k": "text", "p": "A leak detection segment showing CABLE FAULT is not showing “no leak”. Explain, in your own words, what that segment is actually telling you about the floor it covers, and what a next shift would wrongly assume if your log recorded it as “not in alarm”."}, {"s": "Part 2: Reflection", "k": "text", "p": "A fuel finding is only visible because a previous shift wrote down a number. Describe exactly what the previous record bought you here, and what your own fuel entries will or will not buy the shift that follows you. Be specific about which words in your entry carry the comparison."}, {"s": "Part 2: Reflection", "k": "text", "p": "Pick the weakest entry in your own log — the one that would be least useful to someone arriving cold at 2am. Quote it, say what is missing, and rewrite it to the standard you would want to receive."}]};
