@@ -6,7 +6,7 @@
 <title>GLAB 524.1.4 — Stop-Work Roleplay and Escalation Log — UCI 2227 (Response Tool)</title>
 <style>
   :root{--bg:#0b1620;--panel:#132433;--panel2:#0f1d29;--line:#4a7291;--ink:#dfeaf3;
-    --dim:#8ba6bd;--faint:#7e9bb2;--blue:#33a6e8;--navy:#0079C0;
+    --dim:#8ba6bd;--faint:#87a3bb;--blue:#33a6e8;--navy:#0079C0;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
     --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;}
   *{box-sizing:border-box}
@@ -19,7 +19,7 @@
   .brand span{color:var(--blue)}
   .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
   .spacer{flex:1}
-  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+  .badge{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
     padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
   .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
     border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
@@ -30,13 +30,13 @@
   button.modeon{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
   main{flex:1;overflow:auto;padding:18px}
   .wrap{max-width:1000px;margin:0 auto}
-  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+  .labtag{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
     color:var(--blue);margin-bottom:8px}
   h1{margin:0 0 10px;font-size:22px;font-weight:700}
   .lede{color:var(--dim);line-height:1.65;margin:0 0 8px;max-width:820px;font-size:13.5px}
   .brief{background:var(--panel);border:1px solid var(--line);border-radius:9px;
     padding:18px 20px;margin:18px 0}
-  .brief h3{margin:0 0 8px;font-size:14px}
+  .brief h3,.brief h2{margin:0 0 8px;font-size:14px}
   .brief ul{color:var(--dim);margin:0;padding-left:20px;line-height:1.75;font-size:13px}
   .hidden{display:none !important}
 
@@ -45,13 +45,13 @@
   .packet{background:#fff;color:#12232e;border:1px solid #c3ced7;border-radius:4px;
     padding:26px 30px;font:13px/1.5 Arial,Helvetica,sans-serif}
   .packet h2{font-size:20px;color:#1a3a5c;margin:0 0 2px}
-  .packet h3{font-size:14px;color:#1a3a5c;margin:24px 0 8px;border-bottom:1px solid #c3ced7;padding-bottom:4px}
+  .packet h3,.packet h2{font-size:14px;color:#1a3a5c;margin:24px 0 8px;border-bottom:1px solid #c3ced7;padding-bottom:4px}
   .packet .eyebrow{font:600 10px/1 Arial;letter-spacing:.10em;text-transform:uppercase;color:#0b6ea8;margin:0 0 8px}
   .packet p{margin:0 0 10px;max-width:86ch}
   .packet .lede2{color:#5a6b78;margin:0 0 14px;max-width:86ch}
   .packet table{border-collapse:collapse;width:100%;margin:8px 0 4px;font-size:12.5px}
   .packet th,.packet td{border:1px solid #c3ced7;padding:6px 8px;text-align:left;vertical-align:top}
-  .packet th{background:#1a3a5c;color:#fff;font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+  .packet th{background:#1a3a5c;color:#fff;font-size:12px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
   .packet table.cover td:first-child{width:200px;background:#f2f6f9;font-weight:600}
   .packet table.matrix td:first-child{font-weight:600;background:#f2f6f9;width:22%}
   .packet .note{background:#f2f6f9;border-left:3px solid #0b6ea8;padding:10px 14px;margin:14px 0}
@@ -64,13 +64,13 @@
   .packet textarea{resize:vertical;min-height:54px}
   .packet input[type=text].short{width:130px}
   .packet select{width:auto;min-width:90px}
-  .packet label.f{display:block;font-size:11px;font-weight:600;color:#1a3a5c;margin:10px 0 3px}
+  .packet label.f{display:block;font-size:12px;font-weight:600;color:#1a3a5c;margin:10px 0 3px}
   .packet .frow{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
   .packet .frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 18px}
   .packet .bar{display:flex;gap:9px;align-items:center;justify-content:flex-end;margin-bottom:12px}
   .packet .bar button{background:#1a3a5c;color:#fff;border-color:#1a3a5c}
   .packet .bar button:hover{background:#0b6ea8}
-  .packet .bar .st{font-size:11.5px;color:#5a6b78;margin-right:auto}
+  .packet .bar .st{font-size:12px;color:#5a6b78;margin-right:auto}
   .packet .logrow td{padding:4px 5px}
 
   /* ---------- the packet record, as it lands in the submission PDF ---------- */
@@ -78,9 +78,9 @@
   .pkrec .kvr span:first-child{color:var(--faint);flex:0 0 40%}
   .pkrec .kvr span:last-child{font-family:var(--mono);text-align:right;white-space:pre-wrap}
   .pkrec .kvr.wide span:last-child{font-family:var(--sans);text-align:left}
-  .pkrec h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);font-weight:700;margin:15px 0 6px}
+  .pkrec h4,.pkrec h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);font-weight:700;margin:15px 0 6px}
   .pkrec table{width:100%;border-collapse:collapse;font-size:12px}
-  .pkrec th{text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);padding:6px 8px;border-bottom:1px solid var(--line)}
+  .pkrec th{text-align:left;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);padding:6px 8px;border-bottom:1px solid var(--line)}
   .pkrec td{padding:6px 8px;border-bottom:1px solid #182b3b;vertical-align:top}
   .pkrec .close{margin-top:13px;font-size:12.5px;color:var(--dim)}
 
@@ -94,13 +94,87 @@
     body.pk-print #pkPrint .bar{display:none!important}
     body.pk-print #pkPrint .val{display:inline-block;min-height:1.2em;padding:2px 4px;border-bottom:1px solid #999;
       font-family:Arial,Helvetica,sans-serif;white-space:pre-wrap;width:100%}
-    body.pk-print #pkPrint h3{page-break-after:avoid;break-after:avoid}
+    body.pk-print #pkPrint h3,body.pk-print #pkPrint h2{page-break-after:avoid;break-after:avoid}
     body.pk-print #pkPrint table{page-break-inside:avoid;break-inside:avoid}
     @page{margin:16mm 14mm 14mm}
   }
+  .kbdalt{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}
+  .kbdalt h3,.kbdalt h2{font-size:13px;margin-bottom:7px}
+  .errmsg{color:#ffb9ae;font-size:12px;line-height:1.45;margin:7px 0 0}
+  .errmsg:empty{display:none}
+  .fld .fldcap{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
+    color:var(--faint);font-weight:700;display:block}
+  /* ---------- v5 accessibility remediation (WCAG 2.2 AA) ---------- */
+  /* 2.4.1 Bypass Blocks */
+  .skip-link{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--navy);
+    color:#fff;font-weight:700;font-size:14px;padding:12px 18px;border-radius:0 0 6px 0;
+    text-decoration:none}
+  .skip-link:focus{left:0;outline:3px solid #fff;outline-offset:-3px}
+  /* text for assistive technology only */
+  .vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 2.4.7 Focus Visible — a CSS outline does not paint reliably on shapes inside an
+     <svg>, so stroke the shape as well as outlining the box. */
+  svg [tabindex]:focus-visible,svg [role=button]:focus-visible,svg a:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px}
+  svg [tabindex]:focus-visible rect,svg [tabindex]:focus-visible circle,
+  svg [tabindex]:focus-visible path,svg [tabindex]:focus-visible polygon,
+  svg [tabindex]:focus-visible ellipse,svg [tabindex]:focus-visible line,
+  svg [role=button]:focus-visible rect,svg [role=button]:focus-visible circle,
+  svg [role=button]:focus-visible path,svg [role=button]:focus-visible polygon{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  svg rect[tabindex]:focus-visible,svg circle[tabindex]:focus-visible,
+  svg path[tabindex]:focus-visible,svg polygon[tabindex]:focus-visible{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  main:focus{outline:none}
+  /* 2.5.8 Target Size (Minimum) — 24x24 CSS px floor on every control */
+  button,[role=button],summary,.tick,.chip,.x,.nc,.docrow td,.cell{
+    min-height:24px}
+  button,[role=button],summary,.tick,.chip,.x,.nc{min-width:24px}
+  input[type=checkbox],input[type=radio]{min-width:24px;min-height:24px;
+    width:18px;height:18px;padding:3px}
+  /* 1.4.4 Resize text / 1.4.10 Reflow — release the fixed-height shell so the page
+     scrolls in one direction once text is enlarged or the viewport narrows. */
+  @media (max-width:1100px),(max-height:620px){
+    html,body{height:auto;min-height:100%;overflow:auto}
+    #app{height:auto;min-height:100vh}
+    main{overflow:visible}
+    .toolbar{position:static}
+  }
+  @media (max-width:900px){
+    /* every multi-column layout becomes a single column, so nothing is pushed
+       off the side where it cannot be scrolled to */
+    .grid,.g2,.g3,.g4,.cols,.split,.fgrid,.planwrap,.segs,.lamps,.two{
+      display:block!important}
+    .grid>*,.g2>*,.g3>*,.fgrid>*,.planwrap>*{margin-bottom:12px;max-width:100%}
+    .row,.toolbar,.navchips,.flt,.steps,header,.ph,.mline,.lkrow,.ck,.lead,.legend{
+      flex-wrap:wrap!important}
+    .pnl,.seg,.lamp,.setcard,.card,.tile,.planbox,.sheetbox,.submit,.gcard,.sectbox{
+      max-width:100%}
+    .sysname{border-left:0;padding-left:0}
+    .fld,.fld input,.fld select,.fld textarea{max-width:100%}
+    input[type=text],input[type=number],select,textarea{max-width:100%}
+    /* diagrams scale to the viewport rather than demanding sideways scrolling */
+    svg{max-width:100%;height:auto}
+    canvas{max-width:100%}
+    /* a wide data table may scroll in its own box — 1.4.10 allows that for
+       tables — and the box is focusable so a keyboard can reach the scroll */
+    .tablewrap{overflow-x:auto}
+    table{max-width:100%}
+    main{padding:12px}
+  }
+  @media (max-width:900px){
+    .packet .frow,.packet .frow3{grid-template-columns:1fr!important}
+    .packet .bar,.pkrec .kvr,.toolbar{flex-wrap:wrap!important}
+  }
+  /* 2.1.1 — a scrollable pane must itself be reachable by keyboard */
+  .scrollx{overflow-x:auto}
+  .scrollx:focus-visible,[data-scrollpane]:focus-visible{outline:2px solid #4fb3ef;outline-offset:2px}
+  @media print{ .skip-link{display:none!important} }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <div id="app">
   <header>
     <div class="brand">UCI <span>2227</span> · RESPONSE TOOL</div>
@@ -109,17 +183,17 @@
     <div class="spacer"></div>
     <div class="badge">Response capture</div>
   </header>
-  <div class="toolbar">
+  <div role="region" aria-label="Simulator controls" class="toolbar">
     <button id="btnPacket" aria-controls="packetPane" title="The escalation packet for this lab: site escalation matrix, incident report template and the escalation log you fill in">Packet</button>
-    <span class="counter" id="pkCount">escalation packet — not opened yet</span>
+    <span class="counter" id="pkCount" role="status" aria-live="polite" aria-atomic="true">escalation packet — not opened yet</span>
   </div>
-  <main>
+  <main id="main" tabindex="-1">
     <div class="wrap">
       <div class="labtag">GLAB 524.1.4</div>
       <h1>Stop-Work Roleplay and Escalation Log</h1>
       <p class="lede">You call a stop-work, hold it under pressure, and write the escalation up afterwards. Stop-Work Authority is only real if it survives someone senior telling you the job is nearly done — and only defensible if the log you leave behind says what you saw and when.</p>
       <div class="brief">
-        <h3>How this lab is submitted</h3>
+        <h2>How this lab is submitted</h2>
         <ul>
           <li>Your handout, <b>GLAB 524.1.4 - Stop-Work Roleplay and Escalation Log</b>, carries the scenario, the equipment list and the
               step-by-step instructions. Work from it.</li>
@@ -150,9 +224,9 @@
           <table class="matrix">
             <thead><tr><th>Hazard family</th><th>What it looks like</th><th>First call</th><th>Then</th><th>Channel</th><th>When</th></tr></thead>
             <tbody>
-              <tr><td>Electrical</td><td>Energised work without the PPE the label calls for, a person inside an arc flash boundary, an open panel unattended, a lock missing from an isolation, a label that cannot be read</td><td>Shift lead</td><td>Electrical supervisor</td><td>Radio ch 1 (operations) · shift lead desk ext 4400 · electrical supervisor radio ch 2, ext 4412</td><td>Immediately, before anyone touches anything. Nobody re-enters the boundary until the electrical supervisor clears it.</td></tr>
+              <tr><td>Electrical</td><td>Energized work without the PPE the label calls for, a person inside an arc flash boundary, an open panel unattended, a lock missing from an isolation, a label that cannot be read</td><td>Shift lead</td><td>Electrical supervisor</td><td>Radio ch 1 (operations) · shift lead desk ext 4400 · electrical supervisor radio ch 2, ext 4412</td><td>Immediately, before anyone touches anything. Nobody re-enters the boundary until the electrical supervisor clears it.</td></tr>
               <tr><td>Fall</td><td>Work above four feet with no guardrail, harness or anchor; an open pit or floor grate; a mobile lift with the gate open; a scaffold without a tag</td><td>Shift lead</td><td>EHS coordinator</td><td>Radio ch 1 · EHS coordinator ext 4450, mobile via the shift lead</td><td>Immediately. Person comes down or is held where they are; nobody goes up to help without the EHS coordinator's say.</td></tr>
-              <tr><td>Water near energised gear</td><td>A leak, condensate or standing water within the arc flash boundary of any panel, PDU or switchgear, or over a cable tray</td><td>Shift lead</td><td>Electrical supervisor <i>and</i> facility manager</td><td>Radio ch 1 · electrical supervisor ch 2 / ext 4412 · facility manager ext 4401</td><td>Immediately. Treat it as electrical — barricade the wet area, nobody enters the water, nobody opens the panel.</td></tr>
+              <tr><td>Water near energized gear</td><td>A leak, condensate or standing water within the arc flash boundary of any panel, PDU or switchgear, or over a cable tray</td><td>Shift lead</td><td>Electrical supervisor <i>and</i> facility manager</td><td>Radio ch 1 · electrical supervisor ch 2 / ext 4412 · facility manager ext 4401</td><td>Immediately. Treat it as electrical — barricade the wet area, nobody enters the water, nobody opens the panel.</td></tr>
               <tr><td>Noise</td><td>A zone above 85 dBA without hearing protection worn, or signage that does not match the posted survey</td><td>Shift lead</td><td>EHS coordinator</td><td>Radio ch 1 · EHS ext 4450</td><td>Same shift. Work continues once hearing protection is worn; the signage conflict goes in the log.</td></tr>
               <tr><td>Stored energy / mechanical</td><td>A receiver or pipe under pressure with a valve unlocked, a rotating machine with a guard off, a spring-charged breaker on a bench</td><td>Shift lead</td><td>Facility manager</td><td>Radio ch 1 · facility manager ext 4401</td><td>Immediately. Nobody bleeds down or de-tensions anything until the facility manager has agreed how.</td></tr>
               <tr><td>Fire, smoke, injury</td><td>Anything burning, anyone hurt, anyone down</td><td>Site emergency line</td><td>Shift lead</td><td>Ext 5555 (site emergency, answers 24 h and calls 911) · then radio ch 1</td><td>Emergency line first, before the shift lead. Do not enter smoke.</td></tr>
@@ -186,7 +260,7 @@
           <label class="f" for="pk_hazard">Hazard observed — what you could see, with the number attached where there is one</label>
           <textarea id="pk_hazard" data-pk="hazard"></textarea>
           <label class="f" for="pk_family">Hazard family (from the matrix)</label>
-          <select id="pk_family" data-pk="family"><option value="">—</option><option>Electrical</option><option>Fall</option><option>Water near energised gear</option><option>Noise</option><option>Stored energy / mechanical</option><option>Fire, smoke, injury</option></select>
+          <select id="pk_family" data-pk="family"><option value="">—</option><option>Electrical</option><option>Fall</option><option>Water near energized gear</option><option>Noise</option><option>Stored energy / mechanical</option><option>Fire, smoke, injury</option></select>
           <label class="f" for="pk_action">Immediate action taken — what you said, what you did to secure the area, what you used</label>
           <textarea id="pk_action" data-pk="action"></textarea>
           <div class="frow3">
@@ -228,6 +302,27 @@
    the submission module.
    ============================================================ */
 const $=id=>document.getElementById(id);
+/* --- keyboard activation for custom controls (WCAG 2.1.1, 2.4.3) ------------
+   Roles and accessible names are authored in the markup; this only binds the
+   keys and restores focus after the repaint an activation triggers. */
+function kbdActivate(rootId,selector,keyAttr){
+  const root=typeof rootId==="string"?$(rootId):rootId;
+  if(!root||root.dataset.kbdBound)return;
+  root.dataset.kbdBound="1";
+  root.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    const t=e.target.closest&&e.target.closest(selector);
+    if(!t)return;
+    e.preventDefault();
+    const key=keyAttr?t.getAttribute(keyAttr):null;
+    /* SVGElement has no .click(), so raise a real event that bubbles the same way */
+    t.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));
+    if(key!=null){
+      const again=document.querySelector(selector.split(",")[0].replace(/:.*$/,"")+"["+keyAttr+'="'+key+'"]');
+      if(again&&again.focus)again.focus();
+    }
+  });
+}
 const esc=s=>String(s===undefined||s===null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const PK_KEY="uci2227pk:524-1-4_StopWork.html";
 const FIELDS=["lead","channel","date","tstop","tseen","loc","hazard","family","action","notified","ntime","nchan","response","restart","resumed","authority","rtime","reporter"];
@@ -348,7 +443,7 @@ $("packetBody").addEventListener("change",e=>{
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
 <script id="lqData">
-var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log", "handout": "GLAB 524.1.4 - Stop-Work Roleplay and Escalation Log", "file": "524-1-4_StopWork.html", "set": "—", "nosim": true, "items": [{"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 1. Collect your GLAB 524.1.1 route and check sheet and a radio, and open the escalation packet in the lab tool (Packet button) — it holds the escalation matrix, the incident report template and the escalation log. Confirm the radio channel and confirm who is playing the shift lead. Record the channel and the shift lead’s name and role."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 2. Read the escalation matrix before you begin the round. Work out now who you would call for an electrical hazard, for a fall hazard and for a water hazard near energised gear, and how you reach each of them. You will not have time to read a matrix while you are holding a stop-work. Write down the three routes."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 6. Say “I am stopping this because…” and give one concrete observation. What you can see, not what you have concluded. “There is no face shield and the work order calls for CAT 2” is an observation. “This is dangerous” is a conclusion and it starts an argument you will lose. Write the exact sentence you used."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 7. Say “Nobody proceeds until…” and name the specific condition that has to be resolved. Make the restart condition explicit, because a stop with no stated restart condition turns into a negotiation about when it ends. Write the condition you named."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 9. Hold the line for the next sixty seconds. You will get pushback and it will be some version of “we do it this way all the time”, “we are already behind, it is fine”, or “I have got twenty years on this gear”. The answer to all three is the same: “That may be true, and I am still stopping it. The shift lead is on the way and they can clear it in two minutes.” Then repeat your observation verbatim. Do not negotiate, do not argue the engineering, and do not apologise while the stop is in progress. You are not winning an argument; you are holding a position for the length of time it takes someone with authority to arrive. Record what was said to you and what you said back."}, {"s": "Part 1: The round, the stop and the escalation", "k": "image", "p": "Step 10. Secure the area. Barricade it if it is safe to do so and keep people out. Fetch the tape or the cones yourself. Record what you did, what you used, and how you kept people away from it, then photograph the secured area and attach the photograph as Q6, with what you did as the caption."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 11. Notify the shift lead in role, on the radio. Give a clear verbal report: what you observed, where it is, what you have done to secure it, and the condition that must be met before work restarts. Write the report you gave, word for word as far as you can remember it."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 12. Complete the escalation log entry: what, where, when, who you told, and what condition must be met before work restarts. Record evidence only. No opinion, no diagnosis, and no assessment of the other person — this log may be read by your safety team, by human resources and possibly by a regulator, and a character judgement in it is worthless to all three. Write the entry in the lab tool."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 13. Read your own entry back to yourself as if you had just arrived on shift at 2am, had never met you, and could not ring anybody. If any part of it makes you want to ask a question, rewrite that part now. Write the corrected version, and note what you changed."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 14. Debrief with your instructor: what you caught, how long it took you from the hazard being visible to you saying the words, and what you would say differently. Record their two observations and your own honest answer on the timing."}, {"s": "Part 2: Reflection", "k": "text", "p": "Estimate the gap between the hazard entering your field of view and you saying “STOP WORK.” Then account for it. What were you doing in that gap — checking you were right, working out the wording, or deciding whether it was worth it? Name it honestly, because the fix is different for each."}, {"s": "Part 2: Reflection", "k": "text", "p": "Of the three pushback lines you heard, which came closest to moving you, and why that one? Write the sentence you will use next time in response to it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Take the escalation log entry you wrote and strike out every word that is an opinion, an inference or a judgement about a person. Write out what is left. Is it still actionable by a stranger, and if it is shorter, what does that tell you about the parts you removed?"}, {"s": "Part 2: Reflection", "k": "text", "p": "Stop-Work Authority is protected on a standard of good faith and reasonable belief, not certainty — Section 11(c) of the Occupational Safety and Health Act and 29 CFR 1977.12. Describe a plausible version of today’s scenario in which you would have been wrong to stop. Then set out what being wrong would actually have cost, against what a missed stop could cost."}]};
+var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log", "handout": "GLAB 524.1.4 - Stop-Work Roleplay and Escalation Log", "file": "524-1-4_StopWork.html", "set": "—", "nosim": true, "items": [{"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 1. Collect your GLAB 524.1.1 route and check sheet and a radio, and open the escalation packet in the lab tool (Packet button) — it holds the escalation matrix, the incident report template and the escalation log. Confirm the radio channel and confirm who is playing the shift lead. Record the channel and the shift lead’s name and role."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 2. Read the escalation matrix before you begin the round. Work out now who you would call for an electrical hazard, for a fall hazard and for a water hazard near energized gear, and how you reach each of them. You will not have time to read a matrix while you are holding a stop-work. Write down the three routes."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 6. Say “I am stopping this because…” and give one concrete observation. What you can see, not what you have concluded. “There is no face shield and the work order calls for CAT 2” is an observation. “This is dangerous” is a conclusion and it starts an argument you will lose. Write the exact sentence you used."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 7. Say “Nobody proceeds until…” and name the specific condition that has to be resolved. Make the restart condition explicit, because a stop with no stated restart condition turns into a negotiation about when it ends. Write the condition you named."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 9. Hold the line for the next sixty seconds. You will get pushback and it will be some version of “we do it this way all the time”, “we are already behind, it is fine”, or “I have got twenty years on this gear”. The answer to all three is the same: “That may be true, and I am still stopping it. The shift lead is on the way and they can clear it in two minutes.” Then repeat your observation verbatim. Do not negotiate, do not argue the engineering, and do not apologise while the stop is in progress. You are not winning an argument; you are holding a position for the length of time it takes someone with authority to arrive. Record what was said to you and what you said back."}, {"s": "Part 1: The round, the stop and the escalation", "k": "image", "p": "Step 10. Secure the area. Barricade it if it is safe to do so and keep people out. Fetch the tape or the cones yourself. Record what you did, what you used, and how you kept people away from it, then photograph the secured area and attach the photograph as Q6, with what you did as the caption."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 11. Notify the shift lead in role, on the radio. Give a clear verbal report: what you observed, where it is, what you have done to secure it, and the condition that must be met before work restarts. Write the report you gave, word for word as far as you can remember it."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 12. Complete the escalation log entry: what, where, when, who you told, and what condition must be met before work restarts. Record evidence only. No opinion, no diagnosis, and no assessment of the other person — this log may be read by your safety team, by human resources and possibly by a regulator, and a character judgment in it is worthless to all three. Write the entry in the lab tool."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 13. Read your own entry back to yourself as if you had just arrived on shift at 2am, had never met you, and could not ring anybody. If any part of it makes you want to ask a question, rewrite that part now. Write the corrected version, and note what you changed."}, {"s": "Part 1: The round, the stop and the escalation", "k": "text", "p": "Step 14. Debrief with your instructor: what you caught, how long it took you from the hazard being visible to you saying the words, and what you would say differently. Record their two observations and your own honest answer on the timing."}, {"s": "Part 2: Reflection", "k": "text", "p": "Estimate the gap between the hazard entering your field of view and you saying “STOP WORK.” Then account for it. What were you doing in that gap — checking you were right, working out the wording, or deciding whether it was worth it? Name it honestly, because the fix is different for each."}, {"s": "Part 2: Reflection", "k": "text", "p": "Of the three pushback lines you heard, which came closest to moving you, and why that one? Write the sentence you will use next time in response to it."}, {"s": "Part 2: Reflection", "k": "text", "p": "Take the escalation log entry you wrote and strike out every word that is an opinion, an inference or a judgment about a person. Write out what is left. Is it still actionable by a stranger, and if it is shorter, what does that tell you about the parts you removed?"}, {"s": "Part 2: Reflection", "k": "text", "p": "Stop-Work Authority is protected on a standard of good faith and reasonable belief, not certainty — Section 11(c) of the Occupational Safety and Health Act and 29 CFR 1977.12. Describe a plausible version of today’s scenario in which you would have been wrong to stop. Then set out what being wrong would actually have cost, against what a missed stop could cost."}]};
 </script>
 <!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
@@ -376,12 +471,12 @@ var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log",
   #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
     padding-bottom:16px;border-bottom:1px solid #2c4a63}
   #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
-  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+  #lqCard .lqfld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
     color:#9db6c9;font-weight:700}
   #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
     background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
   #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
-  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+  #lqCard h3.lqsec{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
     color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
   #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
   #lqCard .lqq{margin-bottom:16px}
@@ -394,7 +489,7 @@ var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log",
     border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
   #lqCard button:hover{background:#20384f;border-color:#3d6485}
   #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
-  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard button.lqprimary:hover{background:#0a6fae}
   #lqCard .lqnote{font-size:12px;color:#9db6c9}
   #lqCard .lqimgwrap{margin-top:7px}
   #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
@@ -423,7 +518,7 @@ var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log",
   .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
   .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
   .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
-  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+  .lqsheet h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
     font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
   .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
   .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
@@ -661,6 +756,17 @@ var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log",
      +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
    +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
      +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   /* group-assessed labs ask for the learner's role; LQ.role turns it on */
+   +(LQ.role
+     ? '<div class="lqfld" style="flex:0 1 200px"><label for="lqRole">Your role in the group</label>'
+       +'<select id="lqRole">'
+         +'<option value="">Choose your role</option>'
+         +'<option>Isolator</option>'
+         +'<option>Verifier</option>'
+         +'<option>Recorder</option>'
+         +'<option>Safety observer</option>'
+       +'</select></div>'
+     : '')
    +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
      +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
    +'</div>';
@@ -699,10 +805,43 @@ var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log",
   card.innerHTML=html;
   host.appendChild(card);
 
+  /* ---------- 3.3.7 Redundant Entry ----------------------------------------
+     A learner should type their name once. Any field that asks for the same
+     thing — marked autocomplete="name" — is kept in step with the submission
+     panel's. Delegated from the document, so a repainted pane still works. */
+  var _syncing=false;
+  var _nameFields=function(){ return document.querySelectorAll('input[autocomplete="name"]'); };
+  document.addEventListener("input",function(ev){
+    var t=ev.target;
+    if(_syncing||!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    _syncing=true;
+    try{
+      store.name=t.value; save();
+      Array.prototype.forEach.call(_nameFields(),function(e){
+        if(e!==t&&e.value!==t.value){
+          e.value=t.value;
+          e.dispatchEvent(new Event("input",{bubbles:true}));
+        }
+      });
+    } finally { _syncing=false; }
+  },true);
+  document.addEventListener("focusin",function(ev){
+    var t=ev.target;
+    if(!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    if(!t.value&&store.name){
+      t.value=store.name;
+      t.dispatchEvent(new Event("input",{bubbles:true}));
+    }
+  },true);
+
   /* ---------- wiring ---------- */
-  ["lqName","lqCohort","lqDate"].forEach(function(id){
+  var _role=document.getElementById("lqRole");
+  if(_role) _role.value=store.role||"";
+  ["lqName","lqCohort","lqDate","lqRole"].forEach(function(id){
     var el=document.getElementById(id);
-    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    if(!el) return;
+    var ev=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    el.oninput=ev; el.onchange=ev;
   });
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
@@ -876,9 +1015,12 @@ var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log",
     var name=document.getElementById("lqName").value.trim();
     var coh=document.getElementById("lqCohort").value.trim();
     var dt=document.getElementById("lqDate").value.trim();
+    var roleEl=document.getElementById("lqRole");
+    var role=roleEl?roleEl.value.trim():"";
     var gaps=[];
     if(!name) gaps.push("Your name");
     if(!coh)  gaps.push("Cohort / section");
+    if(roleEl && !role) gaps.push("Your role in the group");
 
     var h=''
      +'<div class="lqsheet">'
@@ -888,6 +1030,7 @@ var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log",
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +(roleEl?'<div class="lqrow"><span class="k">Role in the group</span><span class="v">'+(esc(role)||"—")+'</span></div>':'')
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
        +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
@@ -934,7 +1077,7 @@ var LQ={"lab": "GLAB 524.1.4", "title": "Stop-Work Roleplay and Escalation Log",
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
       +'Instructor verification: ______________________________'
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
-      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +'<span style="font-size:12px">Save this as a PDF and upload the single file to the '
       +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
 
     document.getElementById("lqOut").innerHTML=h;

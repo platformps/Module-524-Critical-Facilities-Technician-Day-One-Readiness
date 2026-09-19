@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
-    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#87a3bb;
     --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
     --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
     --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
@@ -20,13 +20,13 @@
     background:var(--panel);color:var(--ink);padding:7px 13px}
   button:hover{background:#1b3044;border-color:#2d4d68}
   button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
-  button.primary:hover{background:#0a8bd8}
+  button.primary:hover{background:#0a6fae}
   button:disabled{opacity:.4;cursor:not-allowed}
   select,input[type=text],input[type=number],textarea{
     font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
     border:1px solid var(--line);border-radius:5px;padding:7px 9px}
   textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
-  h1,h2,h3{margin:0;font-weight:700}
+  h1,h2,h3,h1,h2,h2{margin:0;font-weight:700}
   .mono{font-family:var(--mono)}
 
   /* ---------- shell ---------- */
@@ -38,8 +38,8 @@
   .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
   .spacer{flex:1}
   .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
-  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
-  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+  .clocklbl{color:var(--faint);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
     padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
   .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
   .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
@@ -48,12 +48,12 @@
   .wrap{max-width:1500px;margin:0 auto}
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
-  .card h3{font-size:15px;margin-bottom:4px}
+  .card h3,.card h2{font-size:15px;margin-bottom:4px}
   .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
   .card ul{color:var(--dim);margin:0;padding-left:20px;line-height:1.7;font-size:13px}
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
   .fld{display:flex;flex-direction:column;gap:5px}
-  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .fld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
 
   /* ---------- console ---------- */
   .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
@@ -61,17 +61,17 @@
   .grid{display:grid;gap:14px}
   .g2{grid-template-columns:1fr 1fr}
   .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
-  .tile .name{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tile .name{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
-  .chartbox h3{font-size:13px;margin-bottom:2px}
-  .chartbox .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
+  .chartbox h3,.chartbox h2{font-size:13px;margin-bottom:2px}
+  .chartbox .sub{font-size:12px;color:var(--faint);margin-bottom:8px}
   .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
   .note{font-size:12px;color:var(--dim);line-height:1.55}
   .hidden{display:none !important}
 
   /* ---------- submission ---------- */
   .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
-  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit h3,.submit h2{font-size:14px;margin-bottom:3px}
   .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
   .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
   .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
@@ -82,7 +82,7 @@
   .srow{display:flex;justify-content:space-between;gap:14px;padding:5px 0;border-bottom:1px solid #182b3b;font-size:12.5px}
   .srow span:first-child{color:var(--faint);flex:0 0 40%}
   .srow span:last-child{font-family:var(--mono);text-align:right;flex:1;white-space:pre-wrap}
-  .shead{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+  .shead{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
     font-weight:700;margin:16px 0 6px}
   @media print{
     body{background:#fff;color:#000;overflow:visible}
@@ -93,14 +93,14 @@
     .shead{color:#000}
   }
 
-  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+  .labtag{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
     color:var(--blue);margin-bottom:8px}
   .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
 
   /* ---------- loop-building canvas ---------- */
   svg.sch{display:block;width:100%;height:auto;background:var(--panel2);
     border:1px solid var(--line);border-radius:7px;user-select:none}
-  svg.sch text{font-family:var(--sans);font-size:11px;fill:var(--ink);pointer-events:none}
+  svg.sch text{font-family:var(--sans);font-size:12px;fill:var(--ink);pointer-events:none}
   .nbox{fill:#16293a;stroke:#2f5a78;stroke-width:1.2;cursor:pointer}
   g[data-node]:hover .nbox{fill:#1b3044}
   .nbox.air{stroke:#33a6e8}
@@ -111,15 +111,15 @@
   .nbox.src{fill:#16324a;stroke:var(--ice);stroke-width:2.4}
   .nbox.hom{stroke:var(--warn);stroke-width:2.4}
   .hobadge{fill:#3d3220;stroke:var(--warn);stroke-width:1.2}
-  .hobtxt{font-size:10px;font-weight:700;fill:var(--warn)}
+  .hobtxt{font-size:12px;font-weight:700;fill:var(--warn)}
   .lk{stroke:#7fc4ea;stroke-width:2;fill:none}
   .lkhead{fill:#7fc4ea;stroke:none}
   .modebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 9px;
     font-size:12px;color:var(--dim)}
-  .modepill{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+  .modepill{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
     padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
   .modepill.ho{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:11px;color:var(--faint)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:12px;color:var(--faint)}
   .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid;
     background:#16293a;vertical-align:-1px;margin-right:5px}
   .lklist{display:flex;flex-direction:column;gap:5px;max-height:280px;overflow:auto;margin-top:8px}
@@ -141,31 +141,105 @@
   ol.stepl b{color:var(--ink)}
   .hoslot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 10px;border-radius:7px;
     background:var(--panel2);border:1px solid var(--line);margin-bottom:9px}
-  .hoslot .lbl{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .hoslot .lbl{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .hoslot .picked{font-family:var(--mono);font-size:12px;color:var(--ice)}
   .cyc{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
   .cyc .fld label{white-space:nowrap}
   .extrow{display:flex;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid #182b3b}
   .extrow .q{flex:1;font-size:12.5px}
   .rdout{font-family:var(--mono);font-size:12px;color:var(--blue);margin-top:6px}
-  .fine{font-size:11.5px;color:var(--faint);line-height:1.55;margin-top:8px}
+  .fine{font-size:12px;color:var(--faint);line-height:1.55;margin-top:8px}
+  .kbdalt{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}
+  .kbdalt h3,.kbdalt h2{font-size:13px;margin-bottom:7px}
+  .errmsg{color:#ffb9ae;font-size:12px;line-height:1.45;margin:7px 0 0}
+  .errmsg:empty{display:none}
+  .fld .fldcap{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
+    color:var(--faint);font-weight:700;display:block}
+  /* ---------- v5 accessibility remediation (WCAG 2.2 AA) ---------- */
+  /* 2.4.1 Bypass Blocks */
+  .skip-link{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--navy);
+    color:#fff;font-weight:700;font-size:14px;padding:12px 18px;border-radius:0 0 6px 0;
+    text-decoration:none}
+  .skip-link:focus{left:0;outline:3px solid #fff;outline-offset:-3px}
+  /* text for assistive technology only */
+  .vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 2.4.7 Focus Visible — a CSS outline does not paint reliably on shapes inside an
+     <svg>, so stroke the shape as well as outlining the box. */
+  svg [tabindex]:focus-visible,svg [role=button]:focus-visible,svg a:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px}
+  svg [tabindex]:focus-visible rect,svg [tabindex]:focus-visible circle,
+  svg [tabindex]:focus-visible path,svg [tabindex]:focus-visible polygon,
+  svg [tabindex]:focus-visible ellipse,svg [tabindex]:focus-visible line,
+  svg [role=button]:focus-visible rect,svg [role=button]:focus-visible circle,
+  svg [role=button]:focus-visible path,svg [role=button]:focus-visible polygon{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  svg rect[tabindex]:focus-visible,svg circle[tabindex]:focus-visible,
+  svg path[tabindex]:focus-visible,svg polygon[tabindex]:focus-visible{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  main:focus{outline:none}
+  /* 2.5.8 Target Size (Minimum) — 24x24 CSS px floor on every control */
+  button,[role=button],summary,.tick,.chip,.x,.nc,.docrow td,.cell{
+    min-height:24px}
+  button,[role=button],summary,.tick,.chip,.x,.nc{min-width:24px}
+  input[type=checkbox],input[type=radio]{min-width:24px;min-height:24px;
+    width:18px;height:18px;padding:3px}
+  /* 1.4.4 Resize text / 1.4.10 Reflow — release the fixed-height shell so the page
+     scrolls in one direction once text is enlarged or the viewport narrows. */
+  @media (max-width:1100px),(max-height:620px){
+    html,body{height:auto;min-height:100%;overflow:auto}
+    #app{height:auto;min-height:100vh}
+    main{overflow:visible}
+    .toolbar{position:static}
+  }
+  @media (max-width:900px){
+    /* every multi-column layout becomes a single column, so nothing is pushed
+       off the side where it cannot be scrolled to */
+    .grid,.g2,.g3,.g4,.cols,.split,.fgrid,.planwrap,.segs,.lamps,.two{
+      display:block!important}
+    .grid>*,.g2>*,.g3>*,.fgrid>*,.planwrap>*{margin-bottom:12px;max-width:100%}
+    .row,.toolbar,.navchips,.flt,.steps,header,.ph,.mline,.lkrow,.ck,.lead,.legend{
+      flex-wrap:wrap!important}
+    .pnl,.seg,.lamp,.setcard,.card,.tile,.planbox,.sheetbox,.submit,.gcard,.sectbox{
+      max-width:100%}
+    .sysname{border-left:0;padding-left:0}
+    .fld,.fld input,.fld select,.fld textarea{max-width:100%}
+    input[type=text],input[type=number],select,textarea{max-width:100%}
+    /* diagrams scale to the viewport rather than demanding sideways scrolling */
+    svg{max-width:100%;height:auto}
+    canvas{max-width:100%}
+    /* a wide data table may scroll in its own box — 1.4.10 allows that for
+       tables — and the box is focusable so a keyboard can reach the scroll */
+    .tablewrap{overflow-x:auto}
+    table{max-width:100%}
+    main{padding:12px}
+  }
+  @media (max-width:900px){
+    .cyc,.fgrid,.g2{grid-template-columns:1fr!important}
+    .dsheet .dl,.extrow,.hocount,.hoslot,.legend,.lkrow,.modebar,.row,.srow,.toolbar{flex-wrap:wrap!important}
+  }
+  /* 2.1.1 — a scrollable pane must itself be reachable by keyboard */
+  .scrollx{overflow-x:auto}
+  .scrollx:focus-visible,[data-scrollpane]:focus-visible{outline:2px solid #4fb3ef;outline-offset:2px}
+  @media print{ .skip-link{display:none!important} }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <div id="app">
 
   <header>
-    <div class="brand">THERMODYNAMIC LOOP SIMULATOR</div>
+    <h1 class="brand">THERMODYNAMIC LOOP SIMULATOR</h1>
     <div class="sysname">GLAB 524.3.1 &middot; UCI 2227 · objective M3.1 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
-    <div id="statusBadge" class="badge">Ready</div>
+    <div id="statusBadge" class="badge" role="status">Ready</div>
     <div>
       <div class="clocklbl">Site time</div>
       <div class="clock mono" id="clock">--:--:--</div>
     </div>
   </header>
 
-  <div class="toolbar" id="toolbar">
+  <div role="region" aria-label="Simulator controls" class="toolbar" id="toolbar">
     <button id="btnDraw" class="primary">Draw mode</button>
     <button id="btnUndo">Undo link</button>
     <button id="btnClear">Clear</button>
@@ -178,7 +252,7 @@
     <button id="btnRestart">Restart</button>
   </div>
 
-  <main>
+  <main id="main" tabindex="-1">
     <div class="wrap">
       <section id="loopView"></section>
     </div>
@@ -330,8 +404,8 @@ const CONF={
         which:"the chilled water loop"},
     ask:{q:"At the stated outdoor conditions, which path is carrying the load?",
       opts:[["mech","Mechanical cooling — the chiller"],
-            ["econ","Water-side economiser — the plate heat exchanger, chiller off"],
-            ["part","Partial economiser — both running together"]]},
+            ["econ","Water-side economizer — the plate heat exchanger, chiller off"],
+            ["part","Partial economizer — both running together"]]},
     ext:{title:"Extension — the cooling tower fan has failed",
       intro:"The tower fan motor has tripped. The tower pump is still running. Take it stage by stage, in the order heat travels, and say what each reading does.",
       rows:["Condenser water supply temperature","Condenser pressure once the chiller picks up the load",
@@ -346,6 +420,27 @@ const S={learner:"",t:0,running:false,timer:null,
   mode:"draw",src:null,links:[],ho:{1:null,2:null},hoNames:{},hoSlot:1,hoOnlyOne:false,cycOpts:CYCLE,
   f:{}};   /* S.f mirrors every typed field by element id, so the sheet can be built from state alone */
 const $=id=>document.getElementById(id);
+/* --- keyboard activation for custom controls (WCAG 2.1.1, 2.4.3) ------------
+   Roles and accessible names are authored in the markup; this only binds the
+   keys and restores focus after the repaint an activation triggers. */
+function kbdActivate(rootId,selector,keyAttr){
+  const root=typeof rootId==="string"?$(rootId):rootId;
+  if(!root||root.dataset.kbdBound)return;
+  root.dataset.kbdBound="1";
+  root.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    const t=e.target.closest&&e.target.closest(selector);
+    if(!t)return;
+    e.preventDefault();
+    const key=keyAttr?t.getAttribute(keyAttr):null;
+    /* SVGElement has no .click(), so raise a real event that bubbles the same way */
+    t.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));
+    if(key!=null){
+      const again=document.querySelector(selector.split(",")[0].replace(/:.*$/,"")+"["+keyAttr+'="'+key+'"]');
+      if(again&&again.focus)again.focus();
+    }
+  });
+}
 let V=PLANTS[SET];
 
 const NW=165, NH=48;
@@ -399,7 +494,8 @@ function svgMarkup(){
       ? `<circle class="hobadge" cx="${n.x+NW-8}" cy="${n.y+8}" r="10"></circle>`+
         `<text class="hobtxt" x="${n.x+NW-8}" y="${n.y+12}" text-anchor="middle">H${hoN}</text>`
       : "";
-    parts.push(`<g data-node="${n.id}"><title>${n.l.join(" ")}</title>`+
+    const chosen=(S.pick===n.id)||(S.links||[]).some(k=>k.a===n.id||k.b===n.id);
+    parts.push(`<g data-node="${n.id}" role="button" tabindex="0" aria-pressed="${chosen?"true":"false"}" aria-label="${n.l.join(" ")}. Select to start or finish a connection."><title>${n.l.join(" ")}</title>`+
       `<rect class="nbox ${n.g}${sel}${hoc}" x="${n.x}" y="${n.y}" width="${NW}" height="${NH}" rx="7"></rect>`+
       txt+badge+`</g>`);
   });
@@ -428,7 +524,7 @@ function paintLinkList(){
     el.innerHTML=S.links.map((lk,i)=>
       `<div class="lkrow"><span class="n">${String(i+1).padStart(2,"0")}</span>`+
       `<span>${nodeName(lk.a)} <b style="color:var(--blue)">&rarr;</b> ${nodeName(lk.b)}</span>`+
-      `<span class="x noprint" data-del="${i}" title="remove">&times;</span></div>`).join("");
+      `<button type="button" class="x noprint" data-del="${i}" aria-label="Remove connection ${i+1}: ${nodeName(lk.a)} to ${nodeName(lk.b)}">&times;</button></div>`).join("");
   }
   $("lkcount").textContent=S.links.length+(S.links.length===1?" connection drawn":" connections drawn");
 }
@@ -473,7 +569,7 @@ function paintHo(){
       <button data-hoclr="${n}">Clear</button>
     </div>
     <div class="fld" style="margin-bottom:14px">
-      <label>Name the component at handover ${n}</label>
+      <label for="hoName${n}">Name the component at handover ${n}</label>
       <input type="text" id="hoName${n}" value="${esc((S.hoNames&&S.hoNames[n])||"")}" placeholder="type the component name">
     </div>`;
   };
@@ -518,20 +614,20 @@ function buildView(){
     "Answer the reasoning question, then build your submission sheet."
   ];
   const sheetRows=C.sheet.map(r=>`<div class="dl"><span>${r[0]}</span><span>${r[1]}</span></div>`).join("");
-  const cycSel=n=>`<div class="fld"><label>Position ${n}</label><select id="cyc${n}">
+  const cycSel=n=>`<div class="fld"><label for="cyc${n}">Position ${n}</label><select id="cyc${n}">
       <option value="">— choose —</option>
       ${S.cycOpts.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join("")}
     </select></div>`;
   const askBlock = C.ask ? `
     <div class="fld" style="margin-top:14px">
-      <label>${C.ask.q}</label>
+      <label for="ansAsk">${C.ask.q}</label>
       <select id="ansAsk"><option value="">— choose —</option>
         ${C.ask.opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join("")}</select>
     </div>` : "";
 
   el.innerHTML=`
     <div class="chartbox" style="margin-bottom:14px">
-      <h3>Loop chart</h3>
+      <h2>Loop chart</h2>
       <div class="sub">Draw every connection in the direction the fluid travels.</div>
       <div class="modebar noprint" id="modebar"></div>
       <svg class="sch" id="sch" viewBox="${C.vb}"></svg>
@@ -547,7 +643,7 @@ function buildView(){
         <div class="fine">Read the temperatures off this sheet. Nothing on it is a trick, but not every line is needed.</div>
       </div>
       <div class="tile">
-        <div class="name">Connections drawn <span class="counter" id="lkcount" style="margin-left:8px"></span></div>
+        <div class="name">Connections drawn <span class="counter" id="lkcount" role="status" aria-live="polite" tabindex="-1" style="margin-left:8px"></span></div>
         <div class="lklist" id="lklist"></div>
         <div class="fine">Remove a connection with the cross, or use <b>Undo link</b> on the toolbar to drop the last one.</div>
       </div>
@@ -576,9 +672,9 @@ function buildView(){
       <div class="name">Temperatures and delta T</div>
       <div class="fine" style="margin-bottom:10px">Read both temperatures off the design condition sheet above and work out the difference across ${C.dt.which}. Delta T is a temperature <i>difference</i>, so it is quoted in kelvin (K), not degrees Celsius. One kelvin of difference equals 1.8 degrees Fahrenheit of difference.</div>
       <div class="fgrid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="fld"><label>${C.dt.supL}</label><input type="number" step="0.1" id="dtSup" placeholder="0.0"></div>
-        <div class="fld"><label>${C.dt.retL}</label><input type="number" step="0.1" id="dtRet" placeholder="0.0"></div>
-        <div class="fld"><label>Delta T (K)</label><input type="number" step="0.1" id="dtDelta" placeholder="0.0"></div>
+        <div class="fld"><label for="dtSup">${C.dt.supL}</label><input type="number" step="0.1" id="dtSup" placeholder="0.0"></div>
+        <div class="fld"><label for="dtRet">${C.dt.retL}</label><input type="number" step="0.1" id="dtRet" placeholder="0.0"></div>
+        <div class="fld"><label for="dtDelta">Delta T (K)</label><input type="number" step="0.1" id="dtDelta" placeholder="0.0"></div>
       </div>
       <div class="rdout" id="dtOut"></div>
       ${askBlock}
@@ -588,7 +684,7 @@ function buildView(){
       <div class="name">${C.ext.title}</div>
       <div class="fine" style="margin-bottom:10px">${C.ext.intro}</div>
       <div id="extRows">${C.ext.rows.map((q,i)=>`
-        <div class="extrow"><div class="q">${i+1}. ${q}</div>
+        <div class="extrow"><label class="q" for="ext${i}">${i+1}. ${q}</label>
           <select id="ext${i}" style="width:150px">
             <option value="">— choose —</option>
             <option value="rises">Rises</option>
@@ -600,9 +696,9 @@ function buildView(){
 
     <div class="submit">
       <div class="noprint">
-        <h3>Submit your loop chart</h3>
+        <h2>Submit your loop chart</h2>
         <div class="sub">Builds a printable record of the chart you drew, the handovers you marked and every figure you entered.</div>
-        <div class="fld" style="margin-bottom:12px"><label>Your name</label><input type="text" id="learnerName" placeholder="First and last" style="max-width:340px" value="${esc(S.learner)}"></div>
+        <div class="fld" style="margin-bottom:12px"><label for="learnerName">Your name</label><input type="text" id="learnerName" placeholder="First and last" style="max-width:340px" value="${esc(S.learner)}" autocomplete="name"></div>
         <div class="fld" style="margin-bottom:12px">
           <label for="ansStep7">Q7 (handout Step 13) — which single component would you ask about first if delta T were half its design value, and why?</label>
           <textarea id="ansStep7" rows="3" placeholder="Name one component and give the reason, in terms of the loop you have just drawn.">${esc(S.f.ansStep7||"")}</textarea>
@@ -615,11 +711,17 @@ function buildView(){
 
   $("sch").addEventListener("click",e=>{
     const g=e.target.closest("g[data-node]"); if(!g) return;
-    onNodeClick(g.dataset.node);
+    const id=g.dataset.node;
+    onNodeClick(id);
+    const again=$("sch").querySelector('g[data-node="'+id+'"]');
+    if(again&&again.focus) again.focus();
   });
+  kbdActivate("sch","g[data-node]",null);
   $("lklist").onclick=e=>{
     const x=e.target.closest("[data-del]"); if(!x) return;
     S.links.splice(+x.dataset.del,1); paintSch();
+    const l=$("lklist").querySelector("[data-del]");
+    (l||$("lkcount")).focus&&(l||$("lkcount")).focus();
   };
   ["dtSup","dtRet","dtDelta"].forEach(id=>$(id).oninput=dtReadout);
   $("btnSubmit").onclick=buildSubmission;
@@ -656,7 +758,7 @@ function sheetHTML(forModule){
   const row=(k,v)=>`<div class="srow"><span>${esc(k)}</span><span>${esc(v||"—")}</span></div>`;
   const out=[];
   const now=new Date();
-  out.push(`<h4 style="font-size:15px;margin:0">${LAB.lab} — ${LAB.title}</h4>
+  out.push(`<h3 style="font-size:15px;margin:0">${LAB.lab} — ${LAB.title}</h3>
     <div class="fine" style="margin:2px 0 10px">UCI 2227 · objective ${LAB.obj} · Set ${SETLETTER} · submission sheet</div>`+
     (forModule?"":`<div class="learnerline"><b>Name:</b> ${esc(S.learner)||"\u2014"}</div>`));
   out.push(`<div class="shead">Session</div>`);
@@ -786,7 +888,7 @@ startSession();
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
 <script id="lqData">
-var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout": "GLAB 524.3.1 - Map the Thermodynamic Loops", "file": "524-3-1-B_LoopMap.html", "set": "B", "items": [{"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 2. Read the site design condition sheet in the tool before you draw a single line. Copy onto your fluid loop worksheet: the hall IT load, the chilled water (CHW) supply and return design temperatures, the design flow, the condenser water supply and return temperatures, the outdoor wet-bulb temperature and the cold aisle set point. If your configuration has no chilled water row, record that fact in words. On a direct expansion plant there is no chilled water loop at all, and that is a finding rather than an omission."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 5. Circle handover 1 — the place where heat leaves the air and enters another fluid — and write the component name beside the circle. Air is on one side of it and something else is on the other. Write the full name, not an abbreviation."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 8. Mark handover 2 if your configuration has one, and name the component. Inside a chiller, list the four stages of the refrigeration cycle in order on your chart: evaporator, compressor, condenser, expansion device. Heat enters the refrigerant at the evaporator and leaves it at the condenser; the compressor raises it to a temperature at which it can be rejected, and the expansion device drops it back down. Record in the lab tool the component you named as handover 2, and the four stages in the order you charted them."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 10. Count the loop-to-loop handovers on your chart and write the number in a box. Count only the places where heat moves from one circulating loop into another circulating loop. Rejection to the atmosphere at the end of the chain is a terminal sink, not a handover — the atmosphere does not come back round. Three loops means two handovers. One air loop plus a refrigerant circuit means one."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 11. Calculate delta T for the loop your configuration actually has. The formula is: delta T = return temperature minus supply temperature. Worked example from the module: chilled water leaving the chiller at 7.0 degrees C and coming back at 13.0 degrees C gives a delta T of 6.0 K, which is a healthy loop. The same water coming back at 9.0 degrees C gives 2.0 K, which is low delta T and needs investigating. Apply the same arithmetic to your own sheet, using the design supply and return figures your own design condition sheet gives you. On a direct expansion plant there is no chilled water, so you take delta T across the air side of the coil, using the on-coil and off-coil figures instead. Write the value and the unit on your chart."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 12. Write down what half the design delta T would be as a number, and what return temperature would produce it on your own configuration. Having the actual number in front of you makes the next step a reading rather than an opinion."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 13. Identify, in writing, which single component you would ask about first if delta T were half its design value, and why. Low delta T means the water went round the loop without picking up much heat. That is a distribution problem, not a capacity problem. Support your answer from the chart you have just drawn — any component you can justify from your own loop is a good answer at this stage."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 14. If your configuration has a water-side economiser, decide which path is carrying the load and show the arithmetic. Take the outdoor wet-bulb, the cooling tower approach and the plate heat exchanger approach from your design condition sheet. The tower can produce condenser water at the wet-bulb plus the tower approach, and across the plate heat exchanger that gives chilled water at that figure plus the exchanger approach. Compare the result with the chilled water set point and state which path can carry the load. Draw both possible paths, not just the one you memorised."}, {"s": "Part 1: Charting the heat journey", "k": "image", "p": "Step 16. Photograph or scan your marked-up chart for submission. Check before you do that your name, every arrowhead, the handover count, and the delta T value with its unit are all legible."}, {"s": "Part 2: Reflection", "k": "text", "p": "A direct expansion configuration has one loop-to-loop handover and a chilled water configuration with a tower has two. The outdoor condenser coil on a direct expansion plant clearly transfers heat from refrigerant into air, so why is it not counted as a handover? Answer in terms of what a loop is."}, {"s": "Part 2: Reflection", "k": "text", "p": "A cooling tower rejects heat by evaporating water, so its performance is limited by the outdoor wet-bulb temperature rather than the dry-bulb. Describe, stage by stage down your chart, what happens to condenser water temperature, chilled water supply temperature and finally rack inlet temperature on a humid afternoon when the wet-bulb is high."}, {"s": "Part 2: Reflection", "k": "text", "p": "Faced with a hot spot, the instinct is to lower the set point and start more CRAH units. Explain, using the delta T you calculated, why that response usually makes low delta T worse rather than better, and what it costs."}, {"s": "Part 2: Reflection", "k": "text", "p": "Write one sentence that distinguishes a CRAH from a CRAC. Then state what changes in your fault report — specifically, which components an engineer will ask you about — depending on which of the two you are describing."}]};
+var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout": "GLAB 524.3.1 - Map the Thermodynamic Loops", "file": "524-3-1-B_LoopMap.html", "set": "B", "items": [{"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 2. Read the site design condition sheet in the tool before you draw a single line. Copy onto your fluid loop worksheet: the hall IT load, the chilled water (CHW) supply and return design temperatures, the design flow, the condenser water supply and return temperatures, the outdoor wet-bulb temperature and the cold aisle set point. If your configuration has no chilled water row, record that fact in words. On a direct expansion plant there is no chilled water loop at all, and that is a finding rather than an omission."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 5. Circle handover 1 — the place where heat leaves the air and enters another fluid — and write the component name beside the circle. Air is on one side of it and something else is on the other. Write the full name, not an abbreviation."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 8. Mark handover 2 if your configuration has one, and name the component. Inside a chiller, list the four stages of the refrigeration cycle in order on your chart: evaporator, compressor, condenser, expansion device. Heat enters the refrigerant at the evaporator and leaves it at the condenser; the compressor raises it to a temperature at which it can be rejected, and the expansion device drops it back down. Record in the lab tool the component you named as handover 2, and the four stages in the order you charted them."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 10. Count the loop-to-loop handovers on your chart and write the number in a box. Count only the places where heat moves from one circulating loop into another circulating loop. Rejection to the atmosphere at the end of the chain is a terminal sink, not a handover — the atmosphere does not come back round. Three loops means two handovers. One air loop plus a refrigerant circuit means one."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 11. Calculate delta T for the loop your configuration actually has. The formula is: delta T = return temperature minus supply temperature. Worked example from the module: chilled water leaving the chiller at 7.0 degrees C and coming back at 13.0 degrees C gives a delta T of 6.0 K, which is a healthy loop. The same water coming back at 9.0 degrees C gives 2.0 K, which is low delta T and needs investigating. Apply the same arithmetic to your own sheet, using the design supply and return figures your own design condition sheet gives you. On a direct expansion plant there is no chilled water, so you take delta T across the air side of the coil, using the on-coil and off-coil figures instead. Write the value and the unit on your chart."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 12. Write down what half the design delta T would be as a number, and what return temperature would produce it on your own configuration. Having the actual number in front of you makes the next step a reading rather than an opinion."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 13. Identify, in writing, which single component you would ask about first if delta T were half its design value, and why. Low delta T means the water went round the loop without picking up much heat. That is a distribution problem, not a capacity problem. Support your answer from the chart you have just drawn — any component you can justify from your own loop is a good answer at this stage."}, {"s": "Part 1: Charting the heat journey", "k": "text", "p": "Step 14. If your configuration has a water-side economizer, decide which path is carrying the load and show the arithmetic. Take the outdoor wet-bulb, the cooling tower approach and the plate heat exchanger approach from your design condition sheet. The tower can produce condenser water at the wet-bulb plus the tower approach, and across the plate heat exchanger that gives chilled water at that figure plus the exchanger approach. Compare the result with the chilled water set point and state which path can carry the load. Draw both possible paths, not just the one you memorized."}, {"s": "Part 1: Charting the heat journey", "k": "image", "p": "Step 16. Photograph or scan your marked-up chart for submission. Check before you do that your name, every arrowhead, the handover count, and the delta T value with its unit are all legible."}, {"s": "Part 2: Reflection", "k": "text", "p": "A direct expansion configuration has one loop-to-loop handover and a chilled water configuration with a tower has two. The outdoor condenser coil on a direct expansion plant clearly transfers heat from refrigerant into air, so why is it not counted as a handover? Answer in terms of what a loop is."}, {"s": "Part 2: Reflection", "k": "text", "p": "A cooling tower rejects heat by evaporating water, so its performance is limited by the outdoor wet-bulb temperature rather than the dry-bulb. Describe, stage by stage down your chart, what happens to condenser water temperature, chilled water supply temperature and finally rack inlet temperature on a humid afternoon when the wet-bulb is high."}, {"s": "Part 2: Reflection", "k": "text", "p": "Faced with a hot spot, the instinct is to lower the set point and start more CRAH units. Explain, using the delta T you calculated, why that response usually makes low delta T worse rather than better, and what it costs."}, {"s": "Part 2: Reflection", "k": "text", "p": "Write one sentence that distinguishes a CRAH from a CRAC. Then state what changes in your fault report — specifically, which components an engineer will ask you about — depending on which of the two you are describing."}]};
 </script>
 <!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
@@ -814,12 +916,12 @@ var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout"
   #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
     padding-bottom:16px;border-bottom:1px solid #2c4a63}
   #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
-  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+  #lqCard .lqfld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
     color:#9db6c9;font-weight:700}
   #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
     background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
   #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
-  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+  #lqCard h3.lqsec{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
     color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
   #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
   #lqCard .lqq{margin-bottom:16px}
@@ -832,7 +934,7 @@ var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout"
     border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
   #lqCard button:hover{background:#20384f;border-color:#3d6485}
   #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
-  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard button.lqprimary:hover{background:#0a6fae}
   #lqCard .lqnote{font-size:12px;color:#9db6c9}
   #lqCard .lqimgwrap{margin-top:7px}
   #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
@@ -861,7 +963,7 @@ var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout"
   .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
   .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
   .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
-  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+  .lqsheet h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
     font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
   .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
   .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
@@ -1099,6 +1201,17 @@ var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout"
      +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
    +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
      +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   /* group-assessed labs ask for the learner's role; LQ.role turns it on */
+   +(LQ.role
+     ? '<div class="lqfld" style="flex:0 1 200px"><label for="lqRole">Your role in the group</label>'
+       +'<select id="lqRole">'
+         +'<option value="">Choose your role</option>'
+         +'<option>Isolator</option>'
+         +'<option>Verifier</option>'
+         +'<option>Recorder</option>'
+         +'<option>Safety observer</option>'
+       +'</select></div>'
+     : '')
    +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
      +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
    +'</div>';
@@ -1137,10 +1250,43 @@ var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout"
   card.innerHTML=html;
   host.appendChild(card);
 
+  /* ---------- 3.3.7 Redundant Entry ----------------------------------------
+     A learner should type their name once. Any field that asks for the same
+     thing — marked autocomplete="name" — is kept in step with the submission
+     panel's. Delegated from the document, so a repainted pane still works. */
+  var _syncing=false;
+  var _nameFields=function(){ return document.querySelectorAll('input[autocomplete="name"]'); };
+  document.addEventListener("input",function(ev){
+    var t=ev.target;
+    if(_syncing||!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    _syncing=true;
+    try{
+      store.name=t.value; save();
+      Array.prototype.forEach.call(_nameFields(),function(e){
+        if(e!==t&&e.value!==t.value){
+          e.value=t.value;
+          e.dispatchEvent(new Event("input",{bubbles:true}));
+        }
+      });
+    } finally { _syncing=false; }
+  },true);
+  document.addEventListener("focusin",function(ev){
+    var t=ev.target;
+    if(!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    if(!t.value&&store.name){
+      t.value=store.name;
+      t.dispatchEvent(new Event("input",{bubbles:true}));
+    }
+  },true);
+
   /* ---------- wiring ---------- */
-  ["lqName","lqCohort","lqDate"].forEach(function(id){
+  var _role=document.getElementById("lqRole");
+  if(_role) _role.value=store.role||"";
+  ["lqName","lqCohort","lqDate","lqRole"].forEach(function(id){
     var el=document.getElementById(id);
-    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    if(!el) return;
+    var ev=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    el.oninput=ev; el.onchange=ev;
   });
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
@@ -1314,9 +1460,12 @@ var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout"
     var name=document.getElementById("lqName").value.trim();
     var coh=document.getElementById("lqCohort").value.trim();
     var dt=document.getElementById("lqDate").value.trim();
+    var roleEl=document.getElementById("lqRole");
+    var role=roleEl?roleEl.value.trim():"";
     var gaps=[];
     if(!name) gaps.push("Your name");
     if(!coh)  gaps.push("Cohort / section");
+    if(roleEl && !role) gaps.push("Your role in the group");
 
     var h=''
      +'<div class="lqsheet">'
@@ -1326,6 +1475,7 @@ var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout"
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +(roleEl?'<div class="lqrow"><span class="k">Role in the group</span><span class="v">'+(esc(role)||"—")+'</span></div>':'')
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
        +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
@@ -1372,7 +1522,7 @@ var LQ={"lab": "GLAB 524.3.1", "title": "Map the Thermodynamic Loops", "handout"
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
       +'Instructor verification: ______________________________'
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
-      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +'<span style="font-size:12px">Save this as a PDF and upload the single file to the '
       +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
 
     document.getElementById("lqOut").innerHTML=h;

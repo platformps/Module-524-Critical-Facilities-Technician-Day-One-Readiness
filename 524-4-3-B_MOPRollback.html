@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
-    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#87a3bb;
     --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
     --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
     --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
@@ -20,14 +20,14 @@
     background:var(--panel);color:var(--ink);padding:7px 13px}
   button:hover{background:#1b3044;border-color:#2d4d68}
   button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
-  button.primary:hover{background:#0a8bd8}
+  button.primary:hover{background:#0a6fae}
   button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
   button:disabled{opacity:.4;cursor:not-allowed}
   select,input[type=text],input[type=number],textarea{
     font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
     border:1px solid var(--line);border-radius:5px;padding:7px 9px}
   textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
-  h1,h2,h3{margin:0;font-weight:700}
+  h1,h2,h3,h1,h2,h2{margin:0;font-weight:700}
   .mono{font-family:var(--mono)}
 
   /* ---------- shell ---------- */
@@ -39,8 +39,8 @@
   .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
   .spacer{flex:1}
   .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
-  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
-  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+  .clocklbl{color:var(--faint);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
     padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
   .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
   .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
@@ -49,11 +49,11 @@
   .wrap{max-width:1500px;margin:0 auto}
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
-  .card h3{font-size:15px;margin-bottom:4px}
+  .card h3,.card h2{font-size:15px;margin-bottom:4px}
   .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
   .fld{display:flex;flex-direction:column;gap:5px}
-  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .fld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
 
   /* ---------- console ---------- */
@@ -65,7 +65,7 @@
 
   /* ---------- alarms ---------- */
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+  th{text-align:left;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
     font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
   th:hover{color:var(--blue)}
   td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
@@ -75,7 +75,7 @@
 
   /* ---------- submission ---------- */
   .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
-  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit h3,.submit h2{font-size:14px;margin-bottom:3px}
   .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
   .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
   .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
@@ -87,7 +87,7 @@
     main{overflow:visible}
   }
 
-  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+  .labtag{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
     color:var(--blue);margin-bottom:8px}
   .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
 
@@ -95,20 +95,20 @@
   .doc{background:var(--panel);border:1px solid var(--line);border-radius:9px;
     padding:24px 28px;max-width:1040px;margin:0 auto}
   .doc h2{font-size:17px;margin:0 0 4px}
-  .doc h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+  .doc h4,.doc h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
     font-weight:700;margin:22px 0 8px}
   .doc p{font-size:13px;line-height:1.6;color:var(--dim);margin:0 0 10px}
   .doc ol,.doc ul{font-size:13px;line-height:1.6;color:var(--dim);margin:0 0 10px;padding-left:20px}
   .doc li{margin-bottom:5px}
   .tblock{display:grid;grid-template-columns:repeat(3,1fr);gap:11px 20px;
     background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:14px 16px;margin:12px 0 4px}
-  .tblock .k{font-size:9.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tblock .k{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .tblock .v{font-size:12.5px;font-family:var(--mono);margin-top:3px;line-height:1.4}
   table.mop td{font-size:12px;line-height:1.5}
   table.mop th{cursor:default}
   table.mop th:hover{color:var(--faint)}
   table.mop td.n{font-family:var(--mono);color:var(--blue);font-weight:700;width:34px}
-  .pill{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.6px;
+  .pill{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.6px;
     padding:3px 8px;border-radius:3px;white-space:nowrap;border:1px solid var(--line);background:var(--panel2);color:var(--dim)}
   .pill.closed{background:#12261c;border-color:#1d5b41;color:#7fdcaa}
   .pill.open{background:#4a3418;border-color:#6a4d22;color:#ffc069}
@@ -120,15 +120,15 @@
     border-radius:7px;background:var(--panel2);margin-bottom:9px}
   .ctrl.done{border-color:#1d5b41;background:#12261c}
   .ctrl.next{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset}
-  .ctrl .cnum{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--faint);
+  .ctrl .cnum{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--faint);
     border:1px solid var(--line);border-radius:4px;padding:3px 7px}
-  .ctrl .cname{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;color:var(--ice);min-width:126px}
+  .ctrl .cname{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;color:var(--ice);min-width:126px}
   .ctrl .cbody{flex:1;min-width:260px;font-size:12.5px;color:var(--dim);line-height:1.5}
   .obs{background:#101f2c;border:1px dashed #2d4d68;border-radius:7px;padding:12px 14px;
     font-size:12.5px;line-height:1.6;color:var(--ice);margin:4px 0 14px}
   .obs b{color:#fff}
   .logbox{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:10px 12px;
-    max-height:230px;overflow:auto;font-family:var(--mono);font-size:11.5px;line-height:1.65}
+    max-height:230px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.65}
   .logbox div{white-space:pre-wrap}
   .logbox .lv{color:#ffb9ae}
   .logbox .lg{color:#7fdcaa}
@@ -143,18 +143,18 @@
   .rbrow.done{border-color:#1d5b41;background:#12261c}
   .rbrow.wrong{border-color:#6d3129;background:#2a1512}
   .rbrow .rbt{flex:1;font-size:12.5px;line-height:1.5}
-  .rbrow .rbd{font-size:11px;color:var(--faint);margin-top:3px;font-family:var(--mono)}
+  .rbrow .rbd{font-size:12px;color:var(--faint);margin-top:3px;font-family:var(--mono)}
   .sectbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-bottom:14px}
-  .sectbox h3{font-size:14px;margin-bottom:3px}
+  .sectbox h3,.sectbox h2{font-size:14px;margin-bottom:3px}
   .sectbox .sub{font-size:12px;color:var(--faint);margin-bottom:13px;line-height:1.5}
   .pcrow{display:flex;gap:12px;align-items:center;padding:9px 12px;border:1px solid var(--line);
     border-radius:7px;background:var(--panel2);margin-bottom:7px}
-  .pcrow .pcid{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--blue);min-width:38px}
+  .pcrow .pcid{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue);min-width:38px}
   .pcrow .pct{flex:1;font-size:12.5px;line-height:1.5}
   .pcrow.yes{border-color:#1d5b41}
   .pcrow.no{border-color:#6a4d22}
   .stepstrip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-  .sbox{font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:4px;
+  .sbox{font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:4px;
     background:var(--panel2);border:1px solid var(--line);color:var(--faint)}
   .sbox.cur{background:#16324a;border-color:var(--blue);color:var(--ice);font-weight:700}
   .sbox.ok{background:#12261c;border-color:#1d5b41;color:#7fdcaa}
@@ -171,8 +171,8 @@
     border-bottom:1px solid #182b3b;font-size:12.5px}
   .sheetrow span:first-child{color:var(--faint)}
   .sheetrow span:last-child{text-align:right}
-  .sheet h3{font-size:15px;margin-bottom:4px}
-  .sheet h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+  .sheet h3,.sheet h2{font-size:15px;margin-bottom:4px}
+  .sheet h4,.sheet h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
     font-weight:700;margin:18px 0 8px}
   .sheet table{margin-bottom:4px}
   .sheet td,.sheet th{font-size:12px}
@@ -181,31 +181,31 @@
   .packet{background:#fff;color:#111;border-radius:9px;padding:28px 34px;max-width:1040px;margin:0 auto;
     font-size:13px;line-height:1.55;box-shadow:0 10px 40px rgba(0,0,0,.45)}
   .packet h2{font-size:18px;margin:0 0 4px;color:#111}
-  .packet h3{font-size:14px;margin:26px 0 8px;color:#111;border-bottom:2px solid #111;padding-bottom:4px;
+  .packet h3,.packet h2{font-size:14px;margin:26px 0 8px;color:#111;border-bottom:2px solid #111;padding-bottom:4px;
     page-break-after:avoid;break-after:avoid}
-  .packet h4{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:#333;margin:16px 0 6px}
+  .packet h4,.packet h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#333;margin:16px 0 6px}
   .packet p,.packet li{color:#222;font-size:12.5px;line-height:1.55}
   .packet p{margin:0 0 8px}
   .packet ol,.packet ul{margin:0 0 8px;padding-left:20px}
   .packet table{border-collapse:collapse;width:100%;font-size:12px;margin-bottom:8px}
-  .packet th,.packet td{border:1px solid #999;padding:5px 7px;color:#111;vertical-align:top;text-align:left;font-size:11.5px}
-  .packet th{background:#eee;letter-spacing:.6px;text-transform:uppercase;font-size:9.5px;color:#222;cursor:default;white-space:normal}
+  .packet th,.packet td{border:1px solid #999;padding:5px 7px;color:#111;vertical-align:top;text-align:left;font-size:12px}
+  .packet th{background:#eee;letter-spacing:.6px;text-transform:uppercase;font-size:12px;color:#222;cursor:default;white-space:normal}
   .packet th:hover{color:#222}
   .packet td.n{font-family:var(--mono);font-weight:700;width:30px}
   .packet td.sig{min-width:70px;height:30px}
   .packet .box{display:inline-block;width:13px;height:13px;border:1px solid #333;vertical-align:-2px;margin-right:5px}
   .packet .line{border-bottom:1px solid #333;min-height:24px}
   .packet .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 18px;border:1px solid #999;padding:10px 12px;margin:10px 0}
-  .packet .pgrid .k{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:#444}
+  .packet .pgrid .k{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#444}
   .packet .pgrid .v{font-family:var(--mono);font-size:12px;color:#111;margin-top:2px}
   .packet input,.packet select,.packet textarea{background:#fff;color:#111;border:1px solid #777;border-radius:3px;
     font-size:12px;padding:4px 6px;font-family:inherit}
   .packet textarea{width:100%;resize:vertical}
-  .packet label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#444;font-weight:700;display:block;margin-bottom:3px}
+  .packet label{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#444;font-weight:700;display:block;margin-bottom:3px}
   .packet .cover{border:2px solid #111;padding:16px 18px;margin-bottom:22px}
-  .packet .cover .tag{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#444;font-weight:700;margin-bottom:6px}
+  .packet .cover .tag{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#444;font-weight:700;margin-bottom:6px}
   .packet .brk{page-break-before:always;break-before:page}
-  .packet .foot{font-size:10.5px;color:#555;margin-top:22px;border-top:1px solid #999;padding-top:6px}
+  .packet .foot{font-size:12px;color:#555;margin-top:22px;border-top:1px solid #999;padding-top:6px}
   .packet .pkbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 0}
   .packet .pkbar button{background:#111;color:#fff;border-color:#111}
   .packet .pkbar button:hover{background:#333}
@@ -226,23 +226,98 @@
   body.pk-print .packet input,body.pk-print .packet select,body.pk-print .packet textarea{
     border:0;border-bottom:1px solid #999;border-radius:0;background:#fff;color:#000;-webkit-appearance:none;appearance:none}
   body.pk-print .packet tr{page-break-inside:avoid;break-inside:avoid}
+  .kbdalt{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}
+  .kbdalt h3,.kbdalt h2{font-size:13px;margin-bottom:7px}
+  .errmsg{color:#ffb9ae;font-size:12px;line-height:1.45;margin:7px 0 0}
+  .errmsg:empty{display:none}
+  .fld .fldcap{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
+    color:var(--faint);font-weight:700;display:block}
+  /* ---------- v5 accessibility remediation (WCAG 2.2 AA) ---------- */
+  /* 2.4.1 Bypass Blocks */
+  .skip-link{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--navy);
+    color:#fff;font-weight:700;font-size:14px;padding:12px 18px;border-radius:0 0 6px 0;
+    text-decoration:none}
+  .skip-link:focus{left:0;outline:3px solid #fff;outline-offset:-3px}
+  /* text for assistive technology only */
+  .vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 2.4.7 Focus Visible — a CSS outline does not paint reliably on shapes inside an
+     <svg>, so stroke the shape as well as outlining the box. */
+  svg [tabindex]:focus-visible,svg [role=button]:focus-visible,svg a:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px}
+  svg [tabindex]:focus-visible rect,svg [tabindex]:focus-visible circle,
+  svg [tabindex]:focus-visible path,svg [tabindex]:focus-visible polygon,
+  svg [tabindex]:focus-visible ellipse,svg [tabindex]:focus-visible line,
+  svg [role=button]:focus-visible rect,svg [role=button]:focus-visible circle,
+  svg [role=button]:focus-visible path,svg [role=button]:focus-visible polygon{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  svg rect[tabindex]:focus-visible,svg circle[tabindex]:focus-visible,
+  svg path[tabindex]:focus-visible,svg polygon[tabindex]:focus-visible{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  main:focus{outline:none}
+  /* 2.5.8 Target Size (Minimum) — 24x24 CSS px floor on every control */
+  button,[role=button],summary,.tick,.chip,.x,.nc,.docrow td,.cell{
+    min-height:24px}
+  button,[role=button],summary,.tick,.chip,.x,.nc{min-width:24px}
+  input[type=checkbox],input[type=radio]{min-width:24px;min-height:24px;
+    width:18px;height:18px;padding:3px}
+  /* 1.4.4 Resize text / 1.4.10 Reflow — release the fixed-height shell so the page
+     scrolls in one direction once text is enlarged or the viewport narrows. */
+  @media (max-width:1100px),(max-height:620px){
+    html,body{height:auto;min-height:100%;overflow:auto}
+    #app{height:auto;min-height:100vh}
+    main{overflow:visible}
+    .toolbar{position:static}
+  }
+  @media (max-width:900px){
+    /* every multi-column layout becomes a single column, so nothing is pushed
+       off the side where it cannot be scrolled to */
+    .grid,.g2,.g3,.g4,.cols,.split,.fgrid,.planwrap,.segs,.lamps,.two{
+      display:block!important}
+    .grid>*,.g2>*,.g3>*,.fgrid>*,.planwrap>*{margin-bottom:12px;max-width:100%}
+    .row,.toolbar,.navchips,.flt,.steps,header,.ph,.mline,.lkrow,.ck,.lead,.legend{
+      flex-wrap:wrap!important}
+    .pnl,.seg,.lamp,.setcard,.card,.tile,.planbox,.sheetbox,.submit,.gcard,.sectbox{
+      max-width:100%}
+    .sysname{border-left:0;padding-left:0}
+    .fld,.fld input,.fld select,.fld textarea{max-width:100%}
+    input[type=text],input[type=number],select,textarea{max-width:100%}
+    /* diagrams scale to the viewport rather than demanding sideways scrolling */
+    svg{max-width:100%;height:auto}
+    canvas{max-width:100%}
+    /* a wide data table may scroll in its own box — 1.4.10 allows that for
+       tables — and the box is focusable so a keyboard can reach the scroll */
+    .tablewrap{overflow-x:auto}
+    table[data-wide]{min-width:520px}
+    table{max-width:100%}
+    main{padding:12px}
+  }
+  @media (max-width:900px){
+    .ctr,.fgrid,.g2,.g3,.packet .pgrid,.tblock{grid-template-columns:1fr!important}
+    .ctrl,.packet .pkbar,.pcrow,.rbrow,.row,.sheetrow,.stepstrip,.toolbar{flex-wrap:wrap!important}
+  }
+  /* 2.1.1 — a scrollable pane must itself be reachable by keyboard */
+  .scrollx{overflow-x:auto}
+  .scrollx:focus-visible,[data-scrollpane]:focus-visible{outline:2px solid #4fb3ef;outline-offset:2px}
+  @media print{ .skip-link{display:none!important} }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <div id="app">
 
   <header>
-    <div class="brand">MOP EXECUTION PACKET</div>
+    <h1 class="brand">MOP EXECUTION PACKET</h1>
     <div class="sysname" id="sysname">524.4.3 · UCI 2227 · GLAB 524.4.3 · objective M4.3 · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
-    <div id="statusBadge" class="badge">Ready</div>
+    <div id="statusBadge" class="badge" role="status">Ready</div>
     <div>
       <div class="clocklbl">Site time</div>
       <div class="clock mono" id="clock">--:--:--</div>
     </div>
   </header>
 
-  <div class="toolbar" id="toolbar">
+  <div role="region" aria-label="Simulator controls" class="toolbar" id="toolbar">
     <button id="btnDoc">MOP document</button>
     <button id="btnRack">Rack state</button>
     <button id="btnExec" class="primary">Execute</button>
@@ -256,7 +331,7 @@
     <button id="btnRestart">Restart</button>
   </div>
 
-  <main>
+  <main id="main" tabindex="-1">
     <div class="wrap">
       <section id="mopView"></section>
       <section id="packetPane" class="hidden"></section>
@@ -290,6 +365,27 @@ function fmtElapsed(mins){
 
 /* ---------- this lab ---------- */
 const $=id=>document.getElementById(id);
+/* --- keyboard activation for custom controls (WCAG 2.1.1, 2.4.3) ------------
+   Roles and accessible names are authored in the markup; this only binds the
+   keys and restores focus after the repaint an activation triggers. */
+function kbdActivate(rootId,selector,keyAttr){
+  const root=typeof rootId==="string"?$(rootId):rootId;
+  if(!root||root.dataset.kbdBound)return;
+  root.dataset.kbdBound="1";
+  root.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    const t=e.target.closest&&e.target.closest(selector);
+    if(!t)return;
+    e.preventDefault();
+    const key=keyAttr?t.getAttribute(keyAttr):null;
+    /* SVGElement has no .click(), so raise a real event that bubbles the same way */
+    t.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));
+    if(key!=null){
+      const again=document.querySelector(selector.split(",")[0].replace(/:.*$/,"")+"["+keyAttr+'="'+key+'"]');
+      if(again&&again.focus)again.focus();
+    }
+  });
+}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
 
@@ -447,7 +543,7 @@ const STEPS=[
   expect:"CB-14 moves from CLOSED to OPEN. Maintenance receptacle RCP-14 dead. Outlet B-04 spare. Redundant path breaker CB-16 CLOSED and untagged.",
   verify:"State the CB-14 handle position aloud before and after operating it, then read the outlet map aloud outlet by outlet, then read CB-16 aloud.",
   scriptref:"Open breaker CB-14",
-  /* opts[0] is the label as fitted. In the clean set the breaker is labelled CB-14 exactly as the
+  /* opts[0] is the label as fitted. In the clean set the breaker is labeled CB-14 exactly as the
      script says; "CB-14A" stays in the list as a distractor. Variant M2 swaps the first two (see
      the variant hook below V) so the fitted label reads CB-14A and the mismatch is real. */
   opts:["CB-14 · RACK R-14 SECONDARY · 20 A","CB-14A · RACK R-14 SECONDARY · 20 A","CB-14A · RACK R-14 · 20 A","CB-14","open the breaker"],
@@ -786,7 +882,7 @@ function otherUsedNote(){
   return `<div class="notebox" style="margin-top:12px;border-color:#6d3129;background:#2a1512">
     <b>Actions outside the rollback: ${S.rbOtherUsed.length}.</b>
     ${S.rbOtherUsed.map(u=>"<br>— "+esc(u.at)+"  "+esc(u.t)).join("")}
-    <br><br>None of these is in the rollback section of MOP-2227-041 Rev C, and none of them returns the rack to the state it was found in. Changing the plant to match the document — or operating a breaker to prove a point — is a plant change nobody has authorised, and if the device carried another crew's tag it is their isolation you have just operated. The record above now differs from the as-found state; say so on the redline.</div>`;
+    <br><br>None of these is in the rollback section of MOP-2227-041 Rev C, and none of them returns the rack to the state it was found in. Changing the plant to match the document — or operating a breaker to prove a point — is a plant change nobody has authorized, and if the device carried another crew's tag it is their isolation you have just operated. The record above now differs from the as-found state; say so on the redline.</div>`;
 }
 function toggleAdmin(id){
   S.rbDone[id]=!S.rbDone[id];
@@ -871,7 +967,7 @@ function sheetHTML(){
 
   const r=S.redline, c=S.counters;
   const html=`<div class="sheet">
-    <h3>${labHead()} · submission sheet</h3>
+    <h2>${labHead()} · submission sheet</h2>
     ${sRow("Your name",esc(name||"—"))}
     ${sRow("Initials used to sign",esc(S.initials||"—"))}
     ${sRow("Completed",stampNow())}
@@ -887,7 +983,7 @@ function sheetHTML(){
       <tbody>${preRows}</tbody></table>
 
     <h4>Action steps — what was done and when</h4>
-    <table class="mop"><thead><tr>
+    <table class="mop" data-wide="1"><thead><tr>
       <th style="width:30px">Step</th><th style="width:22%">Action</th><th>Read aloud</th>
       <th>Pointed at</th><th>Label recorded</th><th>Acted</th><th>Verification</th>
       <th>Signed</th><th>On step</th></tr></thead><tbody>${stepRows}</tbody></table>
@@ -991,28 +1087,28 @@ function paneDoc(){
       <div><div class="k">Level of Risk</div><div class="v">${esc(DOC.risk)}</div></div>
     </div>
 
-    <h4>1 · Purpose</h4><p>${esc(DOC.purpose)}</p>
-    <h4>2 · Scope</h4><p>${esc(DOC.scope)}</p>
+    <h3>1 · Purpose</h3><p>${esc(DOC.purpose)}</p>
+    <h3>2 · Scope</h3><p>${esc(DOC.scope)}</p>
     <p><b style="color:var(--ink)">Not in scope.</b> ${esc(DOC.excl)}</p>
 
-    <h4>3 · Pre-conditions — all must be true before step 1</h4>
+    <h3>3 · Pre-conditions — all must be true before step 1</h3>
     <p>If any one of these is not true, the procedure does not start. Stop, say which one is false and why, and raise it with the shift lead.</p>
     <table><thead><tr><th style="width:60px">Ref</th><th>Condition</th><th style="width:120px">Confirmed</th></tr></thead><tbody>
       ${PRECON.map(p=>`<tr><td class="mono" style="color:var(--blue)">${p.id}</td><td>${esc(p.t)}</td>
         <td class="mono">${S.precon[p.id]==="yes"?"YES":S.precon[p.id]==="no"?"NO":"&nbsp;"}</td></tr>`).join("")}
     </tbody></table>
 
-    <h4>4 · Tools required</h4><ul>${TOOLSREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
-    <h4>5 · Personal protective equipment (PPE)</h4><ul>${PPEREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    <h3>4 · Tools required</h3><ul>${TOOLSREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    <h3>5 · Personal protective equipment (PPE)</h3><ul>${PPEREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
 
-    <h4>6 · Action steps</h4>
+    <h3>6 · Action steps</h3>
     <p>Each step is executed in the same order every time: read the step aloud, point at the device, match the label to the script text, act, then sign. Do not sign a step you have not done.</p>
-    <table class="mop"><thead><tr>
+    <table class="mop" data-wide="1"><thead><tr>
       <th style="width:34px">Step</th><th style="width:26%">Action</th><th style="width:24%">Expected result</th>
       <th style="width:24%">Verification</th><th style="width:70px">Initials</th><th style="width:80px">Time</th>
     </tr></thead><tbody>${rows}</tbody></table>
 
-    <h4>7 · Appendix A — rack R-14 as recorded</h4>
+    <h3>7 · Appendix A — rack R-14 as recorded</h3>
     <p>${esc(APPENDIX.note)}</p>
     <table><thead><tr><th>Device</th><th>Outlet</th><th>Feed</th></tr></thead><tbody>
       <tr><td>SRV-R630-01 PSU1</td><td class="mono">A-03</td><td class="mono">PDU-A · CB-11</td></tr>
@@ -1025,7 +1121,7 @@ function paneDoc(){
       <tr><td>PDU-B load, recorded</td><td class="mono">${APPENDIX.loadB}</td><td class="mono">16 A supply</td></tr>
     </tbody></table>
 
-    <h4>8 · Rollback</h4>
+    <h3>8 · Rollback</h3>
     <p>If any step cannot be completed as written, or the plant does not match this document, <b style="color:var(--ink)">stop at that step</b>. Do not improvise the next step. Announce the halt to the shift lead with the step number and what you observed, then roll back in the reverse of the order performed:</p>
     <ol>
       <li>Close breaker CB-11 and verify PDU-A energized, if step 8 was performed.</li>
@@ -1038,7 +1134,7 @@ function paneDoc(){
     </ol>
     <p><b style="color:var(--ink)">The rollback target is the state the rack was found in, not the state this document describes.</b> If something was already out of position when you arrived, it stays where it was. Changing it to match the document is a plant change nobody has authorized.</p>
 
-    <h4>9 · Sign-off</h4>
+    <h3>9 · Sign-off</h3>
     <table><thead><tr><th>Role</th><th>Name</th><th>Signature</th><th>Date and time</th></tr></thead><tbody>
       <tr><td>Prepared by</td><td>${esc(DOC.author)}</td><td class="sigline"></td><td class="mono">${DOC.approved}</td></tr>
       <tr><td>Reviewed by</td><td>${esc(DOC.reviewer)}</td><td class="sigline"></td><td class="mono">${DOC.approved}</td></tr>
@@ -1082,7 +1178,7 @@ function paneRack(){
       <td>${esc(b.serves)}</td>
       <td><span class="pill ${pos==="CLOSED"?"closed":"open"}">${pos}</span>${tag?" <span class=\"pill tagged\">"+esc(tag)+"</span>":""}</td></tr>`;}).join("");
   return `<div class="sectbox">
-      <h3>Rack R-14 — live device state</h3>
+      <h2>Rack R-14 — live device state</h2>
       <div class="sub">Hall B, row 3. This is what is in front of you at the rack. Appendix A in the MOP tab is what the document records. Read both and compare them yourself.</div>
       <table><thead><tr><th>Device</th><th>Label as fitted</th><th>State</th></tr></thead><tbody>${devRows}</tbody></table>
     </div>
@@ -1122,7 +1218,7 @@ function execGate(){
   const notConf=PRECON.filter(p=>S.precon[p.id]==="no");
   return `<div class="sectbox">
       <div class="labtag">${labTag()}</div>
-      <h3>${labHead()}</h3>
+      <h2>${labHead()}</h2>
       <div class="sub">${V.mode==="A"
         ? "Nine steps on rack R-14. The work is the rhythm: read the step aloud, point at the device, match the label to the script text, act, sign at the rack, and state the verification result before you move on. Nothing is done from memory."
         : "Nine steps on rack R-14, same rhythm: read aloud, point, match the label, act, sign, and state the verification result before you move on. Confirm every pre-condition and every expected result against the plant in front of you rather than against the document. If the plant does not match the document, halt at that step, roll back to the state you found, and raise a field redline."}</div>
@@ -1193,11 +1289,11 @@ function execStep(){
     ${S.halted?`<div class="halted"><b>Execution halted at step ${esc(String(S.haltInfo.step))} at ${esc(S.haltInfo.tHalt)}.</b><br>
       Observed: ${esc(S.haltInfo.obs)}<br>Notified: ${esc(S.haltInfo.notified)}<br><br>
       The script is closed. Go to <b>Rollback</b> and return the rack to the state you found it in, then raise the <b>Redline</b>.</div>`:""}
-    ${S.finished&&!S.halted?`<div class="sectbox"><h3>Script complete</h3>
+    ${S.finished&&!S.halted?`<div class="sectbox"><h2>Script complete</h2>
       <div class="sub">All nine steps closed out at ${fmtClock(S.t)}. Submit the run below.</div></div>`:""}
     ${(!S.halted&&!S.finished)?`
     <div class="sectbox">
-      <h3>Step ${S.step} of 9</h3>
+      <h2>Step ${S.step} of 9</h2>
       <div class="sub">Five controls, in this order, every time. Operating them out of order is recorded.</div>
       <div class="obs"><b>What you can see at the rack right now.</b><br>${observed(S.step)}</div>
       ${CTRLS.map(ctrlRow).join("")}
@@ -1220,17 +1316,17 @@ function execStep(){
       </div>
     </div>`:""}
     <div class="sectbox">
-      <h3>Execution log</h3>
+      <h2>Execution log</h2>
       <div class="sub">Everything you have done, in the order you did it.</div>
       <div class="logbox" id="logbox">${S.log.slice().reverse().map(l=>
-        `<div class="l${l.kind}">${l.t}  ${esc(l.text)}</div>`).join("")||"<div class=\"ln\">nothing yet</div>"}</div>
+        `<div class="l${l.kind}">${l.t}  ${({v:"Violation: ",w:"Warning: ",n:""})[l.kind]||""}${esc(l.text)}</div>`).join("")||"<div class=\"ln\">nothing yet</div>"}</div>
     </div>
     <div class="submit noprint">
-      <h3>Submission sheet</h3>
+      <h2>Submission sheet</h2>
       <div class="sub">Builds a printable record of this run: every step with the five controls and the time each was performed, the halt if there was one, the rollback, the device state against the state recorded at the start, and the redline. Check it, print it, hand it in.</div>
       <div class="fgrid">
-        <div class="fld"><label>Your name</label><input type="text" id="subName" value="${esc(S.learner)}"></div>
-        <div class="fld"><label>Time</label><input type="text" value="${fmtClock(S.t)}" disabled></div>
+        <div class="fld"><label for="subName">Your name</label><input type="text" id="subName" value="${esc(S.learner)}" autocomplete="name"></div>
+        <div class="fld"><label for="subTime">Time</label><input type="text" id="subTime" value="${fmtClock(S.t)}" readonly></div>
       </div>
       <button class="primary" id="btnBuildSheet">Build submission sheet</button>
     </div>
@@ -1242,7 +1338,7 @@ function paneExec(){ return (S.started||S.halted)?execStep():execGate(); }
 function paneHalt(){
   if(S.halted){
     return `<div class="sectbox">
-      <h3>Halt already declared</h3>
+      <h2>Halt already declared</h2>
       <div class="sub">Step ${esc(String(S.haltInfo.step))} at ${esc(S.haltInfo.tHalt)}. A second halt is not a thing.</div>
       <div class="notebox">Observed: ${esc(S.haltInfo.obs)}<br>Time observed: ${esc(S.haltInfo.tObs)}<br>Notified: ${esc(S.haltInfo.notified)}</div>
       <div class="row" style="margin-top:12px"><button class="primary" id="btnGoRoll">Go to rollback</button>
@@ -1251,20 +1347,20 @@ function paneHalt(){
   }
   const n=S.started?S.step:0;
   return `<div class="sectbox">
-      <h3>HALT</h3>
+      <h2>HALT</h2>
       <div class="sub">Halting stops the script where it stands. Nothing after this point gets executed. Announce the step number and what you observed — out loud to the shift lead first, then here.</div>
       <div class="fgrid">
-        <div class="fld"><label>Step number you are halting at</label>
+        <div class="fld"><label for="hStep">Step number you are halting at</label>
           <input type="text" id="hStep" value="${S.started?S.step:"pre-conditions"}"></div>
-        <div class="fld"><label>Time you observed it</label>
+        <div class="fld"><label for="hTObs">Time you observed it</label>
           <input type="text" id="hTObs" value="${fmtClock(S.t)}"></div>
       </div>
       <div class="fld" style="margin-bottom:12px">
-        <label>What did you observe — device, label, position, and how it differs from the script</label>
+        <label for="hObs">What did you observe — device, label, position, and how it differs from the script</label>
         <textarea id="hObs" rows="4" placeholder="Name the step, the device, the label text as fitted, the position or reading you found, and how that differs from what the script says."></textarea>
       </div>
       <div class="fld" style="margin-bottom:12px">
-        <label>Who did you notify, and when</label>
+        <label for="hNotif">Who did you notify, and when</label>
         <input type="text" id="hNotif" placeholder="e.g. Shift lead A. Reyes, by radio, 04:24">
       </div>
       <button class="danger" id="btnConfirmHalt">Confirm halt and close the script</button>
@@ -1279,7 +1375,7 @@ function paneHalt(){
 function paneRoll(){
   if(!S.halted){
     return `<div class="sectbox">
-      <h3>Rollback</h3>
+      <h2>Rollback</h2>
       <div class="sub">A rollback follows a halt. Declare the halt first — step number, what you observed, who you told.</div>
       <button class="danger" id="btnGoHalt">Go to HALT</button>
     </div>`;
@@ -1304,7 +1400,7 @@ function paneRoll(){
       ${otherUsedNote()}
     </div>
     <div class="sectbox">
-      <h3>Close out</h3>
+      <h2>Close out</h2>
       <div class="sub">The plant is only half of a rollback.</div>
       ${RB_ADMIN.map(a=>`<div class="rbrow ${S.rbDone[a.id]?"done":""}">
         <div class="rbt">${esc(a.t)}</div>
@@ -1351,29 +1447,29 @@ function paneRed(){
         <div><div class="k">Level of Risk</div><div class="v">${esc(DOC.risk)}</div></div>
       </div>
       <div class="fgrid" style="margin-top:16px">
-        <div class="fld"><label>Step number</label><input type="text" id="rStep" value="${esc(r.step||"")}"></div>
-        <div class="fld"><label>Signature — initials and name</label><input type="text" id="rSig" value="${esc(r.sig||"")}" placeholder="e.g. J.M. — J. Mendez"></div>
+        <div class="fld"><label for="rStep">Step number</label><input type="text" id="rStep" value="${esc(r.step||"")}"></div>
+        <div class="fld"><label for="rSig">Signature — initials and name</label><input type="text" id="rSig" value="${esc(r.sig||"")}" placeholder="e.g. J.M. — J. Mendez"></div>
       </div>
       <div class="fld" style="margin-bottom:12px">
-        <label>Script text as written — copy it, do not summarize it</label>
+        <label for="rScript">Script text as written — copy it, do not summarize it</label>
         <textarea id="rScript" rows="3" placeholder="Copy the step wording out of the document, word for word.">${esc(r.script||"")}</textarea>
       </div>
       <div class="fld" style="margin-bottom:12px">
-        <label>Observed state — device, label as fitted, position, and how it differs</label>
+        <label for="rObs">Observed state — device, label as fitted, position, and how it differs</label>
         <textarea id="rObs" rows="4" placeholder="Name the device, quote the label text you read, give the position you found it in, and say plainly how that differs from the script.">${esc(r.obs||"")}</textarea>
       </div>
       <div class="fgrid">
-        <div class="fld"><label>Time observed</label><input type="text" id="rTObs" value="${esc(r.tObs||"")}"></div>
-        <div class="fld"><label>Time halted</label><input type="text" id="rTHalt" value="${esc(r.tHalt||"")}"></div>
+        <div class="fld"><label for="rTObs">Time observed</label><input type="text" id="rTObs" value="${esc(r.tObs||"")}"></div>
+        <div class="fld"><label for="rTHalt">Time halted</label><input type="text" id="rTHalt" value="${esc(r.tHalt||"")}"></div>
       </div>
       <div class="fld" style="margin-bottom:12px">
-        <label>Who was notified, by what means, and when</label>
+        <label for="rNotif">Who was notified, by what means, and when</label>
         <input type="text" id="rNotif" value="${esc(r.notified||"")}" placeholder="e.g. Shift lead A. Reyes, by radio, 04:24">
       </div>
       <div class="row noprint">
         <button class="primary" id="btnSaveRed">Save redline</button>
         <button onclick="window.print()">Print redline</button>
-        <span class="counter" id="redSaved">${S.redlineSaved?"saved at "+esc(S.redlineSaved):""}</span>
+        <span class="counter" id="redSaved" role="status" aria-live="polite" aria-atomic="true">${S.redlineSaved?"saved at "+esc(S.redlineSaved):""}</span>
       </div>
       <div class="hint noprint">Saved automatically when you leave the tab as well. The submission sheet reads the saved copy.</div>
     </div>`;
@@ -1409,7 +1505,7 @@ function packetHTML(){
   const stepRows=STEPS.map(s=>`<tr><td class="n">${s.n}</td><td>${esc(s.action)}</td><td>${esc(s.expect)}</td>
       <td>${esc(s.verify)}</td><td class="sig">&nbsp;</td><td class="sig">&nbsp;</td></tr>`).join("");
   const vlRows=STEPS.map(s=>`<tr class="vl"><td class="n">${s.n}</td>
-      <td style="font-size:11px">${esc(s.scriptref)}</td>
+      <td style="font-size:12px">${esc(s.scriptref)}</td>
       ${VL_COLS.map(c=>`<td>${sel(s.n,c.k,c.n)}</td>`).join("")}
       <td><input type="text" data-vl="${s.n}|note" aria-label="Observer note, step ${s.n}" value="${esc(v(s.n,"note"))}" placeholder="what you saw"></td></tr>`).join("");
   return `<div class="packet" id="packetDoc">
@@ -1436,20 +1532,20 @@ function packetHTML(){
       <div><div class="k">Window</div><div class="v">${esc(DOC.window)}</div></div>
       <div><div class="k">Level of Risk</div><div class="v">${esc(DOC.risk)}</div></div>
     </div>
-    <h4>1 · Purpose</h4><p>${esc(DOC.purpose)}</p>
-    <h4>2 · Scope</h4><p>${esc(DOC.scope)}</p><p><b>Not in scope.</b> ${esc(DOC.excl)}</p>
-    <h4>3 · Pre-conditions — all must be true before step 1</h4>
+    <h3>1 · Purpose</h3><p>${esc(DOC.purpose)}</p>
+    <h3>2 · Scope</h3><p>${esc(DOC.scope)}</p><p><b>Not in scope.</b> ${esc(DOC.excl)}</p>
+    <h3>3 · Pre-conditions — all must be true before step 1</h3>
     <p>If any one of these is not true, the procedure does not start. Stop, say which one is false and why, and raise it with the shift lead. Tick each one only after you have walked to it and looked.</p>
     <table><thead><tr><th style="width:52px">Ref</th><th>Condition</th><th style="width:150px">Confirmed at the plant</th></tr></thead><tbody>
       ${PRECON.map(q=>`<tr><td class="n" style="width:52px">${q.id}</td><td>${esc(q.t)}</td><td><span class="box"></span>Yes &nbsp; <span class="box"></span>No &nbsp; time ______</td></tr>`).join("")}
     </tbody></table>
-    <h4>4 · Tools required</h4><ul>${TOOLSREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
-    <h4>5 · Personal protective equipment (PPE)</h4><ul>${PPEREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
-    <h4>6 · Action steps</h4>
+    <h3>4 · Tools required</h3><ul>${TOOLSREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    <h3>5 · Personal protective equipment (PPE)</h3><ul>${PPEREQ.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    <h3>6 · Action steps</h3>
     <p>Each step is executed in the same order every time: read the step aloud, point at the device, match the label to the script text, act, then sign. Do not sign a step you have not done. Initial each step at the rack as it completes, never at the end.</p>
     <table><thead><tr><th style="width:30px">Step</th><th style="width:27%">Action</th><th style="width:24%">Expected result</th>
       <th style="width:24%">Verification</th><th>Initials</th><th>Time</th></tr></thead><tbody>${stepRows}</tbody></table>
-    <h4>7 · Appendix A — rack R-14 as recorded</h4>
+    <h3>7 · Appendix A — rack R-14 as recorded</h3>
     <p>${esc(APPENDIX.note)}</p>
     <table><thead><tr><th>Device</th><th>Outlet</th><th>Feed</th></tr></thead><tbody>
       <tr><td>SRV-R630-01 PSU1</td><td>A-03</td><td>PDU-A · CB-11</td></tr>
@@ -1464,7 +1560,7 @@ function packetHTML(){
     <table><thead><tr><th>Board RP-2B way</th><th>Serves</th><th>Position the document expects</th></tr></thead><tbody>
       ${BRK.map(b=>`<tr><td>${b.id}</td><td>${esc(b.serves)}</td><td>${DOCBRK[b.id]}</td></tr>`).join("")}
     </tbody></table>
-    <h4>8 · Rollback</h4>
+    <h3>8 · Rollback</h3>
     <p>If any step cannot be completed as written, or the plant does not match this document, <b>stop at that step</b>. Do not improvise the next step. Announce the halt to the shift lead with the step number and what you observed, then roll back in the reverse of the order performed:</p>
     <ol>
       <li>Close breaker CB-11 and verify PDU-A energized, if step 8 was performed.</li>
@@ -1476,7 +1572,7 @@ function packetHTML(){
       <li>Record the as-found condition on the field redline form and return the field copy to the change file marked SUSPENDED.</li>
     </ol>
     <p><b>The rollback target is the state the rack was found in, not the state this document describes.</b> If something was already out of position when you arrived, it stays where it was. Changing it to match the document is a plant change nobody has authorized.</p>
-    <h4>9 · Sign-off</h4>
+    <h3>9 · Sign-off</h3>
     <table><thead><tr><th>Role</th><th>Name</th><th>Signature</th><th>Date and time</th></tr></thead><tbody>
       <tr><td>Prepared by</td><td>${esc(DOC.author)}</td><td class="sig">&nbsp;</td><td>${DOC.approved}</td></tr>
       <tr><td>Reviewed by</td><td>${esc(DOC.reviewer)}</td><td class="sig">&nbsp;</td><td>${DOC.approved}</td></tr>
@@ -1505,7 +1601,7 @@ function packetHTML(){
       ${["Breaker CB-11","Breaker CB-14","Breaker CB-16 and any tag on it","SRV-R630-01 PSU1 lead — outlet","SRV-R630-01 PSU2 lead — outlet","SW-3750-01 lead — outlet","Front door tag","Rear door tag","PDU-A display reading","PDU-B display reading"].map(i=>`<tr><td>${i}</td><td class="sig">&nbsp;</td><td class="sig">&nbsp;</td></tr>`).join("")}
     </tbody></table>
     <h4>Sequence, in the reverse of the order performed</h4>
-    ${[1,2,3,4,5,6,7].map(n=>`<div class="line" style="margin-bottom:6px"><span style="font-family:var(--mono);font-size:11px;color:#444">${n}.</span></div>`).join("")}
+    ${[1,2,3,4,5,6,7].map(n=>`<div class="line" style="margin-bottom:6px"><span style="font-family:var(--mono);font-size:12px;color:#444">${n}.</span></div>`).join("")}
     <h4>Administration</h4>
     <p><span class="box"></span>Announced to the shift lead — step number, what was observed, MOP suspended &nbsp; time ______<br>
        <span class="box"></span>As-found condition recorded on the field redline form<br>
@@ -1520,7 +1616,7 @@ function packetHTML(){
     </div>
     <table><tbody>
       <tr><td style="width:32%">Step number</td><td class="sig">&nbsp;</td></tr>
-      <tr><td>Script text as written — copied word for word, not summarised</td><td class="sig" style="height:56px">&nbsp;</td></tr>
+      <tr><td>Script text as written — copied word for word, not summarized</td><td class="sig" style="height:56px">&nbsp;</td></tr>
       <tr><td>Observed state — device, label as fitted, position or reading, and how it differs from the script</td><td class="sig" style="height:80px">&nbsp;</td></tr>
       <tr><td>Time observed</td><td class="sig">&nbsp;</td></tr>
       <tr><td>Time halted</td><td class="sig">&nbsp;</td></tr>
@@ -1569,7 +1665,7 @@ function packetSheetHTML(){
     ${sRow("Executor",esc(p.executor||"—"))}
     ${sRow("Observer",esc(p.observer||"—"))}
     ${sRow("Time execution started",esc(p.startTime||"—"))}
-    ${any?`<table class="mop"><thead><tr><th style="width:30px">Step</th>${VL_COLS.map(c=>`<th>${c.n}</th>`).join("")}<th>Note</th></tr></thead><tbody>${rows}</tbody></table>
+    ${any?`<table class="mop" data-wide="1"><thead><tr><th style="width:30px">Step</th>${VL_COLS.map(c=>`<th>${c.n}</th>`).join("")}<th>Note</th></tr></thead><tbody>${rows}</tbody></table>
     ${sRow("Steps marked N — read aloud",String(nCount("read")))}
     ${sRow("Steps marked N — label matched",String(nCount("match")))}
     ${sRow("Steps marked N — signed at rack",String(nCount("sign")))}`
@@ -1714,12 +1810,12 @@ var LQ={"lab": "GLAB 524.4.3", "title": "MOP Rollback Execution Gate", "handout"
   #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
     padding-bottom:16px;border-bottom:1px solid #2c4a63}
   #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
-  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+  #lqCard .lqfld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
     color:#9db6c9;font-weight:700}
   #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
     background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
   #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
-  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+  #lqCard h3.lqsec{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
     color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
   #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
   #lqCard .lqq{margin-bottom:16px}
@@ -1732,7 +1828,7 @@ var LQ={"lab": "GLAB 524.4.3", "title": "MOP Rollback Execution Gate", "handout"
     border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
   #lqCard button:hover{background:#20384f;border-color:#3d6485}
   #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
-  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard button.lqprimary:hover{background:#0a6fae}
   #lqCard .lqnote{font-size:12px;color:#9db6c9}
   #lqCard .lqimgwrap{margin-top:7px}
   #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
@@ -1761,7 +1857,7 @@ var LQ={"lab": "GLAB 524.4.3", "title": "MOP Rollback Execution Gate", "handout"
   .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
   .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
   .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
-  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+  .lqsheet h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
     font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
   .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
   .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
@@ -1999,6 +2095,17 @@ var LQ={"lab": "GLAB 524.4.3", "title": "MOP Rollback Execution Gate", "handout"
      +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
    +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
      +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   /* group-assessed labs ask for the learner's role; LQ.role turns it on */
+   +(LQ.role
+     ? '<div class="lqfld" style="flex:0 1 200px"><label for="lqRole">Your role in the group</label>'
+       +'<select id="lqRole">'
+         +'<option value="">Choose your role</option>'
+         +'<option>Isolator</option>'
+         +'<option>Verifier</option>'
+         +'<option>Recorder</option>'
+         +'<option>Safety observer</option>'
+       +'</select></div>'
+     : '')
    +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
      +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
    +'</div>';
@@ -2037,10 +2144,43 @@ var LQ={"lab": "GLAB 524.4.3", "title": "MOP Rollback Execution Gate", "handout"
   card.innerHTML=html;
   host.appendChild(card);
 
+  /* ---------- 3.3.7 Redundant Entry ----------------------------------------
+     A learner should type their name once. Any field that asks for the same
+     thing — marked autocomplete="name" — is kept in step with the submission
+     panel's. Delegated from the document, so a repainted pane still works. */
+  var _syncing=false;
+  var _nameFields=function(){ return document.querySelectorAll('input[autocomplete="name"]'); };
+  document.addEventListener("input",function(ev){
+    var t=ev.target;
+    if(_syncing||!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    _syncing=true;
+    try{
+      store.name=t.value; save();
+      Array.prototype.forEach.call(_nameFields(),function(e){
+        if(e!==t&&e.value!==t.value){
+          e.value=t.value;
+          e.dispatchEvent(new Event("input",{bubbles:true}));
+        }
+      });
+    } finally { _syncing=false; }
+  },true);
+  document.addEventListener("focusin",function(ev){
+    var t=ev.target;
+    if(!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    if(!t.value&&store.name){
+      t.value=store.name;
+      t.dispatchEvent(new Event("input",{bubbles:true}));
+    }
+  },true);
+
   /* ---------- wiring ---------- */
-  ["lqName","lqCohort","lqDate"].forEach(function(id){
+  var _role=document.getElementById("lqRole");
+  if(_role) _role.value=store.role||"";
+  ["lqName","lqCohort","lqDate","lqRole"].forEach(function(id){
     var el=document.getElementById(id);
-    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    if(!el) return;
+    var ev=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    el.oninput=ev; el.onchange=ev;
   });
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
@@ -2214,9 +2354,12 @@ var LQ={"lab": "GLAB 524.4.3", "title": "MOP Rollback Execution Gate", "handout"
     var name=document.getElementById("lqName").value.trim();
     var coh=document.getElementById("lqCohort").value.trim();
     var dt=document.getElementById("lqDate").value.trim();
+    var roleEl=document.getElementById("lqRole");
+    var role=roleEl?roleEl.value.trim():"";
     var gaps=[];
     if(!name) gaps.push("Your name");
     if(!coh)  gaps.push("Cohort / section");
+    if(roleEl && !role) gaps.push("Your role in the group");
 
     var h=''
      +'<div class="lqsheet">'
@@ -2226,6 +2369,7 @@ var LQ={"lab": "GLAB 524.4.3", "title": "MOP Rollback Execution Gate", "handout"
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +(roleEl?'<div class="lqrow"><span class="k">Role in the group</span><span class="v">'+(esc(role)||"—")+'</span></div>':'')
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
        +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
@@ -2272,7 +2416,7 @@ var LQ={"lab": "GLAB 524.4.3", "title": "MOP Rollback Execution Gate", "handout"
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
       +'Instructor verification: ______________________________'
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
-      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +'<span style="font-size:12px">Save this as a PDF and upload the single file to the '
       +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
 
     document.getElementById("lqOut").innerHTML=h;

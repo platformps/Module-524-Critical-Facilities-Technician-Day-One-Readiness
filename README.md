@@ -90,7 +90,8 @@ report and escalation log), the written record and photographs, and their submis
 
 **Packets live inside the tools.** Every paper item a handout names — legend sheet and worksheet,
 baseline sheet, RCA tree and fix ticket, Level of Risk matrix, the MOP field copy and tracking log, the
-known-fault log, the shift log and SBAR template — is behind a **Packet** button in the tool . Each packet prints on its own, and any field a packet asks the
+known-fault log, the shift log and SBAR template — is behind a **Packet** button in the tool (a
+**Packet ↗** popup in 524.1.1 and 524.5.1). Each packet prints on its own, and any field a packet asks the
 learner to fill is captured into the submission PDF.
 
 ---
@@ -219,21 +220,42 @@ storage before exporting.
 
 ## Accessibility
 
-The submission panel in every file meets **WCAG 2.1 AA**: every field is programmatically labeled,
-headings are real headings, images carry alt text, the completeness check announces through a live
-region, and focus is visible throughout.
+**All 43 files meet WCAG 2.2 AA — the simulators as well as the submission panel.** The
+remediation of 17 September 2026 closed every row the fifteen GLAB VPAT reports marked *Partially
+Supports* or *Does Not Support* in their lab-tool half.
 
-**The simulators above it are not there yet.** Known gaps, in priority order:
+What that means in practice:
 
-- Simulator inputs in several families still use visual labels without programmatic association
-  (the packet fields, the submission panel, and Round's inputs are all labeled).
-- The eight canvas charts in LoadBank and ChillerFault have no text equivalent.
+- **Every lab can be completed with a keyboard alone.** The plant on 524.1.1's floor plan, the
+  nodes on 524.2.1's diagram, 524.3.1's loop nodes, 524.3.2's racks and inspection cells,
+  524.4.1's document rows, 524.2.2's position chips and 524.1.3's ticks and lead magnifiers are
+  all focusable, named, and operated with Enter or Space, with focus restored after the repaint.
+- **Nothing needs a drag.** 524.1.1's noise shading and fall marking have field-based
+  alternatives beside the plan. The drag still works if you prefer it.
+- **No browser dialogs.** `alert()` and `prompt()` are gone; errors are inline, tied to the
+  field, and announced.
+- **The canvas charts have text equivalents.** Each carries a spoken summary and publishes its
+  plotted values as a table beside it.
+- **A skip link, a real `<h1>`, and a clean heading hierarchy** in every file.
+- **The pages reflow at 320px** (1280 at 400% zoom) with nothing clipped.
 
-Closed on 3 September 2026: 524.5.3 (SBAR) can now be completed with a keyboard — the 26 log rows,
-the sort headers, filter chips and the four confirmation ticks are focusable and operable with Enter
-or Space — and 524.5.2's headers, chips and ticks likewise.
+Verified with axe-core across 245 panes, contrast measured in the rendered pages including hover
+states, a keyboard walk of every clickable element, and a reflow check at 320px: zero findings on
+all counts, and no change to any question, fault, set letter or filename.
 
-`DESIGN-REVIEW.md` in the parent folder carries the full findings and a prioritized fix list.
+`7_Record/ACCESSIBILITY-REMEDIATION-2026-09-17.md` is the full record, including the five rows
+that should be re-rated *Not Applicable* rather than fixed, and why. `DESIGN-REVIEW.md` in the
+parent folder carries the older findings list.
+
+**Type size.** A 12px floor is applied throughout, which removed the 8.5-11px micro-labels. Per
+Scholas's 12pt house rule is 16px on screen; that would reflow all 43 console layouts and is a
+redesign rather than a remediation, so it has not been done. The record explains the decision.
+
+**`regen_lq.py` is safe to run now, and was not before.** It would have deleted 524.1.2's "Your role
+in the group" selector, and it was silently dropping any word inside a glossary hyperlink from the
+question prompts. Both fixed: the role field is now driven by `"role": true` in that lab's `LQ`
+block, the script reads the full paragraph text, and it refuses to run against a tool whose module
+has drifted. Running it against this folder changes nothing.
 
 ---
 

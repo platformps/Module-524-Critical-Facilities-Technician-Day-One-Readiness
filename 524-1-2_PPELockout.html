@@ -6,7 +6,7 @@
 <title>GLAB 524.1.2 — PPE Selection and Multi-Source Lockout — UCI 2227 (Response Tool)</title>
 <style>
   :root{--bg:#0b1620;--panel:#132433;--panel2:#0f1d29;--line:#4a7291;--ink:#dfeaf3;
-    --dim:#8ba6bd;--faint:#7e9bb2;--blue:#33a6e8;--navy:#0079C0;
+    --dim:#8ba6bd;--faint:#87a3bb;--blue:#33a6e8;--navy:#0079C0;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
     --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;}
   *{box-sizing:border-box}
@@ -19,7 +19,7 @@
   .brand span{color:var(--blue)}
   .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
   .spacer{flex:1}
-  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+  .badge{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
     padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
   .toolbar{display:flex;gap:9px;align-items:center;padding:9px 18px;background:var(--panel2);
     border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
@@ -30,13 +30,13 @@
   button.modeon{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
   main{flex:1;overflow:auto;padding:18px}
   .wrap{max-width:1000px;margin:0 auto}
-  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+  .labtag{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
     color:var(--blue);margin-bottom:8px}
   h1{margin:0 0 10px;font-size:22px;font-weight:700}
   .lede{color:var(--dim);line-height:1.65;margin:0 0 8px;max-width:820px;font-size:13.5px}
   .brief{background:var(--panel);border:1px solid var(--line);border-radius:9px;
     padding:18px 20px;margin:18px 0}
-  .brief h3{margin:0 0 8px;font-size:14px}
+  .brief h3,.brief h2{margin:0 0 8px;font-size:14px}
   .brief ul{color:var(--dim);margin:0;padding-left:20px;line-height:1.75;font-size:13px}
   .hidden{display:none !important}
 
@@ -45,13 +45,13 @@
   .packet{background:#fff;color:#12232e;border:1px solid #c3ced7;border-radius:4px;
     padding:26px 30px;font:13px/1.5 Arial,Helvetica,sans-serif}
   .packet h2{font-size:20px;color:#1a3a5c;margin:0 0 2px}
-  .packet h3{font-size:14px;color:#1a3a5c;margin:24px 0 8px;border-bottom:1px solid #c3ced7;padding-bottom:4px}
+  .packet h3,.packet h2{font-size:14px;color:#1a3a5c;margin:24px 0 8px;border-bottom:1px solid #c3ced7;padding-bottom:4px}
   .packet .eyebrow{font:600 10px/1 Arial;letter-spacing:.10em;text-transform:uppercase;color:#0b6ea8;margin:0 0 8px}
   .packet p{margin:0 0 10px;max-width:86ch}
   .packet .lede2{color:#5a6b78;margin:0 0 14px;max-width:86ch}
   .packet table{border-collapse:collapse;width:100%;margin:8px 0 4px;font-size:12.5px}
   .packet th,.packet td{border:1px solid #c3ced7;padding:6px 8px;text-align:left;vertical-align:top}
-  .packet th{background:#1a3a5c;color:#fff;font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+  .packet th{background:#1a3a5c;color:#fff;font-size:12px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
   .packet table.cover td:first-child{width:200px;background:#f2f6f9;font-weight:600}
   .packet .note{background:#f2f6f9;border-left:3px solid #0b6ea8;padding:10px 14px;margin:14px 0}
   .packet .note strong{color:#1a3a5c}
@@ -62,12 +62,12 @@
   .packet textarea{resize:vertical;min-height:54px}
   .packet input[type=text].short{width:110px}
   .packet select{width:auto;min-width:90px}
-  .packet label.f{display:block;font-size:11px;font-weight:600;color:#1a3a5c;margin:10px 0 3px}
+  .packet label.f{display:block;font-size:12px;font-weight:600;color:#1a3a5c;margin:10px 0 3px}
   .packet .frow{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
   .packet .bar{display:flex;gap:9px;align-items:center;justify-content:flex-end;margin-bottom:12px}
   .packet .bar button{background:#1a3a5c;color:#fff;border-color:#1a3a5c}
   .packet .bar button:hover{background:#0b6ea8}
-  .packet .bar .st{font-size:11.5px;color:#5a6b78;margin-right:auto}
+  .packet .bar .st{font-size:12px;color:#5a6b78;margin-right:auto}
   .packet .lockrow td{padding:4px 5px}
   .packet .lockrow td:first-child{font-weight:600;width:22%}
   /* the arc flash label as it hangs on the panel */
@@ -87,9 +87,9 @@
   .pkrec .kvr span:first-child{color:var(--faint);flex:0 0 40%}
   .pkrec .kvr span:last-child{font-family:var(--mono);text-align:right;white-space:pre-wrap}
   .pkrec .kvr.wide span:last-child{font-family:var(--sans);text-align:left}
-  .pkrec h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);font-weight:700;margin:15px 0 6px}
+  .pkrec h4,.pkrec h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);font-weight:700;margin:15px 0 6px}
   .pkrec table{width:100%;border-collapse:collapse;font-size:12px}
-  .pkrec th{text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);padding:6px 8px;border-bottom:1px solid var(--line)}
+  .pkrec th{text-align:left;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);padding:6px 8px;border-bottom:1px solid var(--line)}
   .pkrec td{padding:6px 8px;border-bottom:1px solid #182b3b;vertical-align:top}
   .pkrec .close{margin-top:13px;font-size:12.5px;color:var(--dim)}
 
@@ -103,14 +103,88 @@
     body.pk-print #pkPrint .bar{display:none!important}
     body.pk-print #pkPrint .val{display:inline-block;min-height:1.2em;padding:2px 4px;border-bottom:1px solid #999;
       font-family:Arial,Helvetica,sans-serif;white-space:pre-wrap;width:100%}
-    body.pk-print #pkPrint h3{page-break-after:avoid;break-after:avoid}
+    body.pk-print #pkPrint h3,body.pk-print #pkPrint h2{page-break-after:avoid;break-after:avoid}
     body.pk-print #pkPrint table,body.pk-print #pkPrint .aflabel,body.pk-print #pkPrint .oneline{page-break-inside:avoid;break-inside:avoid}
     body.pk-print #pkPrint .aflabel .warn{background:#f2a900!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     @page{margin:16mm 14mm 14mm}
   }
+  .kbdalt{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}
+  .kbdalt h3,.kbdalt h2{font-size:13px;margin-bottom:7px}
+  .errmsg{color:#ffb9ae;font-size:12px;line-height:1.45;margin:7px 0 0}
+  .errmsg:empty{display:none}
+  .fld .fldcap{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
+    color:var(--faint);font-weight:700;display:block}
+  /* ---------- v5 accessibility remediation (WCAG 2.2 AA) ---------- */
+  /* 2.4.1 Bypass Blocks */
+  .skip-link{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--navy);
+    color:#fff;font-weight:700;font-size:14px;padding:12px 18px;border-radius:0 0 6px 0;
+    text-decoration:none}
+  .skip-link:focus{left:0;outline:3px solid #fff;outline-offset:-3px}
+  /* text for assistive technology only */
+  .vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 2.4.7 Focus Visible — a CSS outline does not paint reliably on shapes inside an
+     <svg>, so stroke the shape as well as outlining the box. */
+  svg [tabindex]:focus-visible,svg [role=button]:focus-visible,svg a:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px}
+  svg [tabindex]:focus-visible rect,svg [tabindex]:focus-visible circle,
+  svg [tabindex]:focus-visible path,svg [tabindex]:focus-visible polygon,
+  svg [tabindex]:focus-visible ellipse,svg [tabindex]:focus-visible line,
+  svg [role=button]:focus-visible rect,svg [role=button]:focus-visible circle,
+  svg [role=button]:focus-visible path,svg [role=button]:focus-visible polygon{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  svg rect[tabindex]:focus-visible,svg circle[tabindex]:focus-visible,
+  svg path[tabindex]:focus-visible,svg polygon[tabindex]:focus-visible{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  main:focus{outline:none}
+  /* 2.5.8 Target Size (Minimum) — 24x24 CSS px floor on every control */
+  button,[role=button],summary,.tick,.chip,.x,.nc,.docrow td,.cell{
+    min-height:24px}
+  button,[role=button],summary,.tick,.chip,.x,.nc{min-width:24px}
+  input[type=checkbox],input[type=radio]{min-width:24px;min-height:24px;
+    width:18px;height:18px;padding:3px}
+  /* 1.4.4 Resize text / 1.4.10 Reflow — release the fixed-height shell so the page
+     scrolls in one direction once text is enlarged or the viewport narrows. */
+  @media (max-width:1100px),(max-height:620px){
+    html,body{height:auto;min-height:100%;overflow:auto}
+    #app{height:auto;min-height:100vh}
+    main{overflow:visible}
+    .toolbar{position:static}
+  }
+  @media (max-width:900px){
+    /* every multi-column layout becomes a single column, so nothing is pushed
+       off the side where it cannot be scrolled to */
+    .grid,.g2,.g3,.g4,.cols,.split,.fgrid,.planwrap,.segs,.lamps,.two{
+      display:block!important}
+    .grid>*,.g2>*,.g3>*,.fgrid>*,.planwrap>*{margin-bottom:12px;max-width:100%}
+    .row,.toolbar,.navchips,.flt,.steps,header,.ph,.mline,.lkrow,.ck,.lead,.legend{
+      flex-wrap:wrap!important}
+    .pnl,.seg,.lamp,.setcard,.card,.tile,.planbox,.sheetbox,.submit,.gcard,.sectbox{
+      max-width:100%}
+    .sysname{border-left:0;padding-left:0}
+    .fld,.fld input,.fld select,.fld textarea{max-width:100%}
+    input[type=text],input[type=number],select,textarea{max-width:100%}
+    /* diagrams scale to the viewport rather than demanding sideways scrolling */
+    svg{max-width:100%;height:auto}
+    canvas{max-width:100%}
+    /* a wide data table may scroll in its own box — 1.4.10 allows that for
+       tables — and the box is focusable so a keyboard can reach the scroll */
+    .tablewrap{overflow-x:auto}
+    table{max-width:100%}
+    main{padding:12px}
+  }
+  @media (max-width:900px){
+    .packet .frow{grid-template-columns:1fr!important}
+    .aflabel .lrow,.packet .bar,.pkrec .kvr,.toolbar{flex-wrap:wrap!important}
+  }
+  /* 2.1.1 — a scrollable pane must itself be reachable by keyboard */
+  .scrollx{overflow-x:auto}
+  .scrollx:focus-visible,[data-scrollpane]:focus-visible{outline:2px solid #4fb3ef;outline-offset:2px}
+  @media print{ .skip-link{display:none!important} }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <div id="app">
   <header>
     <div class="brand">UCI <span>2227</span> · RESPONSE TOOL</div>
@@ -119,17 +193,17 @@
     <div class="spacer"></div>
     <div class="badge">Response capture</div>
   </header>
-  <div class="toolbar">
+  <div role="region" aria-label="Simulator controls" class="toolbar">
     <button id="btnPacket" aria-controls="packetPane" title="The work order packet for this lab: work order, arc flash label, one-line diagram and the lockout log you fill in">Packet</button>
-    <span class="counter" id="pkCount">work order packet — not opened yet</span>
+    <span class="counter" id="pkCount" role="status" aria-live="polite" aria-atomic="true">work order packet — not opened yet</span>
   </div>
-  <main>
+  <main id="main" tabindex="-1">
     <div class="wrap">
       <div class="labtag">GLAB 524.1.2</div>
       <h1>PPE Selection and Multi-Source Lockout</h1>
       <p class="lede">You read an arc flash label and a work order, select PPE against the label, then isolate a load on the Mobile Infrastructure Rack that is fed from more than one source. Proving the isolation dead with a meter is the next lab, GLAB 524.1.3 — a lock makes a circuit likely to be dead, not dead. The hazard in a multi-source isolation is the source you did not count, so the written record of what you isolated matters as much as the locks you hung.</p>
       <div class="brief">
-        <h3>How this lab is submitted</h3>
+        <h2>How this lab is submitted</h2>
         <ul>
           <li>Your handout, <b>GLAB 524.1.2 - PPE Selection and Multi-Source Lockout</b>, carries the scenario, the equipment list and the
               step-by-step instructions. Work from it.</li>
@@ -196,11 +270,11 @@
               .bx{fill:#fff;stroke:#12232e;stroke-width:1.4}
               .ln{fill:none;stroke:#12232e;stroke-width:1.6}
               .lnb{fill:none;stroke:#12232e;stroke-width:1.6;stroke-dasharray:6 4}
-              .t{font-size:11px;fill:#12232e}
-              .tb{font-size:11.5px;font-weight:700;fill:#12232e}
-              .ts{font-size:9.5px;fill:#5a6b78}
+              .t{font-size:12px;fill:#12232e}
+              .tb{font-size:12px;font-weight:700;fill:#12232e}
+              .ts{font-size:12px;fill:#5a6b78}
               .iso{fill:#f2a900;stroke:#12232e;stroke-width:1.2}
-              .it{font-size:9px;font-weight:700;fill:#12232e}
+              .it{font-size:12px;font-weight:700;fill:#12232e}
               .sw{fill:none;stroke:#12232e;stroke-width:1.6;stroke-linecap:round}
             </style>
             <!-- sources -->
@@ -268,7 +342,7 @@
               <tr><td>ISO-1</td><td>DS-M1A</td><td>Feed A from PDU-2 CB-12 into RUPS-M1</td><td>Rack top, left, behind the feed A conduit entry</td><td>Handle position and viewing window</td></tr>
               <tr><td>ISO-2</td><td>DS-M1B</td><td>Feed B from PDU-4 CB-9 into RATS-M1 input 2</td><td>Rack top, right</td><td>Handle position and viewing window</td></tr>
               <tr><td>ISO-3</td><td>MBS-M1</td><td>Bypass feed from PDU-2 CB-14 around RUPS-M1 into RATS-M1 input 1</td><td>Rack front, RUPS-M1 shelf, right-hand side</td><td>Rotary position and BYPASS lamp</td></tr>
-              <tr><td>ISO-4</td><td>DC-M1</td><td>BATT-M1 string into the RUPS-M1 DC bus — stored energy, will re-energise the RUPS output on its own</td><td>Rack bottom, battery shelf</td><td>Breaker handle and RUPS-M1 "battery disconnected" indication</td></tr>
+              <tr><td>ISO-4</td><td>DC-M1</td><td>BATT-M1 string into the RUPS-M1 DC bus — stored energy, will re-energize the RUPS output on its own</td><td>Rack bottom, battery shelf</td><td>Breaker handle and RUPS-M1 "battery disconnected" indication</td></tr>
             </tbody>
           </table>
           <div class="note"><strong>Stored energy on the drawing:</strong> BATT-M1 (48 V DC string) and the RUPS-M1 DC bus capacitors, which hold charge after DC-M1 opens — wait for the RUPS-M1 bus indication to extinguish before you trust it. Anything on the rack that is not on this drawing is a finding, not a decision for you to make.</div>
@@ -301,7 +375,7 @@
           <label class="f" for="pk_disc">Drawing-versus-rack discrepancy (leave blank if none): what the drawing shows, what the rack has, what you did</label>
           <textarea id="pk_disc" data-pk="disc"></textarea>
           <div class="frow">
-            <div><label class="f" for="pk_verby">Partner's independent verification — name</label>
+            <div><label class="f" for="pk_verby">Verifier’s independent verification — name</label>
               <input type="text" id="pk_verby" data-pk="verby"></div>
             <div><label class="f" for="pk_vertime">Verified at (site time)</label>
               <input type="text" id="pk_vertime" data-pk="vertime" class="short" placeholder="hh:mm"></div>
@@ -322,6 +396,27 @@
    fillable lockout log; window.lqRecord() hands it to the submission module.
    ============================================================ */
 const $=id=>document.getElementById(id);
+/* --- keyboard activation for custom controls (WCAG 2.1.1, 2.4.3) ------------
+   Roles and accessible names are authored in the markup; this only binds the
+   keys and restores focus after the repaint an activation triggers. */
+function kbdActivate(rootId,selector,keyAttr){
+  const root=typeof rootId==="string"?$(rootId):rootId;
+  if(!root||root.dataset.kbdBound)return;
+  root.dataset.kbdBound="1";
+  root.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    const t=e.target.closest&&e.target.closest(selector);
+    if(!t)return;
+    e.preventDefault();
+    const key=keyAttr?t.getAttribute(keyAttr):null;
+    /* SVGElement has no .click(), so raise a real event that bubbles the same way */
+    t.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));
+    if(key!=null){
+      const again=document.querySelector(selector.split(",")[0].replace(/:.*$/,"")+"["+keyAttr+'="'+key+'"]');
+      if(again&&again.focus)again.focus();
+    }
+  });
+}
 const esc=s=>String(s===undefined||s===null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const PK_KEY="uci2227pk:524-1-2_PPELockout.html";
 const LOCK_ROWS=[
@@ -450,7 +545,7 @@ $("packetBody").addEventListener("change",e=>{
 </script>
 <!-- LQ_SUBMISSION_MODULE -->
 <script id="lqData">
-var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout", "handout": "GLAB 524.1.2 - PPE Selection and Multi-Source Lockout", "file": "524-1-2_PPELockout.html", "set": "—", "nosim": true, "items": [{"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 1. Open the work order packet and the one-line diagram in the lab tool (Packet button) or print them from there, and collect your padlocks and tags, and hasps from the bench. Confirm the rack identifier and which panel you have been assigned. Record both, and record your partner’s name — you are each responsible for the other’s verification step."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 2. Read the work order end to end before you touch anything. Record the task described, the equipment identifier, and the PPE category the work order states. Read it all: the scope line at the bottom of a work order is where the second and third pieces of equipment usually hide."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 3. Read the arc flash label on the assigned panel from outside the boundary. Write down, before you touch anything: equipment identifier, system voltage, incident energy in cal/cm², PPE category, arc flash boundary distance, limited approach boundary, restricted approach boundary, and the date on the label."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 4. Compare the category on the label with the category stated on the work order. If they disagree, you work to the more onerous of the two and you flag the disagreement — a work order is a plan, a label is a property of the equipment. Record which you are working to and why."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 5. Select your PPE from the kit. Lay every item out on the bench in the order you will put it on. Do not don anything yet. List what you laid out, item by item."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 6. Inspect each item before your partner checks it. Confirm the arc rating printed on each garment label in cal/cm² exceeds the incident energy on the panel label. Check the rubber insulating gloves for class, test date and physical condition, and air-test them. Check the face shield or hood for cracks and the hard hat for its shell date. Record the arc ratings you found and any item you rejected."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 7. Have your partner check your laid-out kit against the panel label before you don anything. This is a read, not a nod. Your partner reads the label out loud, then reads each item’s rating out loud. Record your partner’s name and the time of the check."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 9. Using the one-line diagram, identify every energy source feeding the assigned equipment. Write them all down: source identifier, what it feeds, and where its disconnect is. Do not stop at the first one that looks like the main."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 10. Now walk the rack and trace each feed physically, from the panel back towards its source, with your hand following the conduit or the cable. Compare what you find against the list you just wrote from the drawing. Record what you found on the rack — sources, and where each one enters."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 11. If what you find on the rack does not match the drawing, that is a finding and it is the end of your procedure until it is resolved. Say it out loud, stop, and flag it to your instructor. Do not proceed on the basis of the drawing because the drawing is the controlled document, and do not proceed on the basis of what you can see because you may not be able to see all of it. Record the discrepancy in the lab tool in full: what the drawing shows, what the rack has, and what you did about it."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 13. Apply your personal padlock and tag at every isolation point. Fill the tag out completely before the lock goes on, not after — a tag written afterwards has a gap in it where somebody could have removed the lock. Use a multi-lock hasp wherever more than one person is working on the equipment, so that your partner’s lock and yours are both on the point. Keep your key on your person. Record every point you locked, with the lock number and the time."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 14. Identify and release any stored energy — batteries, capacitors, springs, residual pressure. State out loud what you are releasing and why, before you release it. Record each stored energy source, how you released or restrained it, and how you confirmed it was discharged."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 15. Have your partner independently verify your source list against the diagram and against the rack before you call it complete. Independent means they read the diagram themselves and walk the rack themselves. A nod is not a verification and it will be scored as if the step did not happen. Record your partner’s findings in their words, including any disagreement with your list."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "image", "p": "Step 16. Photograph the completed lockout — every locked isolation point, the tags legible, and the hasps in place. Attach the photograph in the lab tool, then declare the isolation complete to your instructor."}, {"s": "Part 2: Reflection", "k": "text", "p": "How many energy sources did the one-line diagram show, and how many did you find on the rack? If those numbers are different, identify the exact point in your own sequence at which you would have discovered the difference — and whether you would have discovered it at all if step 15 did not exist."}, {"s": "Part 2: Reflection", "k": "text", "p": "It is common for a technician to lock the documented feeds and declare the job complete. Whether or not you did, describe the specific moment in your own process where that outcome was available to you, and what stopped it or would have stopped it."}, {"s": "Part 2: Reflection", "k": "text", "p": "You kept your key on your person throughout. Explain what is actually wrong with leaving the key in the lock, without using the words “policy”, “rule” or “procedure”. Describe what could physically happen."}, {"s": "Part 2: Reflection", "k": "text", "p": "Your lockout is complete, verified by your partner, and photographed. Are you now safe to put your hands on the conductors? Answer yes or no and justify it in two or three sentences. Your answer sets up GLAB 524.1.3."}]};
+var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout", "handout": "GLAB 524.1.2 - PPE Selection and Multi-Source Lockout", "file": "524-1-2_PPELockout.html", "set": "—", "nosim": true, "items": [{"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 1. Open the work order packet and the one-line diagram in the lab tool (Packet button) or print them from there, and collect your padlocks and tags, and hasps from the bench. Confirm the rack identifier and which panel you have been assigned. Record both, record your own role, and record the names and roles of the other three in your group."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 2. Read the work order end to end before you touch anything. Record the task described, the equipment identifier, and the PPE category the work order states. Read it all: the scope line at the bottom of a work order is where the second and third pieces of equipment usually hide."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 3. Read the arc flash label on the assigned panel from outside the boundary. Write down, before you touch anything: equipment identifier, system voltage, incident energy in cal/cm², PPE category, arc flash boundary distance, limited approach boundary, restricted approach boundary, and the date on the label."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 4. Compare the category on the label with the category stated on the work order. If they disagree, you work to the more onerous of the two and you flag the disagreement — a work order is a plan, a label is a property of the equipment. Record which you are working to and why."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 5. Select your PPE from the kit. Lay every item out on the bench in the order you will put it on. Do not don anything yet. List what you laid out, item by item."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 6. Isolator: inspect each item before the verifier checks it. Confirm the arc rating printed on each garment label in cal/cm² exceeds the incident energy on the panel label. Check the rubber insulating gloves for class, test date and physical condition, and air-test them. Check the face shield or hood for cracks and the hard hat for its shell date. Record the arc ratings you found and any item you rejected."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 7. Verifier: check the laid-out kit against the panel label before anything is donned. This is a read, not a nod — read the label out loud, then read each item’s rating out loud. Both of you record the verifier’s name and the time of the check."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 9. Using the one-line diagram, identify every energy source feeding the assigned equipment. Write them all down: source identifier, what it feeds, and where its disconnect is. Do not stop at the first one that looks like the main."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 10. Isolator: walk the rack and trace each feed physically, from the panel back towards its source, with your hand following the conduit or the cable. The verifier does not follow you round — they will do their own walk at step 15, and it is only worth anything if it is independent. Compare what you find against the list you just wrote from the drawing. Record what you found on the rack — sources, and where each one enters."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 11. If what you find on the rack does not match the drawing, that is a finding and it is the end of your procedure until it is resolved. Say it out loud, stop, and flag it to your instructor. Do not proceed on the basis of the drawing because the drawing is the controlled document, and do not proceed on the basis of what you can see because you may not be able to see all of it. Record the discrepancy in the lab tool in full: what the drawing shows, what the rack has, and what you did about it."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 13. Apply your personal padlock and tag at every isolation point. Fill the tag out completely before the lock goes on, not after — a tag written afterwards has a gap in it where somebody could have removed the lock. Use a multi-lock hasp wherever more than one person is working on the equipment. Keep your key on your person. Recorder: log every point locked, with the lock number and the time, as it happens rather than afterwards — that log is what a stranger arriving at the rack has to be able to read."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 14. Isolator: identify and release any stored energy — batteries, capacitors, springs, residual pressure. State out loud what you are releasing and why, before you release it. Record each stored energy source, how you released or restrained it, and how you confirmed it was discharged."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "text", "p": "Step 15. Verifier: independently verify the source list against the diagram and against the rack before the isolation is called complete. Independent means you read the diagram yourself and walk the rack yourself. A nod is not a verification and it will be scored as if the step did not happen. Record your own findings in your own words, including any disagreement with the isolator’s list; the isolator records them too."}, {"s": "Part 1: PPE selection and multi-source lockout on the MIR", "k": "image", "p": "Step 16. Recorder: photograph the completed lockout — every locked isolation point, the tags legible, and the hasps in place. Everyone attaches the photograph to their own submission. Attach the photograph in the lab tool, then declare the isolation complete to your instructor."}, {"s": "Part 2: Reflection", "k": "text", "p": "How many energy sources did the one-line diagram show, and how many did you find on the rack? If those numbers are different, identify the exact point in your own sequence at which you would have discovered the difference — and whether you would have discovered it at all if step 15 did not exist."}, {"s": "Part 2: Reflection", "k": "text", "p": "It is common for a technician to lock the documented feeds and declare the job complete. Whether or not you did, describe the specific moment in your own process where that outcome was available to you, and what stopped it or would have stopped it."}, {"s": "Part 2: Reflection", "k": "text", "p": "You kept your key on your person throughout. Explain what is actually wrong with leaving the key in the lock, without using the words “policy”, “rule” or “procedure”. Describe what could physically happen."}, {"s": "Part 2: Reflection", "k": "text", "p": "The lockout is complete, independently verified and photographed. Are you now safe to put your hands on the conductors? Answer yes or no and justify it in two or three sentences. Your answer sets up GLAB 524.1.3."}], "role": true};
 </script>
 <!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
@@ -478,12 +573,12 @@ var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout"
   #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
     padding-bottom:16px;border-bottom:1px solid #2c4a63}
   #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
-  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+  #lqCard .lqfld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
     color:#9db6c9;font-weight:700}
   #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
     background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
   #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
-  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+  #lqCard h3.lqsec{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
     color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
   #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
   #lqCard .lqq{margin-bottom:16px}
@@ -496,7 +591,7 @@ var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout"
     border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
   #lqCard button:hover{background:#20384f;border-color:#3d6485}
   #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
-  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard button.lqprimary:hover{background:#0a6fae}
   #lqCard .lqnote{font-size:12px;color:#9db6c9}
   #lqCard .lqimgwrap{margin-top:7px}
   #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
@@ -525,7 +620,7 @@ var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout"
   .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
   .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
   .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
-  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+  .lqsheet h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
     font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
   .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
   .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
@@ -763,6 +858,17 @@ var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout"
      +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
    +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
      +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   /* group-assessed labs ask for the learner's role; LQ.role turns it on */
+   +(LQ.role
+     ? '<div class="lqfld" style="flex:0 1 200px"><label for="lqRole">Your role in the group</label>'
+       +'<select id="lqRole">'
+         +'<option value="">Choose your role</option>'
+         +'<option>Isolator</option>'
+         +'<option>Verifier</option>'
+         +'<option>Recorder</option>'
+         +'<option>Safety observer</option>'
+       +'</select></div>'
+     : '')
    +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
      +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
    +'</div>';
@@ -801,10 +907,43 @@ var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout"
   card.innerHTML=html;
   host.appendChild(card);
 
+  /* ---------- 3.3.7 Redundant Entry ----------------------------------------
+     A learner should type their name once. Any field that asks for the same
+     thing — marked autocomplete="name" — is kept in step with the submission
+     panel's. Delegated from the document, so a repainted pane still works. */
+  var _syncing=false;
+  var _nameFields=function(){ return document.querySelectorAll('input[autocomplete="name"]'); };
+  document.addEventListener("input",function(ev){
+    var t=ev.target;
+    if(_syncing||!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    _syncing=true;
+    try{
+      store.name=t.value; save();
+      Array.prototype.forEach.call(_nameFields(),function(e){
+        if(e!==t&&e.value!==t.value){
+          e.value=t.value;
+          e.dispatchEvent(new Event("input",{bubbles:true}));
+        }
+      });
+    } finally { _syncing=false; }
+  },true);
+  document.addEventListener("focusin",function(ev){
+    var t=ev.target;
+    if(!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    if(!t.value&&store.name){
+      t.value=store.name;
+      t.dispatchEvent(new Event("input",{bubbles:true}));
+    }
+  },true);
+
   /* ---------- wiring ---------- */
-  ["lqName","lqCohort","lqDate"].forEach(function(id){
+  var _role=document.getElementById("lqRole");
+  if(_role) _role.value=store.role||"";
+  ["lqName","lqCohort","lqDate","lqRole"].forEach(function(id){
     var el=document.getElementById(id);
-    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    if(!el) return;
+    var ev=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    el.oninput=ev; el.onchange=ev;
   });
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
@@ -978,9 +1117,12 @@ var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout"
     var name=document.getElementById("lqName").value.trim();
     var coh=document.getElementById("lqCohort").value.trim();
     var dt=document.getElementById("lqDate").value.trim();
+    var roleEl=document.getElementById("lqRole");
+    var role=roleEl?roleEl.value.trim():"";
     var gaps=[];
     if(!name) gaps.push("Your name");
     if(!coh)  gaps.push("Cohort / section");
+    if(roleEl && !role) gaps.push("Your role in the group");
 
     var h=''
      +'<div class="lqsheet">'
@@ -990,6 +1132,7 @@ var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout"
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +(roleEl?'<div class="lqrow"><span class="k">Role in the group</span><span class="v">'+(esc(role)||"—")+'</span></div>':'')
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
        +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
@@ -1036,7 +1179,7 @@ var LQ={"lab": "GLAB 524.1.2", "title": "PPE Selection and Multi-Source Lockout"
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
       +'Instructor verification: ______________________________'
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
-      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +'<span style="font-size:12px">Save this as a PDF and upload the single file to the '
       +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
 
     document.getElementById("lqOut").innerHTML=h;

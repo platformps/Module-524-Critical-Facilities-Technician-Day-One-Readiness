@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
-    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#87a3bb;
     --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
     --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
     --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
@@ -20,14 +20,14 @@
     background:var(--panel);color:var(--ink);padding:7px 13px}
   button:hover{background:#1b3044;border-color:#2d4d68}
   button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
-  button.primary:hover{background:#0a8bd8}
+  button.primary:hover{background:#0a6fae}
   button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
   button:disabled{opacity:.4;cursor:not-allowed}
   select,input[type=text],input[type=number],textarea{
     font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
     border:1px solid var(--line);border-radius:5px;padding:7px 9px}
   textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
-  h1,h2,h3{margin:0;font-weight:700}
+  h1,h2,h3,h1,h2,h2{margin:0;font-weight:700}
   .mono{font-family:var(--mono)}
 
   /* ---------- shell ---------- */
@@ -39,8 +39,8 @@
   .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
   .spacer{flex:1}
   .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
-  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
-  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+  .clocklbl{color:var(--faint);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
     padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
   .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
   .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
@@ -49,11 +49,11 @@
   .wrap{max-width:1500px;margin:0 auto}
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
-  .card h3{font-size:15px;margin-bottom:4px}
+  .card h3,.card h2{font-size:15px;margin-bottom:4px}
   .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
   .fld{display:flex;flex-direction:column;gap:5px}
-  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .fld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
 
   /* ---------- console ---------- */
@@ -63,30 +63,30 @@
   .g3{grid-template-columns:repeat(3,1fr)}
   .g2{grid-template-columns:1fr 1fr}
   .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
-  .tile .name{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tile .name{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .tile .val{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1.15;margin-top:5px}
   .tile .unit{font-size:14px;color:var(--dim);font-weight:400;margin-left:3px}
-  .tile .band{font-size:11px;color:var(--faint);margin-top:5px;font-family:var(--mono)}
+  .tile .band{font-size:12px;color:var(--faint);margin-top:5px;font-family:var(--mono)}
   .tile.alarm{border-color:var(--stop);background:#2a1512}
   .tile.alarm .val{color:var(--stop)}
   .tile.caution{border-color:#5c4c2e}
   .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
-  .chartbox h3{font-size:13px;margin-bottom:2px}
-  .chartbox .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
+  .chartbox h3,.chartbox h2{font-size:13px;margin-bottom:2px}
+  .chartbox .sub{font-size:12px;color:var(--faint);margin-bottom:8px}
   canvas{display:block;width:100%;height:auto}
   .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-  .stepchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;
+  .stepchip{font-family:var(--mono);font-size:12px;padding:4px 9px;border-radius:4px;
     background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
   .stepchip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
 
   /* ---------- alarms ---------- */
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+  th{text-align:left;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
     font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
   th:hover{color:var(--blue)}
   td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
   tr.ack{opacity:.42}
-  .sev{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .sev{font-size:12px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
   .sev.critical{background:#4a1f1a;color:#ff8f7d}
   .sev.high{background:#4a3418;color:#ffc069}
   .sev.medium{background:#1c3a4f;color:#7fc4ea}
@@ -95,7 +95,7 @@
     background:var(--panel2);cursor:pointer;vertical-align:-3px}
   .tick.on{background:var(--blue);border-color:var(--blue)}
   .flt{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-  .flt .chip{font-size:11px;padding:5px 11px;border-radius:20px;border:1px solid var(--line);
+  .flt .chip{font-size:12px;padding:5px 11px;border-radius:20px;border:1px solid var(--line);
     background:var(--panel2);color:var(--dim);cursor:pointer}
   .flt .chip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
   .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
@@ -105,12 +105,12 @@
 
   /* ---------- submission ---------- */
   .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
-  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit h3,.submit h2{font-size:14px;margin-bottom:3px}
   .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
   .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
   .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
   .result.show{display:block;background:var(--panel2);border:1px solid var(--line)}
-  .result h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+  .result h4,.result h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
     font-weight:700;margin:15px 0 6px}
   .result .kvr{display:flex;justify-content:space-between;gap:12px;padding:5px 0;
     border-bottom:1px solid #1a2c3c;font-size:12px}
@@ -131,21 +131,21 @@
       box-shadow:none !important;text-shadow:none !important;border-color:#bbb !important}
     body:not(.lq-print) .planbox,body:not(.lq-print) .side,body:not(.lq-print) .legend,
     body:not(.lq-print) .sheetbox .noprint{display:none !important}
-    body:not(.lq-print) .result h4{color:#000 !important;border-bottom:1px solid #999}
+    body:not(.lq-print) .result h4,body:not(.lq-print) .result h3{color:#000 !important;border-bottom:1px solid #999}
     body:not(.lq-print) .result .kvr,body:not(.lq-print) td{border-bottom:1px solid #ddd !important}
     body:not(.lq-print) .result .todo{border:1px solid #666 !important}
     body:not(.lq-print) input[type=text]{border:1px solid #bbb !important}
   }
 
-  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+  .labtag{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
     color:var(--blue);margin-bottom:8px}
   .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
 
   /* ---------- lab 1.1 additions ---------- */
   .planwrap{display:grid;grid-template-columns:1fr 350px;gap:14px;align-items:start}
   .planbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:11px 13px}
-  .planbox h3{font-size:13px;margin-bottom:2px}
-  .planbox .sub{font-size:11px;color:var(--faint);margin-bottom:9px}
+  .planbox h3,.planbox h2{font-size:13px;margin-bottom:2px}
+  .planbox .sub{font-size:12px;color:var(--faint);margin-bottom:9px}
   svg#plan{display:block;width:100%;height:auto;background:#09131b;
     border:1px solid var(--line);border-radius:6px;touch-action:none;user-select:none}
   svg#plan .room{fill:#10202c;stroke:#24405a;stroke-width:1.5}
@@ -179,96 +179,120 @@
   svg#plan.mode-noise,svg#plan.mode-fall{cursor:crosshair}
   .side{display:flex;flex-direction:column;gap:12px}
   .lbl{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px 14px}
-  .lbl h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+  .lbl h4,.lbl h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
     font-weight:700;margin:0 0 8px}
   .aflabel{background:#2b2310;border:1px solid #5c4c2e;border-radius:6px;padding:10px 11px}
-  .aflabel .hd{font-size:10px;letter-spacing:1.4px;font-weight:700;color:#ffc069;
+  .aflabel .hd{font-size:12px;letter-spacing:1.4px;font-weight:700;color:#ffc069;
     text-transform:uppercase;border-bottom:1px solid #5c4c2e;padding-bottom:6px;margin-bottom:7px}
-  .aflabel .lrow{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;padding:3px 0}
-  .aflabel .lrow span:first-child{color:#c8a86e}
-  .aflabel .lrow span:last-child{font-family:var(--mono);font-weight:700;text-align:right;color:#ffe1b0}
+  .aflabel dl{margin:0}
+  .aflabel .lrow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:3px 0}
+  .aflabel .lrow dt{color:#c8a86e;margin:0}
+  .aflabel .lrow dd{font-family:var(--mono);font-weight:700;text-align:right;color:#ffe1b0;margin:0}
   .aflabel.alt{background:#2a1512;border-color:#6d3129}
   .aflabel.alt .hd{color:#ff8f7d;border-bottom-color:#6d3129}
-  .aflabel.alt .lrow span:first-child{color:#c98d84}
-  .aflabel.alt .lrow span:last-child{color:#ffb9ae}
+  .aflabel.alt .lrow dt{color:#c98d84}
+  .aflabel.alt .lrow dd{color:#ffb9ae}
   .sheetbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px;margin-top:14px}
-  .sheetbox h3{font-size:14px;margin-bottom:3px}
+  .sheetbox h3,.sheetbox h2{font-size:14px;margin-bottom:3px}
   .sheetbox .sub{font-size:12px;color:var(--faint);margin-bottom:12px}
   .sheetbox input[type=text]{width:100%;padding:5px 7px;font-size:12px}
   .sheetbox td{padding:5px 6px}
   .ck{display:flex;gap:9px;align-items:center;cursor:pointer;font-size:12.5px;margin:10px 0 8px}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--faint);margin-top:8px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--faint);margin-top:8px}
   .legend b{color:var(--dim);font-weight:400}
   .swatch{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:5px}
   .modeon{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
-</style>
-<style id="pkStyle">
-  /* ---------- Floor Route Packet (in-tool, printable) ---------- */
-  .packet{background:#fbfaf6;color:#111;border:1px solid #c9c4b4;border-radius:9px;padding:22px 26px;
-    font-size:13px;line-height:1.5;margin-bottom:14px}
-  .packet h2{font-size:19px;margin:0 0 2px;color:#1a3a5c}
-  .packet h3{font-size:14px;color:#1a3a5c;margin:22px 0 8px;border-bottom:1px solid #c3ced7;padding-bottom:4px;font-weight:700}
-  .packet .pkeyebrow{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#0b6ea8;font-weight:700;margin:0 0 8px}
-  .packet .pklede{color:#5a6b78;margin:0 0 14px;max-width:80ch}
-  .packet p{margin:0 0 10px;color:#222}
-  .packet table{font-size:12.5px;border-collapse:collapse;width:100%;margin:8px 0 4px}
-  .packet th,.packet td{border:1px solid #c3ced7;padding:6px 8px;text-align:left;vertical-align:top;color:#111}
-  .packet th{background:#1a3a5c;color:#fff;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;cursor:default;white-space:normal}
-  .packet th:hover{color:#fff}
-  .packet .pkcover td:first-child{width:190px;background:#f2f6f9;font-weight:600}
-  .packet input[type=text],.packet select{background:#fff;color:#111;border:1px solid #b9b3a3;border-radius:4px;
-    padding:5px 7px;font-size:12.5px;width:100%;font-family:inherit}
-  .packet .pksheet input[type=text]{padding:5px 6px}
-  .packet label.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-  .packet .pkval{display:inline-block;min-width:60%;border-bottom:1px solid #888;padding:0 4px 1px;color:#111}
-  .packet .pknote{background:#f2f6f9;border-left:3px solid #0b6ea8;padding:10px 14px;margin:14px 0;color:#222;font-size:13px;line-height:1.5}
-  .packet .pknote strong{color:#1a3a5c}
-  .packet ol.route{margin:8px 0 0;padding-left:0;list-style:none;columns:2;column-gap:34px}
-  .packet ol.route li{margin:0 0 7px;padding-left:30px;position:relative;break-inside:avoid;color:#222}
-  .packet ol.route li b{display:inline-block;position:absolute;left:0;top:0;width:21px;height:21px;line-height:21px;
-    text-align:center;border-radius:50%;background:#c8501e;color:#fff;font-size:11px}
-  .packet svg#pkPlan{width:100%;height:auto;border:1px solid #c3ced7;background:#fff;display:block}
-  .packet .pklegend{display:flex;flex-wrap:wrap;gap:18px;margin:10px 0 0;font-size:11.5px;color:#5a6b78}
-  .packet .pklegend span{display:flex;align-items:center;gap:6px}
-  .packet .pklegend .sw{width:16px;height:11px;border:1px solid #c3ced7;display:inline-block}
-  .packet .pkbtns{display:flex;gap:9px;margin-top:16px;align-items:center;flex-wrap:wrap}
-  .packet .pkbtns button{background:#fff;color:#111;border-color:#999}
-  .packet .pkbtns button:hover{background:#eee}
-  .packet .pkbtns .pkhint{font-size:12px;color:#555}
-  .packet .pkfoot{font-size:11px;color:#666;margin-top:16px;border-top:1px solid #ccc;padding-top:8px}
-  .packet .pkbreak{border-top:2px dashed #c3ced7;margin:28px 0 22px}
-  @media print{
-    body.pk-print{background:#fff!important;color:#000!important;overflow:visible!important;height:auto!important}
-    body.pk-print>*{display:none!important}
-    body.pk-print>#packetPane{display:block!important}
-    body.pk-print .packet{border:0;padding:0;background:#fff;color:#000;border-radius:0;margin:0}
-    body.pk-print .packet *{color:#000!important;background:transparent!important;box-shadow:none!important}
-    body.pk-print .packet th{border-bottom:2px solid #000}
-    body.pk-print .packet input[type=text],body.pk-print .packet select{border:0;border-bottom:1px solid #888;border-radius:0;appearance:none;-webkit-appearance:none}
-    body.pk-print .packet .pkbtns,body.pk-print .noprint{display:none!important}
-    body.pk-print .packet tr{page-break-inside:avoid;break-inside:avoid}
-    body.pk-print .packet thead{display:table-header-group}
-    body.pk-print .packet .pkbreak{page-break-before:always;break-before:page;border:0;margin:0;height:0}
-    body.pk-print .packet svg#pkPlan{border-color:#888}
-    body.pk-print .packet ol.route li b{background:#000!important;color:#fff!important}
+  .kbdalt{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}
+  .kbdalt h3,.kbdalt h2{font-size:13px;margin-bottom:7px}
+  .errmsg{color:#ffb9ae;font-size:12px;line-height:1.45;margin:7px 0 0}
+  .errmsg:empty{display:none}
+  .fld .fldcap{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
+    color:var(--faint);font-weight:700;display:block}
+  /* ---------- v5 accessibility remediation (WCAG 2.2 AA) ---------- */
+  /* 2.4.1 Bypass Blocks */
+  .skip-link{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--navy);
+    color:#fff;font-weight:700;font-size:14px;padding:12px 18px;border-radius:0 0 6px 0;
+    text-decoration:none}
+  .skip-link:focus{left:0;outline:3px solid #fff;outline-offset:-3px}
+  /* text for assistive technology only */
+  .vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 2.4.7 Focus Visible — a CSS outline does not paint reliably on shapes inside an
+     <svg>, so stroke the shape as well as outlining the box. */
+  svg [tabindex]:focus-visible,svg [role=button]:focus-visible,svg a:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px}
+  svg [tabindex]:focus-visible rect,svg [tabindex]:focus-visible circle,
+  svg [tabindex]:focus-visible path,svg [tabindex]:focus-visible polygon,
+  svg [tabindex]:focus-visible ellipse,svg [tabindex]:focus-visible line,
+  svg [role=button]:focus-visible rect,svg [role=button]:focus-visible circle,
+  svg [role=button]:focus-visible path,svg [role=button]:focus-visible polygon{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  svg rect[tabindex]:focus-visible,svg circle[tabindex]:focus-visible,
+  svg path[tabindex]:focus-visible,svg polygon[tabindex]:focus-visible{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  main:focus{outline:none}
+  /* 2.5.8 Target Size (Minimum) — 24x24 CSS px floor on every control */
+  button,[role=button],summary,.tick,.chip,.x,.nc,.docrow td,.cell{
+    min-height:24px}
+  button,[role=button],summary,.tick,.chip,.x,.nc{min-width:24px}
+  input[type=checkbox],input[type=radio]{min-width:24px;min-height:24px;
+    width:18px;height:18px;padding:3px}
+  /* 1.4.4 Resize text / 1.4.10 Reflow — release the fixed-height shell so the page
+     scrolls in one direction once text is enlarged or the viewport narrows. */
+  @media (max-width:1100px),(max-height:620px){
+    html,body{height:auto;min-height:100%;overflow:auto}
+    #app{height:auto;min-height:100vh}
+    main{overflow:visible}
+    .toolbar{position:static}
   }
+  @media (max-width:900px){
+    /* every multi-column layout becomes a single column, so nothing is pushed
+       off the side where it cannot be scrolled to */
+    .grid,.g2,.g3,.g4,.cols,.split,.fgrid,.planwrap,.segs,.lamps,.two{
+      display:block!important}
+    .grid>*,.g2>*,.g3>*,.fgrid>*,.planwrap>*{margin-bottom:12px;max-width:100%}
+    .row,.toolbar,.navchips,.flt,.steps,header,.ph,.mline,.lkrow,.ck,.lead,.legend{
+      flex-wrap:wrap!important}
+    .pnl,.seg,.lamp,.setcard,.card,.tile,.planbox,.sheetbox,.submit,.gcard,.sectbox{
+      max-width:100%}
+    .sysname{border-left:0;padding-left:0}
+    .fld,.fld input,.fld select,.fld textarea{max-width:100%}
+    input[type=text],input[type=number],select,textarea{max-width:100%}
+    /* diagrams scale to the viewport rather than demanding sideways scrolling */
+    svg{max-width:100%;height:auto}
+    canvas{max-width:100%}
+    /* a wide data table may scroll in its own box — 1.4.10 allows that for
+       tables — and the box is focusable so a keyboard can reach the scroll */
+    .tablewrap{overflow-x:auto}
+    table{max-width:100%}
+    main{padding:12px}
+  }
+  @media (max-width:900px){
+    .fgrid,.g2,.g3,.planwrap{grid-template-columns:1fr!important}
+    .aflabel .lrow,.ck,.flt,.legend,.result .kvr,.row,.steps,.toolbar{flex-wrap:wrap!important}
+  }
+  /* 2.1.1 — a scrollable pane must itself be reachable by keyboard */
+  .scrollx{overflow-x:auto}
+  .scrollx:focus-visible,[data-scrollpane]:focus-visible{outline:2px solid #4fb3ef;outline-offset:2px}
+  @media print{ .skip-link{display:none!important} }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <div id="app">
 
   <header>
-    <div class="brand">SAFETY ZONE MAPPING TOOL</div>
+    <h1 class="brand">SAFETY ZONE MAPPING TOOL</h1>
     <div class="sysname">GLAB 524.1.1 &middot; UCI 2227 · objective M1.1 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
-    <div id="statusBadge" class="badge">Ready</div>
+    <div id="statusBadge" class="badge" role="status">Ready</div>
     <div>
       <div class="clocklbl">Site time</div>
       <div class="clock mono" id="clock">--:--:--</div>
     </div>
   </header>
 
-  <div class="toolbar" id="toolbar">
+  <div role="region" aria-label="Simulator controls" class="toolbar" id="toolbar">
     <button id="btnInspect" class="modeon">Inspect</button>
     <button id="btnBoundary">Mark boundary</button>
     <button id="btnNoise">Shade noise</button>
@@ -276,15 +300,14 @@
     <span style="width:10px"></span>
     <button id="btnClear">Clear marks</button>
     <span style="width:10px"></span>
-    <button id="btnPacket" title="Floor Route Packet: cover, route, plan and the hazard check sheet — readable, fillable and printable here">Packet</button>
+    <button id="btnPacket" title="Opens the Floor Route Packet (route, plan and hazard check sheet) in its own window, so it can sit beside this console">Packet ↗</button>
     <span class="spacer"></span>
-    <span class="counter" id="counts">no marks yet</span>
+    <span class="counter" id="counts" role="status" aria-live="polite" aria-atomic="true">no marks yet</span>
     <button id="btnRestart">Restart</button>
   </div>
 
-  <main>
+  <main id="main" tabindex="-1">
     <div class="wrap">
-      <section id="packetPane" class="hidden" aria-label="Floor Route Packet"></section>
       <section id="zoneView"></section>
     </div>
   </main>
@@ -412,9 +435,29 @@ const ZONES_BASE=[
 ];
 const S={learner:"",t:0,timer:null,mode:"inspect",
   bounds:{},shades:[],falls:[],rows:[],sel:null,flagged:{},z1:"",
-  showSurvey:false,conflictFlag:false,zones:[],drag:null,
-  packet:{entryAt:"",exitAt:"",cnt34:"",cntFall:"",cntLabel:"",conflict:""}};
+  showSurvey:false,conflictFlag:false,zones:[],drag:null,pendShade:null};
 const $=id=>document.getElementById(id);
+/* --- keyboard activation for custom controls (WCAG 2.1.1, 2.4.3) ------------
+   Roles and accessible names are authored in the markup; this only binds the
+   keys and restores focus after the repaint an activation triggers. */
+function kbdActivate(rootId,selector,keyAttr){
+  const root=typeof rootId==="string"?$(rootId):rootId;
+  if(!root||root.dataset.kbdBound)return;
+  root.dataset.kbdBound="1";
+  root.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    const t=e.target.closest&&e.target.closest(selector);
+    if(!t)return;
+    e.preventDefault();
+    const key=keyAttr?t.getAttribute(keyAttr):null;
+    /* SVGElement has no .click(), so raise a real event that bubbles the same way */
+    t.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));
+    if(key!=null){
+      const again=document.querySelector(selector.split(",")[0].replace(/:.*$/,"")+"["+keyAttr+'="'+key+'"]');
+      if(again&&again.focus)again.focus();
+    }
+  });
+}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let V=SETUPS[SET];
@@ -493,14 +536,23 @@ function planZones(){
    </g>`).join("");
 }
 function planEquip(){
-  return EQUIP.map(e=>{
+  /* Focus order follows the plan as it reads — the upper half left to right,
+     then the lower half — rather than the order the data happens to be in.
+     EQUIP keeps its authored order because the scenario indexes into it. */
+  const ordered=EQUIP.slice().sort((a,b)=>
+    ((a.y<320?0:1)-(b.y<320?0:1))||(a.x-b.x)||(a.y-b.y));
+  return ordered.map(e=>{
     const cls=["eq"];
     if(S.sel===e.id) cls.push("sel");
     if(S.bounds[e.id]) cls.push("done");
     if(S.flagged[e.id]) cls.push("fx");
-    return `<g class="${cls.join(" ")}" data-id="${e.id}">
+    const st=[];
+    if(S.bounds[e.id]) st.push("boundary drawn at "+S.bounds[e.id].dist+" inches");
+    if(S.flagged[e.id]) st.push("flagged for a written finding");
+    const state=st.length?st.join(", ")+".":"no boundary drawn yet.";
+    return `<g class="${cls.join(" ")}" data-id="${e.id}" role="button" tabindex="0" aria-pressed="${S.sel===e.id?"true":"false"}" aria-label="${e.id}, ${e.nm}. ${state} Select to read its posted label.">
       <rect x="${e.x}" y="${e.y}" width="${e.w}" height="${e.h}" rx="3"/>
-      <text x="${e.cx}" y="${e.cy+4}" text-anchor="middle">${e.id}</text></g>`;
+      <text x="${e.cx}" y="${e.cy+4}" text-anchor="middle" aria-hidden="true">${e.id}</text></g>`;
   }).join("");
 }
 function drawMarks(){
@@ -528,14 +580,97 @@ function paintCounts(){
 
 /* ---------- side panel ---------- */
 const MODEHELP={
-  inspect:"Click any item of equipment to read its posted arc flash label. Read the whole label, every line of it. If any part of a label cannot be read with confidence, flag the item and write it up — do not take the number from the panel next to it.",
-  boundary:"Click equipment, then type the arc flash boundary distance you read off its label. The circle is drawn at the distance you enter, so a misread shows up on the plan.",
-  noise:"Press and drag across the plan to shade a noise zone, then enter the level you are working to. Shade the zone, not the whole hall — an oversized rectangle will not be credited.",
-  fall:"Click anywhere a technician would be working above four feet. General industry, 1910.28 and 1910.23 — four feet, not six."
+  inspect:"Select any item of equipment on the plan to read its posted arc flash label — with a pointer, or by moving to it with the Tab key and pressing Enter. Read the whole label, every line of it. If any part of a label cannot be read with confidence, flag the item and write it up — do not take the number from the panel next to it.",
+  boundary:"Select an item of equipment, then enter the arc flash boundary distance you read off its label in the field that appears with it. The circle is drawn at the distance you enter, so a misread shows up on the plan.",
+  noise:"Drag across the plan to shade a noise zone, or choose the zone and its level in the fields provided in this panel. Either way, shade the zone and not the whole hall — an oversized rectangle will not be credited.",
+  fall:"Mark every place a technician would be working above four feet: select the spot on the plan, or choose the location in the field provided in this panel. General industry, 1910.28 and 1910.23 — four feet, not six."
 };
+/* Every labelled place on the plan, so a learner who is not using a pointer
+   still has to decide which of them is a fall hazard — the list is the plan,
+   not the answer. */
+function fallPlaces(){
+  const base=[
+    ["Data hall — Pod A",170,175],
+    ["Data hall — Pod B",170,485],
+    ["Electrical room",545,185],
+    ["Mechanical room",545,495],
+    ["Generator yard",940,175],
+    ["Loading dock floor",825,400],
+    ["Dock lift pit",825,449],
+    ["Cable tray run",600,430],
+    ["Overhead work area",1055,400],
+    ["Raised platform",1060,565]
+  ];
+  if(V.mode==="tray") base.push(["Mobile lift at the tray pull",250,459]);
+  else if(V.mode==="mezz") base.push(["Mezzanine",891,361]);
+  else base.push(["Scaffold",610,590]);
+  return base;
+}
+function altPanel(){
+  if(S.mode==="noise"){
+    const pend=S.pendShade;
+    const zoneOpts=S.zones.map(z=>`<option value="${z.id}">${z.id} · ${z.nm}</option>`).join("");
+    return `<div class="kbdalt">
+      <h3>${pend?"Level for the zone you just shaded":"Shade a zone without dragging"}</h3>
+      ${pend?"":`<div class="fld" style="margin-bottom:9px"><label for="nzZone">Zone to shade</label>
+        <select id="nzZone" style="width:100%"><option value="">— choose —</option>${zoneOpts}</select></div>`}
+      <div class="fld"><label for="nzDba">Level you are working to (dBA)</label>
+        <input type="number" id="nzDba" min="40" max="140" step="1" style="width:130px"
+               aria-describedby="nzHint nzErr"></div>
+      <div class="hint" id="nzHint">A whole number between 40 and 140 dBA.</div>
+      <p class="errmsg" id="nzErr" role="alert"></p>
+      <button class="primary" id="nzAdd" style="margin-top:8px">${pend?"Record this level":"Shade this zone"}</button>
+      ${pend?`<button id="nzCancel" style="margin-top:8px">Discard that rectangle</button>`:""}
+    </div>`;
+  }
+  if(S.mode==="fall"){
+    return `<div class="kbdalt">
+      <h3>Mark a fall hazard without using the plan</h3>
+      <div class="fld"><label for="flLoc">Location on the plan</label>
+        <select id="flLoc" style="width:100%" aria-describedby="flErr"><option value="">— choose —</option>${
+          fallPlaces().map((p,i)=>`<option value="${i}">${p[0]}</option>`).join("")}</select></div>
+      <p class="errmsg" id="flErr" role="alert"></p>
+      <button class="primary" id="flAdd" style="margin-top:8px">Mark this location</button>
+    </div>`;
+  }
+  return "";
+}
 function paintSide(){
-  $("modeHelp").innerHTML=`<h4>${S.mode==="inspect"?"Inspect":S.mode==="boundary"?"Mark arc flash boundary":S.mode==="noise"?"Shade noise zone":"Mark fall hazard"}</h4>
-    <div class="note">${MODEHELP[S.mode]}</div>`;
+  $("modeHelp").innerHTML=`<h3>${S.mode==="inspect"?"Inspect":S.mode==="boundary"?"Mark arc flash boundary":S.mode==="noise"?"Shade noise zone":"Mark fall hazard"}</h3>
+    <div class="note">${MODEHELP[S.mode]}</div>`+altPanel();
+  const err=(id,msg)=>{const n=$(id); if(n) n.textContent=msg||"";};
+  const add=$("nzAdd");
+  if(add) add.onclick=()=>{
+    const dbaEl=$("nzDba"), n=+dbaEl.value;
+    if(!dbaEl.value.trim()||isNaN(n)||n<40||n>140){
+      err("nzErr","Enter the level as a whole number between 40 and 140 dBA.");
+      dbaEl.setAttribute("aria-invalid","true"); dbaEl.focus(); return;
+    }
+    dbaEl.removeAttribute("aria-invalid"); err("nzErr","");
+    if(S.pendShade){
+      const d=S.pendShade; S.pendShade=null;
+      S.shades.push({x:d.x,y:d.y,w:d.w,h:d.h,dba:Math.round(n)});
+    }else{
+      const zid=$("nzZone").value;
+      if(!zid){ err("nzErr","Choose the zone you are shading."); $("nzZone").focus(); return; }
+      const z=S.zones.filter(q=>q.id===zid)[0];
+      S.shades.push({x:z.x,y:z.y,w:z.w,h:z.h,dba:Math.round(n)});
+    }
+    drawMarks(); paintSide();
+    if($("nzAdd")) $("nzAdd").focus();
+  };
+  const cancel=$("nzCancel");
+  if(cancel) cancel.onclick=()=>{S.pendShade=null;paintSide();};
+  const fadd=$("flAdd");
+  if(fadd) fadd.onclick=()=>{
+    const sel=$("flLoc");
+    if(sel.value===""){ err("flErr","Choose the location you are marking."); sel.focus(); return; }
+    err("flErr","");
+    const p=fallPlaces()[+sel.value];
+    S.falls.push({x:p[1],y:p[2]});
+    drawMarks(); paintSide();
+    if($("flAdd")) $("flAdd").focus();
+  };
   paintLabel();
 }
 function labelHTML(e){
@@ -544,54 +679,56 @@ function labelHTML(e){
     (fl?"Remove this flag":"Flag this item for a written finding")+`</button>`;
   if(e.id===S.z1){
     return `<div class="aflabel alt">
-      <div class="hd">Posted label</div>
-      <div class="lrow"><span>Equipment</span><span>${e.id}</span></div>
-      <div class="lrow"><span>Nominal voltage</span><span>▓▓▓ V</span></div>
-      <div class="lrow"><span>Incident energy</span><span>▓▓.▓ cal/cm²</span></div>
-      <div class="lrow"><span>PPE category</span><span>▓</span></div>
-      <div class="lrow"><span>Arc flash boundary</span><span>▓▓ in</span></div>
-      <div class="lrow"><span>Limited approach</span><span>▓▓ in</span></div>
-      <div class="lrow"><span>Restricted approach</span><span>▓▓ in</span></div>
-      <div class="lrow"><span>Study date</span><span>&#9619;&#9619; &#9619;&#9619;&#9619; &#9619;&#9619;&#9619;&#9619;</span></div>
-    </div>${btn}
+      <div class="hd">Posted label</div><dl>
+      <div class="lrow"><dt>Equipment</dt><dd>${e.id}</dd></div>
+      <div class="lrow"><dt>Nominal voltage</dt><dd>▓▓▓ V</dd></div>
+      <div class="lrow"><dt>Incident energy</dt><dd>▓▓.▓ cal/cm²</dd></div>
+      <div class="lrow"><dt>PPE category</dt><dd>▓</dd></div>
+      <div class="lrow"><dt>Arc flash boundary</dt><dd>▓▓ in</dd></div>
+      <div class="lrow"><dt>Limited approach</dt><dd>▓▓ in</dd></div>
+      <div class="lrow"><dt>Restricted approach</dt><dd>▓▓ in</dd></div>
+      <div class="lrow"><dt>Study date</dt><dd>&#9619;&#9619; &#9619;&#9619;&#9619; &#9619;&#9619;&#9619;&#9619;</dd></div>
+    </dl></div>${btn}
     ${fl?'<div class="note" style="color:var(--ok);margin-top:8px">Flagged. Write the detail on the hazard check sheet as well.</div>':""}`;
   }
   const extra=e.extra?`<div class="note" style="margin-top:9px">${e.extra}</div>`:"";
   const marked=e.afb<12?`<div class="note" style="margin-top:9px">Boundary is inside twelve inches, which on this site is inside the enclosure line. It is not floor-marked and does not need a boundary on your map. It still needs the panel kept shut.</div>`:"";
   return `<div class="aflabel">
-      <div class="hd">Posted arc flash label</div>
-      <div class="lrow"><span>Equipment</span><span>${e.id}</span></div>
-      <div class="lrow"><span>Description</span><span style="font-size:10.5px">${e.nm}</span></div>
-      <div class="lrow"><span>Nominal voltage</span><span>${e.v}</span></div>
-      <div class="lrow"><span>Incident energy</span><span>${e.ie.toFixed(1)} cal/cm²</span></div>
-      <div class="lrow"><span>PPE category</span><span>${e.cat}</span></div>
-      <div class="lrow"><span>Arc flash boundary</span><span>${e.afb} in</span></div>
-      <div class="lrow"><span>Limited approach</span><span>${e.lim} in</span></div>
-      <div class="lrow"><span>Restricted approach</span><span>${e.res} in</span></div>
-      <div class="lrow"><span>Working distance</span><span>18 in</span></div>
-    </div>${extra}${marked}${btn}
+      <div class="hd">Posted arc flash label</div><dl>
+      <div class="lrow"><dt>Equipment</dt><dd>${e.id}</dd></div>
+      <div class="lrow"><span>Description</span><span style="font-size:12px">${e.nm}</span></div>
+      <div class="lrow"><dt>Nominal voltage</dt><dd>${e.v}</dd></div>
+      <div class="lrow"><dt>Incident energy</dt><dd>${e.ie.toFixed(1)} cal/cm²</dd></div>
+      <div class="lrow"><dt>PPE category</dt><dd>${e.cat}</dd></div>
+      <div class="lrow"><dt>Arc flash boundary</dt><dd>${e.afb} in</dd></div>
+      <div class="lrow"><dt>Limited approach</dt><dd>${e.lim} in</dd></div>
+      <div class="lrow"><dt>Restricted approach</dt><dd>${e.res} in</dd></div>
+      <div class="lrow"><dt>Working distance</dt><dd>18 in</dd></div>
+    </dl></div>${extra}${marked}${btn}
     ${fl?'<div class="note" style="color:var(--ok);margin-top:8px">Flagged. Write the detail on the hazard check sheet as well.</div>':""}`;
 }
 function paintLabel(){
   const box=$("lblBox");
   if(!S.sel){
-    box.innerHTML=`<h4>Posted label</h4><div class="note">No equipment selected. Click an item on the plan.</div>`;
+    box.innerHTML=`<h3>Posted label</h3><div class="note">No equipment selected. Click an item on the plan.</div>`;
     return;
   }
   const e=eqById(S.sel);
-  let html=`<h4>Posted label — ${e.id}</h4>`+labelHTML(e);
+  let html=`<h3>Posted label — ${e.id}</h3>`+labelHTML(e);
   if(S.mode==="boundary"&&e.id!==S.z1){
     const cur=S.bounds[e.id]?S.bounds[e.id].dist:"";
     html+=`<div class="row" style="margin-top:11px">
-      <div class="fld"><label>Boundary distance read off the label (in)</label>
-        <input type="number" id="bdDist" value="${cur}" style="width:130px"></div>
+      <div class="fld"><label for="bdDist">Boundary distance read off the label (in)</label>
+        <input type="number" id="bdDist" value="${cur}" style="width:130px" aria-describedby="bdErr"></div>
+      <p class="errmsg" id="bdErr" role="alert"></p>
       <button class="primary" id="bdMark">Draw boundary</button>
       <button id="bdCancel">Cancel</button></div>`;
   }
   if(S.mode==="boundary"&&e.id===S.z1){
     html+=`<div class="row" style="margin-top:11px">
-      <div class="fld"><label>Boundary distance (in)</label>
-        <input type="number" id="bdDist" style="width:130px"></div>
+      <div class="fld"><label for="bdDist">Boundary distance (in)</label>
+        <input type="number" id="bdDist" style="width:130px" aria-describedby="bdErr"></div>
+      <p class="errmsg" id="bdErr" role="alert"></p>
       <button id="bdMark">Draw boundary</button>
       <button id="bdCancel">Cancel</button></div>`;
   }
@@ -600,8 +737,14 @@ function paintLabel(){
   if(lg) lg.onclick=()=>{S.flagged[e.id]=!S.flagged[e.id];paintLabel();drawMarks();};
   const mk=box.querySelector("#bdMark");
   if(mk) mk.onclick=()=>{
-    const d=+box.querySelector("#bdDist").value;
-    if(!d||d<=0){alert("Enter the boundary distance in inches, as printed on the label.");return;}
+    const fld=box.querySelector("#bdDist"), d=+fld.value;
+    if(!d||d<=0){
+      const e=box.querySelector("#bdErr");
+      if(e) e.textContent="Enter the boundary distance in inches, as printed on the label.";
+      fld.setAttribute("aria-invalid","true"); fld.focus(); return;
+    }
+    fld.removeAttribute("aria-invalid");
+    const eok=box.querySelector("#bdErr"); if(eok) eok.textContent="";
     S.bounds[e.id]={dist:Math.round(d)};
     drawMarks(); paintLabel();
   };
@@ -618,7 +761,6 @@ function paintSheet(){
     <td><input type="text" data-i="${i}" data-k="who" value="${esc(r.who)}" placeholder="who is exposed"></td>
     <td class="noprint"><button data-del="${i}">Delete</button></td></tr>`).join("");
   paintCounts();
-  paintPacketSheet();
 }
 
 /* ---------- geometry ---------- */
@@ -633,8 +775,8 @@ function svgPoint(evt){
 }
 
 /* ---------- submission sheet ---------- */
-function sheetHTML(forRecord){
-  const b=[];
+function buildSubmission(){
+  const r=$("mapResult"), b=[];
   b.push(`<h3 style="font-size:15px">${LAB.lab} — ${LAB.title}</h3>
     <div class="sub" style="margin:2px 0 11px">Submission sheet</div>`);
   b.push(kvr("Name",esc(S.learner)||"—")+
@@ -656,8 +798,7 @@ function sheetHTML(forRecord){
         s.dba+" dBA")).join("")
       :`<div class="note">No noise zones shaded.</div>`));
 
-  const gv=id=>{const e=$(id);return e?e.value:"";};
-  const cz=gv("confZone"), cs=gv("confSign"), cv=gv("confSurvey");
+  const cz=$("confZone").value, cs=$("confSign").value, cv=$("confSurvey").value;
   const czn=cz?(S.zones.filter(z=>z.id===cz)[0]||{}).nm:"";
   b.push(`<h4>Signage against survey</h4>`+
     kvr("Conflict box ticked",S.conflictFlag?"yes":"no")+
@@ -679,32 +820,23 @@ function sheetHTML(forRecord){
       :`<div class="note">No rows written.</div>`));
 
   b.push(`<h4>Sentence for the shift lead</h4>`+
-    `<div class="note">${esc(gv("ansText").trim())||"—"}</div>`);
-
-  b.push(packetRecordHTML());
+    `<div class="note">${esc($("ansText").value.trim())||"—"}</div>`);
 
   const miss=[];
   if(!S.learner) miss.push("your name");
-  if(!gv("ansText").trim()) miss.push("the sentence for the shift lead");
+  if(!$("ansText").value.trim()) miss.push("the sentence for the shift lead");
   if(!S.rows.some(x=>x.where&&x.what&&x.when&&x.who))
     miss.push("at least one hazard check sheet row with all four columns filled");
-  if(!packetAnyFilled()) miss.push("the packet cover times and the critical-set counts (Packet button on the toolbar)");
   if(miss.length) b.push(`<div class="todo"><b>Blank fields on this sheet:</b>
     <ul>${miss.map(m=>`<li>${m}</li>`).join("")}</ul></div>`);
 
-  b.push(`<div class="close">This record is embedded in your submission PDF.</div>`);
-  if(!forRecord) b.push(`<div class="row noprint" style="margin-top:11px">
+  b.push(`<div class="close">This record is embedded in your submission PDF.</div>
+    <div class="row noprint" style="margin-top:11px">
       <button onclick="window.print()">Print submission sheet</button></div>`);
-  return b.join("");
-}
-function buildSubmission(){
-  const r=$("mapResult"); if(!r) return;
+
   r.className="result show";
-  r.innerHTML=sheetHTML(false);
+  r.innerHTML=b.join("");
 }
-/* The submission module calls this when the learner presses Build submission PDF.
-   It builds the record from state, whatever is on screen, without touching the visible view. */
-window.lqRecord=function(){ return sheetHTML(true); };
 
 /* ---------- view ---------- */
 function buildView(){
@@ -712,7 +844,7 @@ function buildView(){
   el.innerHTML=`
     <div class="planwrap">
       <div class="planbox">
-        <h3>Ground floor — hazard map</h3>
+        <h2>Ground floor — hazard map</h2>
         <div class="sub">Plan scale one unit to one and a half inches. Boundary circles are drawn at the distance you enter.</div>
         <svg id="plan" viewBox="0 0 1200 700" class="mode-inspect">
           <g id="rooms">${planStatic()}</g>
@@ -736,17 +868,17 @@ function buildView(){
         <div class="lbl" id="modeHelp"></div>
         <div class="lbl" id="lblBox"></div>
         <div class="lbl">
-          <h4>Acoustic survey</h4>
+          <h3>Acoustic survey</h3>
           <div class="note">The dBA figures on the plan are the placards posted on the walls. The survey is a separate document. Bring it up and compare.</div>
           <button id="btnSurvey" style="margin-top:9px">Show posted acoustic survey</button>
-          <div class="ck" id="ckWrap"><span class="tick" id="chkConflict"></span>
-            <span>Conflict flagged — signage disagrees with survey</span></div>
+          <div class="ck" id="ckWrap"><input type="checkbox" id="chkConflict">
+            <label for="chkConflict">Conflict flagged — signage disagrees with survey</label></div>
           <div class="row">
-            <div class="fld"><label>Zone</label>
+            <div class="fld"><label for="confZone">Zone</label>
               <select id="confZone" style="width:150px"></select></div>
-            <div class="fld"><label>Sign dBA</label>
+            <div class="fld"><label for="confSign">Sign dBA</label>
               <input type="number" id="confSign" style="width:78px"></div>
-            <div class="fld"><label>Survey dBA</label>
+            <div class="fld"><label for="confSurvey">Survey dBA</label>
               <input type="number" id="confSurvey" style="width:78px"></div>
           </div>
         </div>
@@ -754,13 +886,13 @@ function buildView(){
     </div>
 
     <div class="sheetbox">
-      <h3>Hazard check sheet</h3>
+      <h2>Hazard check sheet</h2>
       <div class="sub">One row per finding. Where it is, what it is with the number attached, when it is present, and who is exposed. This is the page that goes in the permit file.</div>
       <table>
         <thead><tr>
           <th style="cursor:default">Where</th><th style="cursor:default">What</th>
           <th style="cursor:default">When</th><th style="cursor:default">Who</th>
-          <th style="cursor:default;width:70px" class="noprint"></th>
+          <th style="cursor:default;width:70px" class="noprint" scope="col"><span class="vh">Row actions</span></th>
         </tr></thead>
         <tbody id="sheetBody"></tbody>
       </table>
@@ -770,14 +902,14 @@ function buildView(){
     </div>
 
     <div class="submit">
-      <h3>Submission sheet</h3>
+      <h2>Submission sheet</h2>
       <div class="sub">Builds a printable record of everything you marked and everything you wrote. Read it before you print it.</div>
       <div class="fld" style="margin-bottom:12px">
-        <label>Your name</label>
-        <input type="text" id="learnerName" style="width:280px" autocomplete="off">
+        <label for="learnerName">Your name</label>
+        <input type="text" id="learnerName" style="width:280px" autocomplete="name">
       </div>
       <div class="fld" style="margin-bottom:12px">
-        <label>The one sentence you would give the shift lead about this floor</label>
+        <label for="ansText">The one sentence you would give the shift lead about this floor</label>
         <textarea id="ansText" rows="3" placeholder="one sentence, in your own words"></textarea>
       </div>
       <button class="primary noprint" id="btnSubmitMap">Build submission sheet</button>
@@ -788,6 +920,17 @@ function buildView(){
     S.zones.map(z=>`<option value="${z.id}">${z.id} · ${z.nm}</option>`).join("");
 
   const plan=$("plan");
+  /* 2.1.1 — Enter and Space operate an item of equipment exactly as a click does,
+     and focus is put back on it once the plan repaints. */
+  plan.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"&&e.key!==" ") return;
+    const g=e.target.closest&&e.target.closest(".eq"); if(!g) return;
+    e.preventDefault();
+    const id=g.dataset.id;
+    S.sel=id; drawMarks(); paintLabel();
+    const again=$("equip").querySelector('[data-id="'+id+'"]');
+    if(again) again.focus();
+  });
   plan.addEventListener("click",e=>{
     if(S.mode==="noise") return;
     const g=e.target.closest(".eq");
@@ -820,12 +963,9 @@ function buildView(){
     const x=Math.min(d.x0,d.x1), y=Math.min(d.y0,d.y1);
     const w=Math.abs(d.x1-d.x0), h=Math.abs(d.y1-d.y0);
     if(w<25||h<25) return;
-    const v=prompt("Noise level you are working to in this zone, in dBA:","");
-    if(v===null) return;
-    const n=+v;
-    if(!n||n<40||n>140){alert("Enter a level between 40 and 140 dBA.");return;}
-    S.shades.push({x:Math.round(x),y:Math.round(y),w:Math.round(w),h:Math.round(h),dba:Math.round(n)});
-    drawMarks();
+    S.pendShade={x:Math.round(x),y:Math.round(y),w:Math.round(w),h:Math.round(h)};
+    paintSide();
+    const f=$("nzDba"); if(f) f.focus();
   });
   plan.addEventListener("pointercancel",()=>{S.drag=null;$("rubber").classList.add("hidden");});
 
@@ -835,18 +975,12 @@ function buildView(){
     $("btnSurvey").textContent=S.showSurvey?"Hide posted acoustic survey":"Show posted acoustic survey";
     $("btnSurvey").className=S.showSurvey?"modeon":"";
   };
-  $("chkConflict").onclick=()=>{
-    S.conflictFlag=!S.conflictFlag;
-    $("chkConflict").classList.toggle("on",S.conflictFlag);
-  };
-  $("ckWrap").onclick=e=>{if(e.target.id!=="chkConflict"){$("chkConflict").click();}};
+  $("chkConflict").onchange=e=>{ S.conflictFlag=e.target.checked; };
+  // the <label for> now does what this used to do
   $("sheetBody").addEventListener("input",e=>{
     const i=e.target.dataset.i, k=e.target.dataset.k;
     if(i===undefined||!k) return;
     S.rows[+i][k]=e.target.value; paintCounts();
-    /* the packet shows the same sheet: mirror without repainting, so focus is kept */
-    const m=$("packetPane").querySelector(`input[data-pi="${i}"][data-pk="${k}"]`);
-    if(m&&m.value!==e.target.value) m.value=e.target.value;
   });
   $("sheetBody").addEventListener("click",e=>{
     const b=e.target.closest("button[data-del]"); if(!b) return;
@@ -856,10 +990,7 @@ function buildView(){
   });
   $("btnAddRow").onclick=()=>{S.rows.push({where:"",what:"",when:"",who:""});paintSheet();};
   $("learnerName").value=S.learner;
-  $("learnerName").addEventListener("input",e=>{
-    S.learner=e.target.value.trim();
-    const m=$("pk_learner"); if(m&&m.value!==e.target.value) m.value=e.target.value;
-  });
+  $("learnerName").addEventListener("input",e=>{S.learner=e.target.value.trim();});
   $("btnSubmitMap").onclick=buildSubmission;
 
   paintSheet(); drawMarks(); paintSide();
@@ -904,11 +1035,10 @@ function clearMarks(){
 function resetRun(){
   rnd=mulberry32(RNG_KEY);
   S.t=0; S.bounds={}; S.shades=[]; S.falls=[]; S.sel=null;
-  S.flagged={}; S.showSurvey=false; S.conflictFlag=false; S.drag=null;
+  S.flagged={}; S.showSurvey=false; S.conflictFlag=false; S.drag=null; S.pendShade=null;
   S.rows=[{where:"",what:"",when:"",who:""},{where:"",what:"",when:"",who:""},{where:"",what:"",when:"",who:""}];
-  S.packet={entryAt:"",exitAt:"",cnt34:"",cntFall:"",cntLabel:"",conflict:""};
   buildZones();
-  buildView(); renderPacket(); togglePacket(false); setMode("inspect"); startClock();
+  buildView(); setMode("inspect"); startClock();
 }
 /* ---------- wiring ---------- */
 $("btnInspect").onclick=()=>setMode("inspect");
@@ -917,12 +1047,123 @@ $("btnNoise").onclick=()=>setMode("noise");
 $("btnFall").onclick=()=>setMode("fall");
 $("btnClear").onclick=clearMarks;
 $("btnRestart").onclick=resetRun;
-/* ---------- Floor Route Packet — lives in #packetPane, which is never repainted ----------
-   The cover fields, the hazard check sheet and the critical-set self-check are real inputs.
-   The check sheet here IS the console's check sheet (same S.rows): type in either place and the
-   other follows; Add row in either place adds to both. Cover and self-check values live in
-   S.packet and are written into the submission sheet under "Packet — Floor Route Packet". */
-const PK_ROUTE=`    <li><b>1</b><strong>Facility entry — west door.</strong> Sign the entry log. Look up before you look down, every leg.</li>
+/* Floor Route Packet — reference copy, opened in its own window so it can sit beside the console.
+   Source is embedded below in #packetSrc; nothing is fetched. */
+$("btnPacket").onclick=()=>{
+  const w=window.open("","glab5211_packet","width=1240,height=900,resizable=yes,scrollbars=yes");
+  if(!w){
+    const n=$("counts");
+    if(n) n.textContent="The browser blocked the packet window. Allow pop-ups for this file, then choose Packet again.";
+    return;
+  }
+  w.document.open(); w.document.write($("packetSrc").textContent); w.document.close(); w.focus();
+};
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&S.sel&&$("lblBox")){S.sel=null;drawMarks();paintLabel();}
+});
+
+/* ---------- boot ---------- */
+$("setTag").textContent="Set "+"ABCDEFGH".charAt(SET);
+resetRun();
+
+</script>
+<!-- ===== GLAB 524.1.1 Floor Route Packet — embedded reference copy (3_Handouts/524-1-1_Floor_Route_Packet.html).
+     Opened by the Packet toolbar button in a separate window. Inert here: type="text/html" is never executed. ===== -->
+<script type="text/html" id="packetSrc"><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GLAB 524.1.1 — Floor Route Packet — UCI 2227</title>
+<style>
+  :root{
+    --ink:#12232e; --mut:#5a6b78; --line:#c3ced7; --blue:#1a3a5c;
+    --accent:#0b6ea8; --route:#c8501e; --paper:#fff; --soft:#f2f6f9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:#e9eef2;color:var(--ink);
+       font:13px/1.5 Arial,Helvetica,sans-serif}
+  .sheet{background:var(--paper);max-width:1180px;margin:0 auto 22px;padding:26px 30px;
+         border:1px solid var(--line);border-radius:4px}
+  h1{font-size:22px;color:var(--blue);margin:0 0 2px}
+  h2{font-size:15px;color:var(--blue);margin:26px 0 8px;
+     border-bottom:1px solid var(--line);padding-bottom:4px}
+  .eyebrow{font:600 10px/1 Arial;letter-spacing:.10em;text-transform:uppercase;
+           color:var(--accent);margin:0 0 8px}
+  .lede{color:var(--mut);margin:0 0 16px;max-width:80ch}
+  table{border-collapse:collapse;width:100%;margin:8px 0 4px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--blue);color:#fff;font-size:12px;letter-spacing:.04em;
+     text-transform:uppercase;font-weight:600}
+  .cover td:first-child{width:190px;background:var(--soft);font-weight:600}
+  .fill{color:var(--mut);font-style:italic}
+  .note{background:var(--soft);border-left:3px solid var(--accent);
+        padding:10px 14px;margin:14px 0}
+  .note strong{color:var(--blue)}
+  ol.route{margin:8px 0 0 0;padding-left:0;list-style:none;
+           columns:2;column-gap:34px}
+  ol.route li{margin:0 0 7px;padding-left:30px;position:relative;
+              break-inside:avoid}
+  ol.route li b{display:inline-block;position:absolute;left:0;top:0;
+       width:21px;height:21px;line-height:21px;text-align:center;border-radius:50%;
+       background:var(--route);color:#fff;font-size:12px}
+  .sheetrow td{height:30px}
+  .legend{display:flex;flex-wrap:wrap;gap:18px;margin:10px 0 0;font-size:12px;color:var(--mut)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .sw{width:16px;height:11px;border:1px solid var(--line);display:inline-block}
+  svg{width:100%;height:auto;border:1px solid var(--line);background:#fff}
+  .foot{color:var(--mut);font-size:12px;margin-top:18px;border-top:1px solid var(--line);
+        padding-top:8px}
+  .bar{max-width:1180px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;
+       font-size:12px;color:var(--mut)}
+  .bar button{font:600 12px Arial,Helvetica,sans-serif;padding:7px 14px;border-radius:4px;
+       border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+  .bar button:hover{background:#095a89}
+  @media print{
+    body{background:#fff;padding:0}
+    .bar{display:none}
+    .sheet{border:0;margin:0;max-width:none;padding:14mm;page-break-after:always}
+    .sheet:last-child{page-break-after:auto}
+    @page{size:A4 landscape;margin:8mm}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <button onclick="window.print()">Print packet</button>
+  <span>Reference copy opened from the lab tool. Keep this window beside the console; your findings are entered in the console, not here.</span>
+</div>
+
+<section class="sheet">
+  <p class="eyebrow">UCI 2227 · Module 524 · Lesson 524.1 — Foundations &amp; Safety</p>
+  <h1>GLAB 524.1.1 — Floor Route Packet</h1>
+  <p class="lede">The assigned route, the plan, and the hazard check sheet. Read this cover before
+  you move. You will walk this route <strong>twice</strong>: once looking only, once marking. The same
+  route and check sheet are used again in GLAB 524.1.4 — keep this packet.</p>
+
+  <table class="cover">
+    <tr><td>Route</td><td><strong>ROUTE&nbsp;1 — perimeter first, then the aisles</strong></td></tr>
+    <tr><td>Floor level</td><td>Ground floor, single level. No stair or lift transitions on this route.</td></tr>
+    <tr><td>Plan revision date</td><td>Rev C — 12 August 2026</td></tr>
+    <tr><td>Plan scale</td><td><strong>One plan unit to one and a half inches of real distance (1 unit = 1.5 in).</strong> A 118-inch boundary is a circle of radius 118 ÷ 1.5 ≈ 79 units. You need this the
+        moment you convert a boundary distance in inches into a circle on the drawing. Get it wrong and every
+        boundary you draw is the wrong size.</td></tr>
+    <tr><td>Sets</td><td>The route is identical on Sets A, B and C. Only the seeded conditions move.</td></tr>
+    <tr><td>Learner name</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Set issued</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Entry log signed at</td><td class="fill">&nbsp;</td></tr>
+  </table>
+
+  <div class="note">
+    <strong>Before you start.</strong> Collect the blueprint packet, this route sheet, the hazard check
+    sheet, the posted acoustic survey map and colored markers from the front bench, and sign the facility
+    entry safety log. Record your entry time above. Record the route, the floor level, the plan revision
+    date and the plan scale into the lab tool as Q2.
+  </div>
+
+  <h2>The route, in order</h2>
+  <ol class="route">
+    <li><b>1</b><strong>Facility entry — west door.</strong> Sign the entry log. Look up before you look down, every leg.</li>
     <li><b>2</b><strong>Pod A — north aisle.</strong> Walk the aisle end to end. Note anything stored on top of a rack.</li>
     <li><b>3</b><strong>Electrical room — north face.</strong> MSB-1, UPS-A, UPS-B. Read every label from outside the boundary.</li>
     <li><b>4</b><strong>PDU row.</strong> PDU-1 to PDU-4. Four labels, four separate numbers.</li>
@@ -931,8 +1172,11 @@ const PK_ROUTE=`    <li><b>1</b><strong>Facility entry — west door.</strong> S
     <li><b>7</b><strong>Overhead work area.</strong> Look up. Anything rigged, anything with an open edge.</li>
     <li><b>8</b><strong>Loading dock.</strong> Dock lift pit and gate. Check the posted zone signage here too.</li>
     <li><b>9</b><strong>Mechanical room.</strong> CHWP-1, CHWP-2, AC-1, CRAH-01 to 03. Air compressor holds stored energy.</li>
-    <li><b>10</b><strong>Pod B — aisles.</strong> Five rows. Then return to the entry point and stop.</li>`;
-const PK_PLAN=`<svg id="pkPlan" viewBox="0 0 1200 700" role="img" aria-label="Ground floor plan with the assigned route marked">
+    <li><b>10</b><strong>Pod B — aisles.</strong> Five rows. Then return to the entry point and stop.</li>
+  </ol>
+
+  <h2>The plan</h2>
+  <svg viewBox="0 0 1200 700" role="img" aria-label="Ground floor plan with the assigned route marked">
     <defs>
       <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
         <path d="M0,0 L10,5 L0,10 z" fill="#c8501e"/>
@@ -941,19 +1185,19 @@ const PK_PLAN=`<svg id="pkPlan" viewBox="0 0 1200 700" role="img" aria-label="Gr
         <line x1="0" y1="0" x2="0" y2="7" stroke="#c3ced7" stroke-width="2"/>
       </pattern>
       <style>
-        #pkPlan .room{fill:#fbfdfe;stroke:#8fa6b8;stroke-width:1.4}
-        #pkPlan .yard{fill:url(#hatch);stroke:#8fa6b8;stroke-width:1.4}
-        #pkPlan .rack{fill:#dde6ed;stroke:#a9bcca;stroke-width:.8}
-        #pkPlan .eq{fill:#e8f1f7;stroke:#1a3a5c;stroke-width:1.4}
-        #pkPlan .struct{fill:#cdd8e0;stroke:#8fa6b8;stroke-width:1}
-        #pkPlan .rlabel{font:600 12px Arial;fill:#1a3a5c;letter-spacing:.05em}
-        #pkPlan .eqlabel{font:600 11px Arial;fill:#12232e}
-        #pkPlan .glabel{font:10px Arial;fill:#5a6b78}
-        #pkPlan .zlabel{font:600 10px Arial;fill:#5a6b78;letter-spacing:.06em}
-        #pkPlan .route{fill:none;stroke:#c8501e;stroke-width:3;stroke-linejoin:round;
+        .room{fill:#fbfdfe;stroke:#8fa6b8;stroke-width:1.4}
+        .yard{fill:url(#hatch);stroke:#8fa6b8;stroke-width:1.4}
+        .rack{fill:#dde6ed;stroke:#a9bcca;stroke-width:.8}
+        .eq{fill:#e8f1f7;stroke:#1a3a5c;stroke-width:1.4}
+        .struct{fill:#cdd8e0;stroke:#8fa6b8;stroke-width:1}
+        .rlabel{font:600 12px Arial;fill:#1a3a5c;letter-spacing:.05em}
+        .eqlabel{font:600 11px Arial;fill:#12232e}
+        .glabel{font:10px Arial;fill:#5a6b78}
+        .zlabel{font:600 10px Arial;fill:#5a6b78;letter-spacing:.06em}
+        .route{fill:none;stroke:#c8501e;stroke-width:3;stroke-linejoin:round;
                stroke-linecap:round;stroke-dasharray:9 6}
-        #pkPlan .wp{fill:#c8501e}
-        #pkPlan .wpt{font:700 11px Arial;fill:#fff}
+        .wp{fill:#c8501e}
+        .wpt{font:700 11px Arial;fill:#fff}
       </style>
     </defs>
 
@@ -1041,221 +1285,77 @@ const PK_PLAN=`<svg id="pkPlan" viewBox="0 0 1200 700" role="img" aria-label="Gr
       <line x1="140" y1="666" x2="140" y2="678" stroke="#12232e" stroke-width="2"/>
       <text class="glabel" x="148" y="676">100 plan units = 150 in real distance (1 unit = 1.5 in)</text>
     </g>
-  </svg>`;
-const PK_LEGEND=`<div class="pklegend">
+  </svg>
+
+  <div class="legend">
     <span><i class="sw" style="background:#e8f1f7;border-color:#1a3a5c"></i> Energized equipment — read its label</span>
     <span><i class="sw" style="background:#fbfdfe"></i> Enclosed room</span>
     <span><i class="sw" style="background:#f2f6f9"></i> External yard / open area</span>
     <span><i class="sw" style="background:#dde6ed"></i> Rack row</span>
     <span><i class="sw" style="background:#c8501e;border-color:#c8501e"></i> Assigned route, in direction of travel</span>
-  </div>`;
-const PK_NOTPLAN=`<div class="pknote">
+  </div>
+
+  <div class="note">
     <strong>What is not on this plan, deliberately.</strong> No arc flash boundary, no noise value and no
     fall zone is drawn for you. Boundary distances come off the equipment label, noise values come off the
     posted signage and the acoustic survey map, and fall zones are yours to find. Marking them is the
     assessment.
-  </div>`;
-const PK_CONFLICT=[["","— choose —"],["yes","Yes — both values logged and the conflict flagged"],["no","No — a disagreement was found but not flagged"],["none","None found"]];
-const PK_CHECKS=[
-  {k:"cnt34",  label:"Every category 3 and category 4 arc flash boundary marked",pre:"Count marked"},
-  {k:"cntFall",label:"Every fall zone marked",pre:"Count marked"},
-  {k:"cntLabel",label:"Every unreadable or missing label logged as a finding",pre:"Count logged"}];
-function pkConflictWord(v){ const o=PK_CONFLICT.filter(x=>x[0]===v)[0]; return o&&v?o[1]:"—"; }
-function packetAnyFilled(){
-  return ["entryAt","exitAt","cnt34","cntFall","cntLabel","conflict"].some(k=>String(S.packet[k]||"").trim());
-}
-function pkIn(id,k,val,ph,mode,lbl){
-  if(mode==="static") return `<span class="pkval">${esc(String(val||"").trim())||"&nbsp;"}</span>`;
-  return `<label class="vh" for="${id}">${esc(lbl||ph||k)}</label><input type="text" id="${id}" data-pkf="${k}" value="${esc(val||"")}" placeholder="${esc(ph||"")}" autocomplete="off">`;
-}
-function pkSheetRowsHTML(mode){
-  const cols=[["where","Where"],["what","What"],["when","When"],["who","Who"]];
-  return S.rows.map((r,i)=>`<tr>`+cols.map(c=>`<td>`+(mode==="static"
-      ?`<span class="pkval" style="min-width:90%">${esc(String(r[c[0]]||"").trim())||"&nbsp;"}</span>`
-      :`<label class="vh" for="pk_r${i}_${c[0]}">Row ${i+1} — ${c[1]}</label><input type="text" id="pk_r${i}_${c[0]}" data-pi="${i}" data-pk="${c[0]}" value="${esc(r[c[0]]||"")}" autocomplete="off">`)
-    +`</td>`).join("")+`</tr>`).join("");
-}
-function packetHTML(mode){
-  const live=mode!=="static", P=S.packet, setL="ABCDEFGH".charAt(SET);
-  const learner=live
-    ?`<label class="vh" for="pk_learner">Learner name</label><input type="text" id="pk_learner" value="${esc(S.learner)}" placeholder="first and last name — the same field as the console's Your name" autocomplete="off">`
-    :`<span class="pkval">${esc(S.learner)||"&nbsp;"}</span>`;
-  const checks=PK_CHECKS.map(c=>`<tr><td style="width:60%">${c.label}</td>
-      <td>${c.pre}: ${live?`<label class="vh" for="pk_${c.k}">${c.pre}</label><input type="text" id="pk_${c.k}" data-pkf="${c.k}" value="${esc(P[c.k])}" inputmode="numeric" style="width:90px" autocomplete="off">`
-                          :`<span class="pkval" style="min-width:60px">${esc(String(P[c.k]||"").trim())||"&nbsp;"}</span>`}</td></tr>`).join("");
-  const conflict=live
-    ?`<label class="vh" for="pk_conflict">Signage and survey disagreement</label><select id="pk_conflict" data-pkf="conflict">${PK_CONFLICT.map(o=>`<option value="${o[0]}" ${P.conflict===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>`
-    :`<span class="pkval">${esc(pkConflictWord(P.conflict))}</span>`;
-  return `<div class="packet" id="packetPaper">
-    <div class="pkeyebrow">UCI 2227 · Module 524 · Lesson 524.1 — Foundations &amp; Safety</div>
-    <h2>${LAB.lab} — Floor Route Packet</h2>
-    <p class="pklede">The assigned route, the plan, and the hazard check sheet. Read this cover before
-      you move. You will walk this route <strong>twice</strong>: once looking only, once marking. The same
-      route and check sheet are used again in GLAB 524.1.4 — keep this packet.${live?" Everything you type here is written into your submission sheet.":""}</p>
+  </div>
 
-    <table class="pkcover">
-      <tr><td>Route</td><td><strong>ROUTE&nbsp;1 — perimeter first, then the aisles</strong></td></tr>
-      <tr><td>Floor level</td><td>Ground floor, single level. No stair or lift transitions on this route.</td></tr>
-      <tr><td>Plan revision date</td><td>Rev C — 12 August 2026</td></tr>
-      <tr><td>Plan scale</td><td><strong>One plan unit to one and a half inches of real distance (1 unit = 1.5 in).</strong> A 118-inch boundary is a circle of radius 118 ÷ 1.5 ≈ 79 units. You need this the
-          moment you convert a boundary distance in inches into a circle on the drawing. Get it wrong and every
-          boundary you draw is the wrong size.</td></tr>
-      <tr><td>Sets</td><td>The route is identical on Sets A, B and C. Only the seeded conditions move. This copy: <strong>Set ${setL}</strong>.</td></tr>
-      <tr><td>${live?'<label for="pk_learner" style="font-weight:600">Learner name</label>':'Learner name'}</td><td>${learner}</td></tr>
-      <tr><td>${live?'<label for="pk_entryAt" style="font-weight:600">Entry log signed at</label>':'Entry log signed at'}</td><td>${pkIn("pk_entryAt","entryAt",P.entryAt,"site time when you signed the facility entry safety log, e.g. 03:16",mode,"Entry log signed at")}</td></tr>
-      <tr><td>${live?'<label for="pk_exitAt" style="font-weight:600">Exit log signed at</label>':'Exit log signed at'}</td><td>${pkIn("pk_exitAt","exitAt",P.exitAt,"site time when you signed out at the end of the walk",mode,"Exit log signed at")}</td></tr>
-    </table>
+  <p class="foot">UCI 2227 — GLAB 524.1.1 Floor Route Packet · Route 1 · Plan Rev C, 12 Aug 2026 ·
+  Also used by GLAB 524.1.4 — keep this packet</p>
+</section>
 
-    <div class="pknote">
-      <strong>Before you start.</strong> Read this cover, bring up the posted acoustic survey overlay on the console when you reach the
-      noise zones, and sign the facility entry safety log. Record your entry time above. Record the route, the floor level,
-      the plan revision date and the plan scale into the lab tool as Q2.
-    </div>
+<section class="sheet">
+  <p class="eyebrow">GLAB 524.1.1 · Route 1</p>
+  <h1>Hazard check sheet</h1>
+  <p class="lede">One line per finding. <strong>Describe, do not diagnose.</strong> WHERE is a location a
+  stranger could find. WHAT is what you observed, not what you concluded. Write it as you see it — do not
+  save findings until the end of the walk, because you will lose two.</p>
 
-    <h3>The route, in order</h3>
-    <ol class="route">
-${PK_ROUTE}
-    </ol>
+  <table>
+    <thead><tr><th style="width:22%">WHERE</th><th style="width:44%">WHAT</th>
+    <th style="width:16%">WHEN</th><th style="width:18%">WHO</th></tr></thead>
+    <tbody>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+      <tr class="sheetrow"><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
 
-    <h3>The plan</h3>
-    ${PK_PLAN}
-    ${PK_LEGEND}
-    ${PK_NOTPLAN}
+  <h2>Critical set self-check — before you submit</h2>
+  <table>
+    <tr><td style="width:60%">Every category 3 and category 4 arc flash boundary marked</td>
+        <td>Count marked: <span class="fill">________</span></td></tr>
+    <tr><td>Every fall zone marked</td><td>Count marked: <span class="fill">________</span></td></tr>
+    <tr><td>Every unreadable or missing label logged as a finding</td>
+        <td>Count logged: <span class="fill">________</span></td></tr>
+    <tr><td>Any zone where signage and survey disagree — both values logged and the conflict flagged</td>
+        <td>Yes / No / None found</td></tr>
+  </table>
 
-    <div class="pkbreak"></div>
-    <div class="pkeyebrow">${LAB.lab} · Route 1</div>
-    <h2>Hazard check sheet</h2>
-    <p class="pklede">One line per finding. <strong>Describe, do not diagnose.</strong> WHERE is a location a
-      stranger could find. WHAT is what you observed, not what you concluded. Write it as you see it — do not
-      save findings until the end of the walk, because you will lose two.${live?" This is the same sheet as the console's Hazard check sheet — one sheet, shown in two places.":""}</p>
-    <table class="pksheet">
-      <thead><tr><th style="width:22%">WHERE</th><th style="width:44%">WHAT</th>
-      <th style="width:16%">WHEN</th><th style="width:18%">WHO</th></tr></thead>
-      <tbody id="pkSheetBody">${pkSheetRowsHTML(mode)}</tbody>
-    </table>
-    ${live?`<div class="pkbtns noprint"><button type="button" id="btnPkAddRow">Add row</button>
-      <span class="pkhint">Adds a row here and on the console sheet.</span></div>`:""}
+  <div class="note">
+    <strong>A missed critical boundary or an unmarked fall zone is an automatic re-take</strong>, whatever
+    your percentage. Count them before you hand in.
+  </div>
 
-    <h3>Critical set self-check — before you submit</h3>
-    <table>
-      ${checks}
-      <tr><td>Any zone where signage and survey disagree — both values logged and the conflict flagged</td>
-          <td>${conflict}</td></tr>
-    </table>
+  <p class="foot">Transfer every line above into the lab tool, then build your submission PDF.</p>
+</section>
 
-    <div class="pknote">
-      <strong>A missed critical boundary or an unmarked fall zone is an automatic re-take</strong>, whatever
-      your percentage. Count them before you hand in.
-    </div>
-
-    ${live?`<div class="pkbtns noprint">
-      <button type="button" id="btnPrintPacket">Print packet</button>
-      <button type="button" id="btnPacketWindow" title="Opens a read-only copy of this packet, as filled in, in its own window so it can sit beside the console">Open in window ↗</button>
-      <button type="button" id="btnClosePacket">Close packet</button>
-      <span class="pkhint">Your entries here are carried into the submission sheet automatically.</span>
-    </div>`:""}
-    <div class="pkfoot">UCI 2227 — ${LAB.lab} Floor Route Packet · Route 1 · Plan Rev C, 12 Aug 2026 · Set ${setL} ·
-      Also used by GLAB 524.1.4 — keep this packet</div>
-  </div>`;
-}
-function paintPacketSheet(){
-  const b=$("pkSheetBody"); if(b) b.innerHTML=pkSheetRowsHTML("live");
-}
-function renderPacket(){
-  const p=$("packetPane"); if(!p) return;
-  p.innerHTML=packetHTML("live");
-  p.oninput=e=>{
-    const t=e.target; if(!t) return;
-    if(t.id==="pk_learner"){
-      S.learner=t.value.trim();
-      const m=$("learnerName"); if(m&&m.value!==t.value) m.value=t.value;
-    } else if(t.dataset.pi!==undefined&&t.dataset.pk){
-      const i=+t.dataset.pi, k=t.dataset.pk;
-      if(!S.rows[i]) return;
-      S.rows[i][k]=t.value;
-      const m=document.querySelector(`#sheetBody input[data-i="${i}"][data-k="${k}"]`);
-      if(m&&m.value!==t.value) m.value=t.value;
-      paintCounts();
-    } else if(t.dataset.pkf){ S.packet[t.dataset.pkf]=t.value; }
-  };
-  p.onchange=e=>{ const t=e.target; if(t&&t.dataset.pkf) S.packet[t.dataset.pkf]=t.value; };
-  $("btnPkAddRow").onclick=()=>{S.rows.push({where:"",what:"",when:"",who:""});paintSheet();
-    const last=p.querySelector(`input[data-pi="${S.rows.length-1}"][data-pk="where"]`); if(last) last.focus();};
-  $("btnPrintPacket").onclick=printPacket;
-  $("btnPacketWindow").onclick=openPacketWindow;
-  $("btnClosePacket").onclick=()=>togglePacket(false);
-}
-function togglePacket(force){
-  const p=$("packetPane"); if(!p) return;
-  const open=typeof force==="boolean"?force:p.classList.contains("hidden");
-  p.classList.toggle("hidden",!open);
-  $("btnPacket").classList.toggle("primary",open);
-  if(open) p.scrollIntoView({block:"start"});
-}
-function printPacket(){
-  /* print only the packet: lift the pane to <body>, print, put it back where it was */
-  const p=$("packetPane"), parent=p.parentNode, next=p.nextSibling;
-  const wasHidden=p.classList.contains("hidden");
-  p.classList.remove("hidden");
-  document.body.appendChild(p);
-  document.body.classList.add("pk-print");
-  const restore=()=>{
-    if(!document.body.classList.contains("pk-print")) return;
-    document.body.classList.remove("pk-print");
-    parent.insertBefore(p,next);
-    if(wasHidden) p.classList.add("hidden");
-    window.removeEventListener("afterprint",restore);
-  };
-  window.addEventListener("afterprint",restore);
-  try{ window.print(); }catch(e){}
-  setTimeout(restore,1500);
-}
-function openPacketWindow(){
-  /* secondary: a read-only copy of the packet AS FILLED IN, in its own window beside the console */
-  const w=window.open("","glab5211_packet","width=1240,height=900,resizable=yes,scrollbars=yes");
-  if(!w){alert("The browser blocked the packet window. Allow pop-ups for this file and press Open in window again.");return;}
-  const css=($("pkStyle")||{}).textContent||"";
-  const doc=`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${LAB.lab} — Floor Route Packet — UCI 2227</title>
-<style>${css}
-  body{margin:0;padding:24px;background:#e9eef2;color:#12232e;font:13px/1.5 Arial,Helvetica,sans-serif}
-  .packet{max-width:1180px;margin:0 auto 22px;border-radius:4px;font-family:inherit}
-  .bar{max-width:1180px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;font-size:12px;color:#5a6b78}
-  .bar button{font:600 12px Arial,Helvetica,sans-serif;padding:7px 14px;border-radius:4px;border:1px solid #0b6ea8;background:#0b6ea8;color:#fff;cursor:pointer}
-  @media print{body{background:#fff;padding:0}.bar{display:none}.packet{border:0;margin:0;max-width:none;padding:0}
-    .packet .pkbreak{page-break-before:always;break-before:page;border:0;margin:0;height:0}@page{size:A4 landscape;margin:10mm}}
-</style></head><body>
-<div class="bar"><button onclick="window.print()">Print</button>
-  <span>Read-only copy of the packet as it stands in the lab tool at site time ${fmtClock(S.t).slice(0,5)}. The fields are filled in the tool (Packet button), not here — change them there and open this window again.</span></div>
-${packetHTML("static")}
-</body></html>`;
-  w.document.open(); w.document.write(doc); w.document.close(); w.focus();
-}
-function packetRecordHTML(){
-  const cell=v=>esc(String(v||"").trim())||"—";
-  const P=S.packet;
-  return `<h4>Packet — Floor Route Packet</h4>`+
-    kvr("Route · floor · plan","Route 1 · Ground floor · Plan Rev C, 12 Aug 2026 · 1 unit = 1.5 in",true)+
-    kvr("Entry log signed at",cell(P.entryAt))+
-    kvr("Exit log signed at",cell(P.exitAt))+
-    kvr("Self-check — category 3 and 4 arc flash boundaries marked (count)",cell(P.cnt34))+
-    kvr("Self-check — fall zones marked (count)",cell(P.cntFall))+
-    kvr("Self-check — unreadable or missing labels logged (count)",cell(P.cntLabel))+
-    kvr("Self-check — signage and survey disagreement",esc(pkConflictWord(P.conflict)),true)+
-    `<div class="note">The packet's hazard check sheet is the console's hazard check sheet — one sheet, printed once above under "Hazard check sheet".</div>`;
-}
-$("btnPacket").onclick=()=>togglePacket();
-document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"&&S.sel&&$("lblBox")){S.sel=null;drawMarks();paintLabel();}
-});
-
-/* ---------- boot ---------- */
-$("setTag").textContent="Set "+"ABCDEFGH".charAt(SET);
-resetRun();
-
-</script>
+</body>
+</html></script>
 <!-- LQ_SUBMISSION_MODULE -->
 <script id="lqData">
-var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 524.1.1 - Safety Zone Mapping", "file": "524-1-1-A_SafetyZones.html", "set": "A", "items": [{"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 1. Collect your blueprint packet, hazard check sheet and coloured markers from the front bench (the packet and check sheet are also behind the Packet button in the lab tool, and print from there; the acoustic survey is the Show posted acoustic survey overlay in the tool), and sign the facility entry safety log. Record your entry time. If your group is working in the tool, open the 524.1.1 file your instructor gives you — it opens straight into the lab. Write your entry time in the lab tool."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 2. Before you move, read the packet cover. Confirm the route, the floor level, the plan revision date and the plan scale. The plan is drawn at one plan unit to one and a half inches of real distance (1 unit = 1.5 in, so a 118-inch boundary is a circle of radius 79 units), which matters the moment you convert a boundary distance in inches into a circle on the drawing. Get this wrong and every boundary you draw is the wrong size. Record the route, the floor level, the plan revision date and the plan scale below."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 4. Walk it a second time and start marking. At each item of energised equipment, read the arc flash label from outside the boundary [Inspect]. Record the equipment identifier, the system voltage, the incident energy in cal/cm², the PPE category and the arc flash boundary distance in inches. Record the first three you reach in the lab tool, so you have a worked example of the format."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 6. You will find at least one label you cannot read. Do not estimate it, do not measure it off the plan, and do not copy the distance from the identical unit next to it. Log it as a finding [Log unreadable]: the equipment identifier, what specifically is wrong with the label, and the consequence — that the equipment cannot be worked energised until the incident energy study is re-issued. Write that finding out in full in the lab tool."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 7. Now the noise zones. Shade every zone where posted signage or the acoustic survey shows 85 dBA or above [Noise / Survey]. Work zone by zone rather than sign by sign, and check both sources for each zone before you shade it. List the zones you shaded and the dBA figure you shaded them at."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 8. One zone will have a posted sign and a survey figure that disagree, and there is no way to tell from the floor which is current. Log both numbers, flag the conflict explicitly [Flag conflict], and work to the higher figure until somebody with the survey file says otherwise. Do not average them and do not pick the one you like. Record the zone, both values, and the figure you are working to."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 9. Mark with an X every location where work would put a technician above four feet [Fall]. Four feet, not six — this is general industry under 29 CFR 1910.28 and 1910.23, and the six-foot figure you may have heard is the construction standard. There are three such locations on your route. List all three in the lab tool, each with the height involved and the work that would take somebody up there."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 10. For each fall location, note whether there is an anchor point. Where an anchor point is absent, that absence is the finding, and it is worth more than the marking itself — a fall location with a rated anchor is a controlled hazard, a fall location without one is not."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 11. Complete the hazard check sheet — one line per finding, using WHERE / WHAT / WHEN / WHO [Add row]. WHERE is a location a stranger could find. WHAT is what you observed, not what you concluded. WHEN is the time you observed it. WHO is the person or role who has to act. Write your three strongest lines out in the lab tool."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 12. Before you submit, check yourself against the critical set: every category 3 and category 4 arc flash boundary marked, and every fall zone marked. Count them and write the counts in the lab tool. This is the one check that decides whether you pass or re-take, so do it deliberately rather than assuming."}, {"s": "Part 1: Walking and mapping the floor", "k": "image", "p": "Step 13. Photograph your marked-up blueprint and your hazard check sheet (or take a screenshot of the marked plan in the tool) and attach it as Q11. Enter your name and cohort in the lab tool, then press Build submission PDF and save the file — that single PDF is what you hand in."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 14. Show your instructor your marked plan and your check sheet (on paper or on screen) and walk them through two findings out loud. Describe what you saw; do not diagnose. If you find yourself saying “this is unsafe”, stop and replace it with the observation that made you say it. Note in the lab tool which two findings you chose and the exact observation you led with for each."}, {"s": "Part 2: Reflection", "k": "text", "p": "You were made to walk the route twice, and the first pass had no writing in it. Name one specific thing you marked on the second pass that you know you would have missed if you had been writing on the first. Then say what that tells you about how attention works on a floor round."}, {"s": "Part 2: Reflection", "k": "text", "p": "On the noise conflict, you had a posted sign and a survey figure that could not both be current. Averaging them is the instinct most people have. Explain what averaging would actually have produced — in terms of the protection a technician standing in that zone would or would not have had."}, {"s": "Part 2: Reflection", "k": "text", "p": "A colleague suggests you take the boundary distance from the identical unit sitting next to the one with the destroyed label, on the grounds that they are the same model. Explain why that is not acceptable, in terms of what an arc flash boundary distance is actually calculated from."}, {"s": "Part 2: Reflection", "k": "text", "p": "Read back your own hazard check sheet as though you were the technician coming on shift tomorrow and had never met you. Pick your weakest line — the one that would make you ask a question — and rewrite it in the lab tool so that it does not."}]};
+var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 524.1.1 - Safety Zone Mapping", "file": "524-1-1-A_SafetyZones.html", "set": "A", "items": [{"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 1. Collect your blueprint packet, hazard check sheet and colored markers from the front bench (the packet and check sheet are also behind the Packet ↗ button in the lab tool, and print from there; the acoustic survey is the Show posted acoustic survey overlay in the tool), and sign the facility entry safety log. Record your entry time. If your group is working in the tool, open the 524.1.1 file your instructor gives you — it opens straight into the lab. Write your entry time in the lab tool."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 2. Before you move, read the packet cover. Confirm the route, the floor level, the plan revision date and the plan scale. The plan is drawn at one plan unit to one and a half inches of real distance (1 unit = 1.5 in, so a 118-inch boundary is a circle of radius 79 units), which matters the moment you convert a boundary distance in inches into a circle on the drawing. Get this wrong and every boundary you draw is the wrong size. Record the route, the floor level, the plan revision date and the plan scale in the lab tool."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 4. Walk it a second time and start marking. At each item of energized equipment, read the arc flash label from outside the boundary [Inspect]. Record the equipment identifier, the system voltage, the incident energy in cal/cm², the PPE category and the arc flash boundary distance in inches. Record the first three you reach in the lab tool, so you have a worked example of the format."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 6. You will find at least one label you cannot read. Do not estimate it, do not measure it off the plan, and do not copy the distance from the identical unit next to it. Log it as a finding [Log unreadable]: the equipment identifier, what specifically is wrong with the label, and the consequence — that the equipment cannot be worked energized until the incident energy study is re-issued. Write that finding out in full in the lab tool."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 7. Now the noise zones. Shade every zone where posted signage or the acoustic survey shows 85 dBA or above [Noise / Survey]. Work zone by zone rather than sign by sign, and check both sources for each zone before you shade it. List the zones you shaded and the dBA figure you shaded them at."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 8. One zone will have a posted sign and a survey figure that disagree, and there is no way to tell from the floor which is current. Log both numbers, flag the conflict explicitly [Flag conflict], and work to the higher figure until somebody with the survey file says otherwise. Do not average them and do not pick the one you like. Record the zone, both values, and the figure you are working to."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 9. Mark with an X every location where work would put a technician above four feet [Fall]. Four feet, not six — this is general industry under 29 CFR 1910.28 and 1910.23, and the six-foot figure you may have heard is the construction standard. There are three such locations on your route. List all three in the lab tool, each with the height involved and the work that would take somebody up there."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 10. For each fall location, note whether there is an anchor point. Where an anchor point is absent, that absence is the finding, and it is worth more than the marking itself — a fall location with a rated anchor is a controlled hazard, a fall location without one is not."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 11. Complete the hazard check sheet — one line per finding, using WHERE / WHAT / WHEN / WHO [Add row]. WHERE is a location a stranger could find. WHAT is what you observed, not what you concluded. WHEN is the time you observed it. WHO is the person or role who has to act. Write your three strongest lines out in the lab tool."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 12. Before you submit, check yourself against the critical set: every category 3 and category 4 arc flash boundary marked, and every fall zone marked. Count them and write the counts in the lab tool. This is the one check that decides whether you pass or re-take, so do it deliberately rather than assuming."}, {"s": "Part 1: Walking and mapping the floor", "k": "image", "p": "Step 13. Photograph your marked-up blueprint and your hazard check sheet (or take a screenshot of the marked plan in the tool) and attach it as Q11. Enter your name and cohort in the lab tool, then press Build submission PDF and save the file — that single PDF is what you hand in."}, {"s": "Part 1: Walking and mapping the floor", "k": "text", "p": "Step 14. Show your instructor your marked plan and your check sheet (on paper or on screen) and walk them through two findings out loud. Describe what you saw; do not diagnose. If you find yourself saying “this is unsafe”, stop and replace it with the observation that made you say it. Note in the lab tool which two findings you chose and the exact observation you led with for each."}, {"s": "Part 2: Reflection", "k": "text", "p": "You were made to walk the route twice, and the first pass had no writing in it. Name one specific thing you marked on the second pass that you know you would have missed if you had been writing on the first. Then say what that tells you about how attention works on a floor round."}, {"s": "Part 2: Reflection", "k": "text", "p": "On the noise conflict, you had a posted sign and a survey figure that could not both be current. Averaging them is the instinct most people have. Explain what averaging would actually have produced — in terms of the protection a technician standing in that zone would or would not have had."}, {"s": "Part 2: Reflection", "k": "text", "p": "A colleague suggests you take the boundary distance from the identical unit sitting next to the one with the destroyed label, on the grounds that they are the same model. Explain why that is not acceptable, in terms of what an arc flash boundary distance is actually calculated from."}, {"s": "Part 2: Reflection", "k": "text", "p": "Read back your own hazard check sheet as though you were the technician coming on shift tomorrow and had never met you. Pick your weakest line — the one that would make you ask a question — and rewrite it in the lab tool so that it does not."}]};
 </script>
 <!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
@@ -1283,12 +1383,12 @@ var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 
   #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
     padding-bottom:16px;border-bottom:1px solid #2c4a63}
   #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
-  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+  #lqCard .lqfld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
     color:#9db6c9;font-weight:700}
   #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
     background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
   #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
-  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+  #lqCard h3.lqsec{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
     color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
   #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
   #lqCard .lqq{margin-bottom:16px}
@@ -1301,7 +1401,7 @@ var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 
     border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
   #lqCard button:hover{background:#20384f;border-color:#3d6485}
   #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
-  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard button.lqprimary:hover{background:#0a6fae}
   #lqCard .lqnote{font-size:12px;color:#9db6c9}
   #lqCard .lqimgwrap{margin-top:7px}
   #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
@@ -1330,7 +1430,7 @@ var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 
   .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
   .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
   .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
-  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+  .lqsheet h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
     font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
   .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
   .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
@@ -1568,6 +1668,17 @@ var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 
      +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
    +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
      +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   /* group-assessed labs ask for the learner's role; LQ.role turns it on */
+   +(LQ.role
+     ? '<div class="lqfld" style="flex:0 1 200px"><label for="lqRole">Your role in the group</label>'
+       +'<select id="lqRole">'
+         +'<option value="">Choose your role</option>'
+         +'<option>Isolator</option>'
+         +'<option>Verifier</option>'
+         +'<option>Recorder</option>'
+         +'<option>Safety observer</option>'
+       +'</select></div>'
+     : '')
    +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
      +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
    +'</div>';
@@ -1606,10 +1717,43 @@ var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 
   card.innerHTML=html;
   host.appendChild(card);
 
+  /* ---------- 3.3.7 Redundant Entry ----------------------------------------
+     A learner should type their name once. Any field that asks for the same
+     thing — marked autocomplete="name" — is kept in step with the submission
+     panel's. Delegated from the document, so a repainted pane still works. */
+  var _syncing=false;
+  var _nameFields=function(){ return document.querySelectorAll('input[autocomplete="name"]'); };
+  document.addEventListener("input",function(ev){
+    var t=ev.target;
+    if(_syncing||!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    _syncing=true;
+    try{
+      store.name=t.value; save();
+      Array.prototype.forEach.call(_nameFields(),function(e){
+        if(e!==t&&e.value!==t.value){
+          e.value=t.value;
+          e.dispatchEvent(new Event("input",{bubbles:true}));
+        }
+      });
+    } finally { _syncing=false; }
+  },true);
+  document.addEventListener("focusin",function(ev){
+    var t=ev.target;
+    if(!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    if(!t.value&&store.name){
+      t.value=store.name;
+      t.dispatchEvent(new Event("input",{bubbles:true}));
+    }
+  },true);
+
   /* ---------- wiring ---------- */
-  ["lqName","lqCohort","lqDate"].forEach(function(id){
+  var _role=document.getElementById("lqRole");
+  if(_role) _role.value=store.role||"";
+  ["lqName","lqCohort","lqDate","lqRole"].forEach(function(id){
     var el=document.getElementById(id);
-    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    if(!el) return;
+    var ev=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    el.oninput=ev; el.onchange=ev;
   });
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
@@ -1783,9 +1927,12 @@ var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 
     var name=document.getElementById("lqName").value.trim();
     var coh=document.getElementById("lqCohort").value.trim();
     var dt=document.getElementById("lqDate").value.trim();
+    var roleEl=document.getElementById("lqRole");
+    var role=roleEl?roleEl.value.trim():"";
     var gaps=[];
     if(!name) gaps.push("Your name");
     if(!coh)  gaps.push("Cohort / section");
+    if(roleEl && !role) gaps.push("Your role in the group");
 
     var h=''
      +'<div class="lqsheet">'
@@ -1795,6 +1942,7 @@ var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +(roleEl?'<div class="lqrow"><span class="k">Role in the group</span><span class="v">'+(esc(role)||"—")+'</span></div>':'')
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
        +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
@@ -1841,7 +1989,7 @@ var LQ={"lab": "GLAB 524.1.1", "title": "Safety Zone Mapping", "handout": "GLAB 
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
       +'Instructor verification: ______________________________'
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
-      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +'<span style="font-size:12px">Save this as a PDF and upload the single file to the '
       +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
 
     document.getElementById("lqOut").innerHTML=h;

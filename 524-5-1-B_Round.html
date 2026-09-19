@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
-    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#7e9bb2;
+    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#87a3bb;
     --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
     --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
     --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
@@ -20,14 +20,14 @@
     background:var(--panel);color:var(--ink);padding:7px 13px}
   button:hover{background:#1b3044;border-color:#2d4d68}
   button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
-  button.primary:hover{background:#0a8bd8}
+  button.primary:hover{background:#0a6fae}
   button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
   button:disabled{opacity:.4;cursor:not-allowed}
   select,input[type=text],input[type=number],textarea{
     font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
     border:1px solid var(--line);border-radius:5px;padding:7px 9px}
   textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
-  h1,h2,h3{margin:0;font-weight:700}
+  h1,h2,h3,h1,h2,h2{margin:0;font-weight:700}
   .mono{font-family:var(--mono)}
 
   /* ---------- shell ---------- */
@@ -39,8 +39,8 @@
   .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
   .spacer{flex:1}
   .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
-  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
-  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+  .clocklbl{color:var(--faint);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
     padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
   .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
   .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
@@ -49,11 +49,11 @@
   .wrap{max-width:1500px;margin:0 auto}
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
-  .card h3{font-size:15px;margin-bottom:4px}
+  .card h3,.card h2{font-size:15px;margin-bottom:4px}
   .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
   .fld{display:flex;flex-direction:column;gap:5px}
-  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .fld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
 
   /* ---------- console ---------- */
@@ -64,13 +64,13 @@
   .g2{grid-template-columns:1fr 1fr}
   canvas{display:block;width:100%;height:auto}
   .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-  .stepchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;
+  .stepchip{font-family:var(--mono);font-size:12px;padding:4px 9px;border-radius:4px;
     background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
   .stepchip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
 
   /* ---------- alarms ---------- */
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+  th{text-align:left;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
     font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
   th:hover{color:var(--blue)}
   td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
@@ -80,7 +80,7 @@
 
   /* ---------- submission ---------- */
   .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
-  .submit h3{font-size:14px;margin-bottom:3px}
+  .submit h3,.submit h2{font-size:14px;margin-bottom:3px}
   .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
   .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
   .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
@@ -92,7 +92,7 @@
     main{overflow:visible}
   }
 
-  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+  .labtag{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
     color:var(--blue);margin-bottom:8px}
   .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
 
@@ -105,7 +105,7 @@
   .infomsg{background:#132c3f;border:1px solid #23485f;border-radius:7px;
     padding:11px 13px;font-size:12.5px;line-height:1.55;margin-bottom:12px}
   .small{font-size:12px;color:var(--dim);line-height:1.55}
-  .tiny{font-size:11px;color:var(--faint);line-height:1.5}
+  .tiny{font-size:12px;color:var(--faint);line-height:1.5}
   .stnlist{display:flex;flex-direction:column;gap:6px}
   .stnrow{display:flex;gap:11px;align-items:center;padding:8px 12px;border-radius:7px;
     border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:13px}
@@ -114,12 +114,12 @@
   .stnrow.cur{border-color:var(--blue);background:#16324a}
   .stnrow.lock{opacity:.5}
   .stnrow .sn{font-family:var(--mono);color:var(--blue);font-weight:700;min-width:42px}
-  .stnrow .ss{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .stnrow .ss{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--faint)}
   .readgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:12px 0}
   .readcell{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
-  .readcell .rl{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .readcell .rl{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .readcell .rv{font-family:var(--mono);font-size:23px;font-weight:700;margin:5px 0 3px}
-  .readcell .rh{font-size:11px;color:var(--faint);margin-bottom:8px}
+  .readcell .rh{font-size:12px;color:var(--faint);margin-bottom:8px}
   .readcell input{width:100%}
   .led{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-2px;border:1px solid #00000055}
   .led.n{background:#2f9c66;box-shadow:0 0 7px rgba(55,192,122,.65)}
@@ -127,13 +127,13 @@
   .led.a{background:#e8604c;box-shadow:0 0 7px rgba(232,96,76,.65)}
   .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin:10px 0 4px}
   .gcard{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px 15px}
-  .gcard h3{font-size:13px;margin-bottom:2px}
-  .gcard .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
+  .gcard h3,.gcard h2{font-size:13px;margin-bottom:2px}
+  .gcard .sub{font-size:12px;color:var(--faint);margin-bottom:8px}
   .digit{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:1px}
   .prevbox{background:var(--panel2);border:1px solid var(--line);border-radius:7px;
     padding:9px 11px;font-size:12px;color:var(--dim);line-height:1.5;margin:9px 0}
   .fldrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:9px}
-  .tag{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .tag{font-size:12px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
   .tag.norm{background:#22303a;color:#8ba6bd}
   .tag.dev{background:#4a3418;color:#ffc069}
   .tag.na{background:#1c3a4f;color:#7fc4ea}
@@ -145,90 +145,115 @@
     border-bottom:1px solid #182b3b;font-size:12.5px}
   .sheetrow span:first-child{color:var(--faint)}
   .sheetrow span:last-child{text-align:right}
-  .sheet h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+  .sheet h4,.sheet h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
     font-weight:700;margin:18px 0 8px}
-  .sheet h3{font-size:15px;margin-bottom:4px}
-</style>
-<style id="pkStyle">
-  /* ---------- Round Route Packet (in-tool, printable) ---------- */
-  .packet{background:#fbfaf6;color:#111;border:1px solid #c9c4b4;border-radius:9px;padding:22px 26px;
-    font-size:13px;line-height:1.5;margin-bottom:14px}
-  .packet h2{font-size:19px;margin:0 0 2px;color:#1a3a5c}
-  .packet h3{font-size:14px;color:#1a3a5c;margin:22px 0 8px;border-bottom:1px solid #c3ced7;padding-bottom:4px;font-weight:700}
-  .packet .pkeyebrow{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#0b6ea8;font-weight:700;margin:0 0 8px}
-  .packet .pklede{color:#5a6b78;margin:0 0 14px;max-width:82ch}
-  .packet p{margin:0 0 10px;color:#222}
-  .packet table{font-size:12.5px;border-collapse:collapse;width:100%;margin:8px 0 4px}
-  .packet th,.packet td{border:1px solid #c3ced7;padding:5px 8px;text-align:left;vertical-align:top;color:#111}
-  .packet th{background:#1a3a5c;color:#fff;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;cursor:default;white-space:normal}
-  .packet th:hover{color:#fff}
-  .packet .pkcover td:first-child{width:190px;background:#f2f6f9;font-weight:600}
-  .packet td.st{background:#f2f6f9;font-weight:700;color:#1a3a5c;width:58px;text-align:center;font-family:var(--mono)}
-  .packet td.mono{font-family:var(--mono)}
-  .packet td.dim{color:#7a8791;font-style:italic}
-  .packet td.now{background:#fff8e6}
-  .packet input[type=text],.packet select{background:#fff;color:#111;border:1px solid #b9b3a3;border-radius:4px;
-    padding:5px 7px;font-size:12.5px;width:100%;font-family:inherit}
-  .packet label.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-  .packet .pkval{display:inline-block;min-width:60%;border-bottom:1px solid #888;padding:0 4px 1px;color:#111}
-  .packet .pknote{background:#f2f6f9;border-left:3px solid #0b6ea8;padding:10px 14px;margin:14px 0;color:#222;font-size:13px;line-height:1.5}
-  .packet .pknote strong{color:#1a3a5c}
-  .packet .pknote.bad{border-left-color:#c8501e}
-  .packet .pkline{font-size:12px;color:#5a6b78;margin:4px 0 8px}
-  .packet svg#pkRoute{width:100%;height:auto;border:1px solid #c3ced7;background:#fff;display:block}
-  .packet .pkbtns{display:flex;gap:9px;margin-top:16px;align-items:center;flex-wrap:wrap}
-  .packet .pkbtns button{background:#fff;color:#111;border-color:#999}
-  .packet .pkbtns button:hover{background:#eee}
-  .packet .pkbtns .pkhint{font-size:12px;color:#555}
-  .packet .pkfoot{font-size:11px;color:#666;margin-top:16px;border-top:1px solid #ccc;padding-top:8px}
-  .packet .pkbreak{border-top:2px dashed #c3ced7;margin:28px 0 22px}
-  @media print{
-    body.pk-print{background:#fff!important;color:#000!important;overflow:visible!important;height:auto!important}
-    body.pk-print>*{display:none!important}
-    body.pk-print>#packetPane{display:block!important}
-    body.pk-print .packet{border:0;padding:0;background:#fff;color:#000;border-radius:0;margin:0}
-    body.pk-print .packet *{color:#000!important;background:transparent!important;box-shadow:none!important}
-    body.pk-print .packet th{border-bottom:2px solid #000}
-    body.pk-print .packet input[type=text],body.pk-print .packet select{border:0;border-bottom:1px solid #888;border-radius:0;appearance:none;-webkit-appearance:none}
-    body.pk-print .packet .pkbtns,body.pk-print .noprint{display:none!important}
-    body.pk-print .packet tr{page-break-inside:avoid;break-inside:avoid}
-    body.pk-print .packet thead{display:table-header-group}
-    body.pk-print .packet .pkbreak{page-break-before:always;break-before:page;border:0;margin:0;height:0}
-    body.pk-print .packet svg#pkRoute{border-color:#888}
+  .sheet h3,.sheet h2{font-size:15px;margin-bottom:4px}
+  .kbdalt{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}
+  .kbdalt h3,.kbdalt h2{font-size:13px;margin-bottom:7px}
+  .errmsg{color:#ffb9ae;font-size:12px;line-height:1.45;margin:7px 0 0}
+  .errmsg:empty{display:none}
+  .fld .fldcap{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
+    color:var(--faint);font-weight:700;display:block}
+  /* ---------- v5 accessibility remediation (WCAG 2.2 AA) ---------- */
+  /* 2.4.1 Bypass Blocks */
+  .skip-link{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--navy);
+    color:#fff;font-weight:700;font-size:14px;padding:12px 18px;border-radius:0 0 6px 0;
+    text-decoration:none}
+  .skip-link:focus{left:0;outline:3px solid #fff;outline-offset:-3px}
+  /* text for assistive technology only */
+  .vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 2.4.7 Focus Visible — a CSS outline does not paint reliably on shapes inside an
+     <svg>, so stroke the shape as well as outlining the box. */
+  svg [tabindex]:focus-visible,svg [role=button]:focus-visible,svg a:focus-visible{
+    outline:2px solid #4fb3ef;outline-offset:2px}
+  svg [tabindex]:focus-visible rect,svg [tabindex]:focus-visible circle,
+  svg [tabindex]:focus-visible path,svg [tabindex]:focus-visible polygon,
+  svg [tabindex]:focus-visible ellipse,svg [tabindex]:focus-visible line,
+  svg [role=button]:focus-visible rect,svg [role=button]:focus-visible circle,
+  svg [role=button]:focus-visible path,svg [role=button]:focus-visible polygon{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  svg rect[tabindex]:focus-visible,svg circle[tabindex]:focus-visible,
+  svg path[tabindex]:focus-visible,svg polygon[tabindex]:focus-visible{
+    stroke:#4fb3ef!important;stroke-width:3px!important}
+  main:focus{outline:none}
+  /* 2.5.8 Target Size (Minimum) — 24x24 CSS px floor on every control */
+  button,[role=button],summary,.tick,.chip,.x,.nc,.docrow td,.cell{
+    min-height:24px}
+  button,[role=button],summary,.tick,.chip,.x,.nc{min-width:24px}
+  input[type=checkbox],input[type=radio]{min-width:24px;min-height:24px;
+    width:18px;height:18px;padding:3px}
+  /* 1.4.4 Resize text / 1.4.10 Reflow — release the fixed-height shell so the page
+     scrolls in one direction once text is enlarged or the viewport narrows. */
+  @media (max-width:1100px),(max-height:620px){
+    html,body{height:auto;min-height:100%;overflow:auto}
+    #app{height:auto;min-height:100vh}
+    main{overflow:visible}
+    .toolbar{position:static}
   }
+  @media (max-width:900px){
+    /* every multi-column layout becomes a single column, so nothing is pushed
+       off the side where it cannot be scrolled to */
+    .grid,.g2,.g3,.g4,.cols,.split,.fgrid,.planwrap,.segs,.lamps,.two{
+      display:block!important}
+    .grid>*,.g2>*,.g3>*,.fgrid>*,.planwrap>*{margin-bottom:12px;max-width:100%}
+    .row,.toolbar,.navchips,.flt,.steps,header,.ph,.mline,.lkrow,.ck,.lead,.legend{
+      flex-wrap:wrap!important}
+    .pnl,.seg,.lamp,.setcard,.card,.tile,.planbox,.sheetbox,.submit,.gcard,.sectbox{
+      max-width:100%}
+    .sysname{border-left:0;padding-left:0}
+    .fld,.fld input,.fld select,.fld textarea{max-width:100%}
+    input[type=text],input[type=number],select,textarea{max-width:100%}
+    /* diagrams scale to the viewport rather than demanding sideways scrolling */
+    svg{max-width:100%;height:auto}
+    canvas{max-width:100%}
+    /* a wide data table may scroll in its own box — 1.4.10 allows that for
+       tables — and the box is focusable so a keyboard can reach the scroll */
+    .tablewrap{overflow-x:auto}
+    table{max-width:100%}
+    main{padding:12px}
+  }
+  @media (max-width:900px){
+    .fgrid,.findrow,.fldrow,.g2,.g3,.readgrid,.thermgrid{grid-template-columns:1fr!important}
+    .legend,.row,.sheetrow,.steps,.stnrow,.toolbar{flex-wrap:wrap!important}
+  }
+  /* 2.1.1 — a scrollable pane must itself be reachable by keyboard */
+  .scrollx{overflow-x:auto}
+  .scrollx:focus-visible,[data-scrollpane]:focus-visible{outline:2px solid #4fb3ef;outline-offset:2px}
+  @media print{ .skip-link{display:none!important} }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <div id="app">
 
   <header>
-    <div class="brand">FACILITY ROUND — SHIFT LOG</div>
+    <h1 class="brand">FACILITY ROUND — SHIFT LOG</h1>
     <div class="sysname">GLAB 524.5.1 &middot; UCI 2227 · objective M5.1 · Set B · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
-    <div id="statusBadge" class="badge">Ready</div>
+    <div id="statusBadge" class="badge" role="status">Ready</div>
     <div>
       <div class="clocklbl">Site time</div>
       <div class="clock mono" id="clock">--:--:--</div>
     </div>
   </header>
 
-  <div class="toolbar" id="toolbar">
+  <div role="region" aria-label="Simulator controls" class="toolbar" id="toolbar">
     <button id="btnPane_prev" class="primary">Previous round</button>
     <button id="btnPane_route">Route</button>
     <button id="btnPane_leak">Leak panel</button>
     <button id="btnPane_fuel">Fuel</button>
     <button id="btnPane_therm">Thermal</button>
     <button id="btnPane_log">Shift log</button>
-    <button id="btnPacket" title="Round Route Packet: cover, route and the round check sheet — readable, fillable and printable here">Packet</button>
+    <button id="btnPacket" title="Opens the Round Route Packet (route, check sheet) in its own window, so it can sit beside this console">Packet ↗</button>
     <span class="spacer"></span>
-    <span class="counter" id="progress">Station 1 of 12</span>
+    <span class="counter" id="progress" role="status" aria-live="polite" aria-atomic="true">Station 1 of 12</span>
     <span class="counter" id="elapsed">T+00:00</span>
     <button id="btnRestart">Restart</button>
   </div>
 
-  <main>
+  <main id="main" tabindex="-1">
     <div class="wrap">
-      <section id="packetPane" class="hidden" aria-label="Round Route Packet"></section>
       <section id="roundView"></section>
     </div>
   </main>
@@ -351,9 +376,29 @@ const STATIONS=[
 const S={ci:SET,learner:"",t:0,running:false,timer:null,speed:12,
   series:{},alarms:[],sortKey:"time",sortDir:1,filters:new Set(),acked:new Set(),marks:{},
   pane:"prev",prevAck:false,prevAckAt:"",idx:0,draft:{},stnLog:{},leakRec:{},leakAt:{},
-  fuelRec:{},thermCap:{},thermRec:{},log:[],shortcuts:0,routeMsg:"",routeMsgKind:"block",find:[{},{},{},{}],handover:"",fuelMsg:"",thermMsg:"",rkey:0,sheetBuilt:false,
-  packet:{startAt:"",doneAt:"",watch:["","",""]}};
+  fuelRec:{},thermCap:{},thermRec:{},log:[],shortcuts:0,routeMsg:"",routeMsgKind:"block",find:[{},{},{},{}],handover:"",fuelMsg:"",thermMsg:"",rkey:0,sheetBuilt:false};
 const $=id=>document.getElementById(id);
+/* --- keyboard activation for custom controls (WCAG 2.1.1, 2.4.3) ------------
+   Roles and accessible names are authored in the markup; this only binds the
+   keys and restores focus after the repaint an activation triggers. */
+function kbdActivate(rootId,selector,keyAttr){
+  const root=typeof rootId==="string"?$(rootId):rootId;
+  if(!root||root.dataset.kbdBound)return;
+  root.dataset.kbdBound="1";
+  root.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    const t=e.target.closest&&e.target.closest(selector);
+    if(!t)return;
+    e.preventDefault();
+    const key=keyAttr?t.getAttribute(keyAttr):null;
+    /* SVGElement has no .click(), so raise a real event that bubbles the same way */
+    t.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));
+    if(key!=null){
+      const again=document.querySelector(selector.split(",")[0].replace(/:.*$/,"")+"["+keyAttr+'="'+key+'"]');
+      if(again&&again.focus)again.focus();
+    }
+  });
+}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let V=CONFIGS[SET];
 let D=null;
@@ -423,7 +468,6 @@ function buildRound(v){
 /* ---------- logging ---------- */
 function logIt(src,item,value,tag,note){
   S.log.push({t:fmtClock(S.t),src:src,item:item,value:value,tag:tag||"norm",note:note||""});
-  paintPacketMirrors();
 }
 
 /* ---------- canvas: leak map ---------- */
@@ -597,7 +641,7 @@ function renderPrev(){
       <td>NORMAL</td><td class="mono">${p.leakAt}</td></tr>`).join("");
   $("panePrev").innerHTML=`
     <div class="card">
-      <h3>Previous round record — ${esc(p.by)}, ${esc(p.shift)}</h3>
+      <h2>Previous round record — ${esc(p.by)}, ${esc(p.shift)}</h2>
       <p style="margin-bottom:10px">Walked 23:20 to 00:04, same twelve stations, same order. This is the record your round is compared against. Read it before you walk, not after — a reading with nothing to compare it to is a number, not information.</p>
       <div class="infomsg" style="margin-bottom:12px"><b>Note left for the next round</b><br>${esc(p.watch)}</div>
       <div class="infomsg"><b>Plant context recorded at the end of that round</b><br>${esc(p.context)}</div>
@@ -630,16 +674,15 @@ function renderPrev(){
 function paintAck(){
   const c=$("prevAckCard"); if(!c)return;
   if(S.prevAck){
-    c.innerHTML=`<h3>Acknowledged</h3>
+    c.innerHTML=`<h2>Acknowledged</h2>
       <div class="okmsg" style="margin-top:10px;margin-bottom:0">Previous round record read and acknowledged at
         <span class="mono">${esc(S.prevAckAt)}</span>. The route is unlocked. Come back to this pane whenever you need the numbers to compare against — you will need them at the fuel gauges.</div>`;
   }else{
-    c.innerHTML=`<h3>Acknowledge before you walk</h3>
+    c.innerHTML=`<h2>Acknowledge before you walk</h2>
       <p style="margin-bottom:10px">The route is locked until this is signed. It is signed with your name and the site clock, and it appears in the log.</p>
       <button class="primary" id="btnAckPrev">I have read the previous round record</button>`;
     $("btnAckPrev").onclick=()=>{
       S.prevAck=true; S.prevAckAt=fmtClock(S.t);
-      if(!String(S.packet.startAt||"").trim()) S.packet.startAt=S.prevAckAt;
       logIt("Handover","Previous round record","read and acknowledged","norm",
         "Watch item noted: CT-2 basin make-up valve cycling, re-read the basin level at the mechanical yard.");
       paintAck(); setPane("route");
@@ -658,7 +701,7 @@ function requiresOK(s){
   if(parts[0]==="fuel"){
     const ids=parts[1].split(",");
     const missing=ids.filter(id=>!S.fuelRec[id]||!S.fuelRec[id].logged);
-    return missing.length? {ok:false,msg:"This station is not finished. Not yet logged in the Fuel pane: "+missing.map(id=>D.fuel.filter(f=>f.id===id)[0].name).join(", ")+". Each tank needs the reading, the difference against the previous round, and a trend judgement."}:{ok:true};
+    return missing.length? {ok:false,msg:"This station is not finished. Not yet logged in the Fuel pane: "+missing.map(id=>D.fuel.filter(f=>f.id===id)[0].name).join(", ")+". Each tank needs the reading, the difference against the previous round, and a trend judgment."}:{ok:true};
   }
   if(parts[0]==="therm"){
     const grp=parts[1];
@@ -670,7 +713,7 @@ function requiresOK(s){
 function renderRoute(){
   const el=$("paneRoute");
   if(!S.prevAck){
-    el.innerHTML=`<div class="card"><h3>The route is locked</h3>
+    el.innerHTML=`<div class="card"><h2>The route is locked</h2>
       <div class="blockmsg" style="margin-top:10px"><b>The previous round record has not been acknowledged.</b><br>
       A round is a comparison instrument: the numbers you take are read against the numbers taken last time, by the same route in the same order. Open the previous round record, read it, and acknowledge it. The route unlocks when you do.</div>
       <button class="primary" id="btnGoPrev">Open the previous round record</button></div>`;
@@ -688,7 +731,7 @@ function renderRoute(){
   const msg=S.routeMsg?`<div class="${S.routeMsgKind==='block'?'blockmsg':'infomsg'}">${S.routeMsg}</div>`:"";
   el.innerHTML=`
     <div class="card">
-      <h3>Route — twelve stations, walked in order</h3>
+      <h2>Route — twelve stations, walked in order</h2>
       <p>The order is fixed because the next shift reads this log expecting the same order. Stations open one at a time. ${S.shortcuts?"Stations opened out of order so far: <b>"+S.shortcuts+"</b>, all recorded in the log.":"No out-of-order attempts recorded."}</p>
       <div class="steps">${chips}</div>
       <div class="stnlist" style="margin-top:12px" id="stnList">${list}</div>
@@ -715,7 +758,7 @@ function renderRoute(){
 function renderStationCard(){
   const body=$("stnBody"); if(!body)return;
   if(S.idx>=STATIONS.length){
-    body.innerHTML=`<h3>Route complete</h3>
+    body.innerHTML=`<h2>Route complete</h2>
       <div class="okmsg" style="margin-top:10px">All twelve stations logged. Go to the Shift log pane, check the record reads the way you would want it to read if someone else had written it, then identify your findings and route each one.</div>
       <button class="primary" id="btnGoLog">Open the shift log</button>`;
     $("btnGoLog").onclick=()=>setPane("log");
@@ -732,7 +775,7 @@ function renderStationCard(){
       <input type="text" id="rd_${i}" aria-label="${esc(r.label)} (${esc(r.unit)}) — value you are logging" placeholder="value" value="${esc(d["r"+i]||"")}">
     </div>`).join("");
   body.innerHTML=`
-    <h3>${s.id} · ${esc(s.name)}</h3>
+    <h2>${s.id} · ${esc(s.name)}</h2>
     <p style="margin-bottom:6px">${esc(s.task)}</p>
     ${req.ok?"":'<div class="blockmsg">'+esc(req.msg)+"</div>"}
     <div class="readgrid">${cells}</div>
@@ -758,9 +801,7 @@ function renderStationCard(){
       <textarea id="stNaWhy" rows="2" placeholder="e.g. the item could not be reached or read — say what it was, why, and what you did instead.">${esc(d.nawhy||"")}</textarea>
     </div>
     <button class="primary" id="btnDone">Complete station and log</button>`;
-  reads.forEach((r,i)=>{ $("rd_"+i).oninput=e=>{d["r"+i]=e.target.value;
-    const m=document.querySelector(`#packetPane input[data-ps="${s.id}"][data-pr="${i}"]`);
-    if(m&&m.value!==e.target.value) m.value=e.target.value; }; });
+  reads.forEach((r,i)=>{ $("rd_"+i).oninput=e=>{d["r"+i]=e.target.value;}; });
   $("stObs").oninput=e=>{d.obs=e.target.value;};
   $("stTag").onchange=e=>{d.tag=e.target.value;};
   $("stNa").onchange=e=>{d.na=!!e.target.value; $("naWrap").classList.toggle("hidden",!d.na);};
@@ -788,10 +829,10 @@ function completeStation(){
   logIt(s.id+" "+s.name,"Observation",d.obs,d.tag,"");
   if(d.na) logIt(s.id+" "+s.name,"Could not check",d.nawhy,"na","Recorded as not checked with a reason.");
   S.idx++;
-  if(S.idx>=STATIONS.length){ stopRun(true); if(!String(S.packet.doneAt||"").trim()) S.packet.doneAt=stamp; }
+  if(S.idx>=STATIONS.length) stopRun(true);
   S.routeMsgKind="info";
   S.routeMsg="<b>"+s.id+" logged at "+stamp+".</b>"+(S.idx<STATIONS.length?" Next station: "+STATIONS[S.idx].id+" · "+esc(STATIONS[S.idx].name)+".":" That is the whole route.");
-  render(); renderRoute(); paintPacketMirrors();
+  render(); renderRoute();
 }
 
 /* ---------- view: leak panel ---------- */
@@ -801,7 +842,9 @@ function renderLeak(){
     const cls=z.state==="normal"?"n":(z.state==="fault"?"f":"a");
     const rec=S.leakRec[z.id]||"";
     return `<tr><td class="mono">${z.id}</td><td>${esc(z.loc)}</td>
-      <td style="text-align:center"><span class="led ${cls}"></span></td>
+      <td style="text-align:center"><span class="led ${cls}" role="img" aria-label="Panel lamp: ${
+        z.state==="normal"?"green, normal":(z.state==="fault"?"amber, cable fault":"red, alarm")
+      }"></span><span class="vh"> ${z.state==="normal"?"green — normal":(z.state==="fault"?"amber — cable fault":"red — alarm")}</span></td>
       <td><select data-z="${z.id}" id="lk_${z.id}" aria-label="State you are recording for ${z.id} ${esc(z.loc)}" style="width:100%">
         <option value="">— not recorded —</option>
         <option value="normal" ${rec==="normal"?"selected":""}>Normal — cable healthy, no water</option>
@@ -813,9 +856,9 @@ function renderLeak(){
   const donecount=Object.keys(S.leakRec).filter(k=>S.leakRec[k]).length;
   el.innerHTML=`
     <div class="card">
-      <h3>Leak detection panel — nine sensing cable segments</h3>
+      <h2>Leak detection panel — nine sensing cable segments</h2>
       <p>The panel gives you a lamp per segment and nothing else. Read the lamp, read the legend, record the state. Record all nine, including the boring ones: a segment with no entry against it reads, to the next shift, exactly like a segment nobody walked past.</p>
-      <canvas id="leakMap"></canvas>
+      <canvas id="leakMap" role="img" aria-label="Schematic of the nine sensing cable segments and their panel lamps. Every segment, its location and its lamp state is listed in the table below this schematic."></canvas>
       <div class="legend">
         <span><span class="led n"></span> &nbsp;Green — normal. Cable healthy, no water.</span>
         <span><span class="led f"></span> &nbsp;Amber — cable fault. The sensing cable is open somewhere along the run. The zone is unmonitored. Water state unknown — the segment cannot report.</span>
@@ -853,7 +896,7 @@ function renderFuel(){
     return `<div class="gcard">
       <h3>${esc(f.name)}</h3>
       <div class="sub">Capacity ${f.cap.toLocaleString("en-GB")} ${f.unit} · gauge repeatability about ±${f.rep} ${f.unit}</div>
-      <canvas class="fg" data-id="${f.id}" data-pct="${pct.toFixed(3)}"></canvas>
+      <canvas class="fg" data-id="${f.id}" data-pct="${pct.toFixed(3)}" role="img" aria-label="${esc(f.name)} level gauge, reading ${n2(pct,1)} per cent of a ${f.cap.toLocaleString("en-GB")} ${f.unit} capacity. The figure is repeated as text below the gauge."></canvas>
       <div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 2px">
         <span class="digit">${f.now.toLocaleString("en-GB")}</span><span class="small">${f.unit} · ${n2(pct,1)} %</span>
       </div>
@@ -875,7 +918,7 @@ function renderFuel(){
   }).join("");
   el.innerHTML=`
     <div class="card">
-      <h3>Fuel gauges — two day tanks and the bulk tank</h3>
+      <h2>Fuel gauges — two day tanks and the bulk tank</h2>
       <p>Read the gauge, write down the digital value, then subtract the previous round from it. The subtraction is the whole point. A tank level on its own tells you almost nothing; a tank level against the last one tells you whether anything is leaving the site that should not be.</p>
       <div class="infomsg" style="margin-bottom:0"><b>What the plant has been doing:</b> ${esc(D.prev.context)}</div>
       ${S.fuelMsg?'<div class="blockmsg" style="margin-top:12px;margin-bottom:0">'+esc(S.fuelMsg)+"</div>":""}
@@ -892,14 +935,14 @@ function renderFuel(){
     const id=e.target.dataset.flog, f=D.fuel.filter(q=>q.id===id)[0];
     const r=S.fuelRec[id]||(S.fuelRec[id]={});
     if(!String(r.v||"").trim()||!String(r.d||"").trim()||!r.tr){
-      S.fuelMsg=f.name+" is not logged. All three are needed: the reading, the signed difference against the previous round, and the trend judgement.";
+      S.fuelMsg=f.name+" is not logged. All three are needed: the reading, the signed difference against the previous round, and the trend judgment.";
       renderFuel(); return;
     }
     S.fuelMsg="";
     r.logged=true; r.at=fmtClock(S.t);
     logIt("Fuel — "+f.name,"Level",String(r.v).trim()+" "+f.unit,r.tr==="as"?"norm":"dev",
       "Previous round "+f.prev+" "+f.unit+" at "+D.prev.fuelAt+". Difference logged: "+String(r.d).trim()+" "+f.unit+
-      ". Trend judgement: "+(r.tr==="as"?"as expected":r.tr==="below"?"below expected":"above expected")+".");
+      ". Trend judgment: "+(r.tr==="as"?"as expected":r.tr==="below"?"below expected":"above expected")+".");
     renderFuel();
   });
 }
@@ -913,7 +956,7 @@ function renderTherm(){
                  s:"Same instrument, same distance, same emissivity setting. The diagnostic is the difference between phases, not the absolute number."}];
   el.innerHTML=`
     <div class="card">
-      <h3>Infrared thermal captures — six assigned connections</h3>
+      <h2>Infrared thermal captures — six assigned connections</h2>
       <p>Infrared, often shortened to IR, does not tell you a connection is bad because it is warm. Everything carrying current is warm. It tells you a connection is bad because it is warmer than the two beside it doing the same work. Capture the point, read the spot temperature and the ambient, then write down the difference against the neighboring phases.</p>
       ${S.thermMsg?'<div class="blockmsg" style="margin-bottom:0">'+esc(S.thermMsg)+"</div>":""}
     </div>
@@ -923,7 +966,7 @@ function renderTherm(){
         return `<div class="gcard">
           <h3>${esc(c.ph)}</h3>
           <div class="sub">${esc(c.id)} · ambient ${n2(c.amb,1)} °C</div>
-          <canvas class="ir" data-id="${c.id}" ${cap?"":'style="display:none"'}></canvas>
+          <canvas class="ir" data-id="${c.id}" ${cap?"":'style="display:none"'} role="img" aria-label="${cap?`Infrared capture at ${esc(c.id)}, ${esc(c.ph)}. Spot temperature ${n2(c.t,1)} degrees Celsius against an ambient of ${n2(c.amb,1)} degrees Celsius.`:`No capture taken at ${esc(c.id)} yet.`}"></canvas>
           ${cap?`<div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 2px">
                   <span class="digit">${n2(c.t,1)}</span><span class="small">°C spot · ambient ${n2(c.amb,1)} °C</span></div>`
                 :`<div class="prevbox" style="text-align:center;padding:22px 10px">No capture taken at this point yet.</div>`}
@@ -942,7 +985,7 @@ function renderTherm(){
           <button data-tlog="${c.id}" ${cap?"":"disabled"} class="${rec.logged?"":"primary"}">${rec.logged?"Logged "+esc(rec.at)+" — log again":"Log this capture"}</button>
         </div>`;
       }).join("");
-      return `<div class="card"><h3>${esc(gr.t)}</h3><p>${esc(gr.s)}</p>
+      return `<div class="card"><h2>${esc(gr.t)}</h2><p>${esc(gr.s)}</p>
         <div class="thermgrid">${items}</div></div>`;
     }).join("")}`;
   el.querySelectorAll("canvas.ir").forEach(cv=>{
@@ -1010,7 +1053,7 @@ function renderLog(){
   }).join("");
   el.innerHTML=`
     <div class="card">
-      <h3>Shift log — every reading, as it was taken</h3>
+      <h2>Shift log — every reading, as it was taken</h2>
       <p>${S.log.length} entries. This is the record. It is written to be read by somebody who was not here, at 07:00, in a hurry.</p>
       <div class="logscroll">
         <table><thead><tr>
@@ -1020,10 +1063,10 @@ function renderLog(){
       </div>
     </div>
     <div class="submit noprint">
-      <h3>Findings and escalation routing</h3>
+      <h2>Findings and escalation routing</h2>
       <div class="sub">For each thing you are raising, pick the logged item it came from, decide whether it goes now or goes to the handover, and write one line saying what it is and why you routed it that way. Use as many rows as you need and leave the rest blank.</div>
       <div class="fld" style="margin-bottom:14px"><label for="learnerName">Your name</label>
-        <input type="text" id="learnerName" placeholder="first and last name" style="width:260px" value="${esc(S.learner||"")}"></div>
+        <input type="text" id="learnerName" placeholder="first and last name" style="width:260px" value="${esc(S.learner||"")}" autocomplete="name"></div>
       ${findRows}
       <div class="fld" style="margin:12px 0">
         <label for="hoText">Your handover sentence — what the next shift needs, in the order they need it</label>
@@ -1033,15 +1076,13 @@ function renderLog(){
       <div class="tiny" style="margin-top:12px">Keep this log. It is the input to the SBAR handover gate in GLAB 524.5.3, where SBAR means Situation, Background, Assessment, Recommendation. You cannot write a handover from memory, and you will be asked to.</div>
     </div>
     <div class="result${S.sheetBuilt?" show":""}" id="roundResult">${S.sheetBuilt?sheetHTML():""}</div>`;
-  const pkm=(sel,v)=>{const m=$("packetPane").querySelector(sel); if(m&&m.value!==v) m.value=v;};
   el.querySelectorAll("select[data-fi]").forEach(s=>s.onchange=e=>{
-    const i=+e.target.dataset.fi; S.find[i]=S.find[i]||{}; S.find[i].item=e.target.value; pkm(`select[data-pfi="${i}"]`,e.target.value);});
+    const i=+e.target.dataset.fi; S.find[i]=S.find[i]||{}; S.find[i].item=e.target.value;});
   el.querySelectorAll("select[data-fu]").forEach(s=>s.onchange=e=>{
-    const i=+e.target.dataset.fu; S.find[i]=S.find[i]||{}; S.find[i].urg=e.target.value; pkm(`select[data-pfu="${i}"]`,e.target.value);});
+    const i=+e.target.dataset.fu; S.find[i]=S.find[i]||{}; S.find[i].urg=e.target.value;});
   el.querySelectorAll("input[data-fn]").forEach(s=>s.oninput=e=>{
-    const i=+e.target.dataset.fn; S.find[i]=S.find[i]||{}; S.find[i].note=e.target.value; pkm(`input[data-pfn="${i}"]`,e.target.value);});
-  $("learnerName").oninput=e=>{S.learner=e.target.value;
-    const m=$("pk_learner"); if(m&&m.value!==e.target.value) m.value=e.target.value;};
+    const i=+e.target.dataset.fn; S.find[i]=S.find[i]||{}; S.find[i].note=e.target.value;});
+  $("learnerName").oninput=e=>{S.learner=e.target.value;};
   $("hoText").oninput=e=>{S.handover=e.target.value;};
   $("btnSubmit").onclick=buildSheet;
 }
@@ -1080,7 +1121,6 @@ function sheetHTML(){
   });
   if(!S.find.some(f=>f&&(f.item||f.urg||String(f.note||"").trim()))) miss.push("no findings routed — every finding on the route must be raised and given an urgency");
   if(!String(S.handover||"").trim()) miss.push("handover sentence");
-  if(!S.packet.watch.some(w=>String(w||"").trim())) miss.push("packet — what am I watching for (from the previous shift record; Packet button)");
 
   const stnRows=STATIONS.map(s=>{
     const rec=S.stnLog[s.id], reads=D.stn[s.id].reads;
@@ -1123,7 +1163,7 @@ function sheetHTML(){
   }).join("");
 
   return `<div class="sheet">
-    <h3>GLAB 524.5.1 — Full Facility Round · submission sheet</h3>
+    <h2>GLAB 524.5.1 — Full Facility Round · submission sheet</h2>
     ${sRow("Your name",esc(S.learner||"—"))}
     ${sRow("Completed",stampNow())}
     ${sRow("Site time at completion",fmtClock(S.t))}
@@ -1167,8 +1207,6 @@ function sheetHTML(){
 
     <h4>Handover sentence</h4>
     <div class="small" style="white-space:pre-wrap">${esc(S.handover||"— not written —")}</div>
-
-    ${packetRecordHTML()}
 
     ${miss.length?`<h4>Fields still blank</h4><div class="small">${miss.map(m=>"— "+esc(m)).join("<br>")}</div>`:""}
 
@@ -1220,36 +1258,125 @@ function resetRun(){
   S.leakRec={}; S.leakAt={}; S.fuelRec={}; S.thermCap={}; S.thermRec={};
   S.log=[]; S.shortcuts=0; S.routeMsg=""; S.routeMsgKind="block"; S.fuelMsg=""; S.thermMsg="";
   S.find=[{},{},{},{}]; S.handover="";
-  S.packet={startAt:"",doneAt:"",watch:["","",""]};
   D=buildRound(V);
   const vw=$("roundView"); vw.dataset.built=""; vw.innerHTML="";
   buildView();
   pushSeries(); render();
   setPane("prev");
-  renderPacket(); togglePacket(false);
   startRun();
 }
 
 /* ---------- boot ---------- */
 PANES.forEach(p=>{ $("btnPane_"+p).onclick=()=>setPane(p); });
 $("btnRestart").onclick=resetRun;
-/* ---------- Round Route Packet — lives in #packetPane, which is never repainted ----------
-   Cover fields (Round started / completed are auto-filled from the site clock when the previous record
-   is acknowledged and when ST12 is logged, and stay editable) and the three "what am I watching for"
-   lines are real inputs held in S.packet. The check-sheet tables are live mirrors of the console: the
-   station you are at is editable here and on the console (same S.draft), logged stations are fixed as
-   a log should be, stations not yet reached are blank; findings are the console's S.find, two-way. */
-const PK_ROUTE_SVG=`<svg id="pkRoute" viewBox="0 0 1140 240" role="img" aria-label="Round route sequence, station ST01 through ST12">
+/* Round Route Packet — reference copy, opened in its own window so it can sit beside the console.
+   Source is embedded below in #packetSrc; nothing is fetched. */
+$("btnPacket").onclick=()=>{
+  const w=window.open("","glab5251_packet","width=1240,height=900,resizable=yes,scrollbars=yes");
+  if(!w){alert("The browser blocked the packet window. Allow pop-ups for this file and press Packet again.");return;}
+  w.document.open(); w.document.write($("packetSrc").textContent); w.document.close(); w.focus();
+};
+window.addEventListener("resize",()=>{
+  if(S.pane==="leak"&&$("leakMap"))drawLeakMap($("leakMap"));
+  if(S.pane==="fuel")renderFuel();
+  if(S.pane==="therm")renderTherm();
+});
+resetRun();
+</script>
+<!-- ===== GLAB 524.5.1 Round Route Packet — embedded reference copy (3_Handouts/524-5-1_Round_Route_Packet.html).
+     Opened by the Packet toolbar button in a separate window. Inert here: type="text/html" is never executed. ===== -->
+<script type="text/html" id="packetSrc"><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GLAB 524.5.1 — Round Route Packet — UCI 2227</title>
+<style>
+  :root{
+    --ink:#12232e; --mut:#5a6b78; --line:#c3ced7; --blue:#1a3a5c;
+    --accent:#0b6ea8; --route:#0b6ea8; --paper:#fff; --soft:#f2f6f9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:#e9eef2;color:var(--ink);
+       font:13px/1.5 Arial,Helvetica,sans-serif}
+  .sheet{background:var(--paper);max-width:1180px;margin:0 auto 22px;padding:26px 30px;
+         border:1px solid var(--line);border-radius:4px}
+  h1{font-size:22px;color:var(--blue);margin:0 0 2px}
+  h2{font-size:15px;color:var(--blue);margin:26px 0 8px;
+     border-bottom:1px solid var(--line);padding-bottom:4px}
+  .eyebrow{font:600 10px/1 Arial;letter-spacing:.10em;text-transform:uppercase;
+           color:var(--accent);margin:0 0 8px}
+  .lede{color:var(--mut);margin:0 0 16px;max-width:82ch}
+  table{border-collapse:collapse;width:100%;margin:8px 0 4px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--blue);color:#fff;font-size:12px;letter-spacing:.04em;
+     text-transform:uppercase;font-weight:600}
+  .cover td:first-child{width:190px;background:var(--soft);font-weight:600}
+  .fill{color:var(--mut);font-style:italic}
+  .st{background:var(--soft);font-weight:700;color:var(--blue);width:58px;text-align:center}
+  .val{width:120px}.tm{width:78px}
+  .note{background:var(--soft);border-left:3px solid var(--accent);padding:10px 14px;margin:14px 0}
+  .note strong{color:var(--blue)}
+  .bad{border-left-color:#c8501e}
+  svg{width:100%;height:auto;border:1px solid var(--line);background:#fff}
+  .foot{color:var(--mut);font-size:12px;margin-top:18px;border-top:1px solid var(--line);padding-top:8px}
+  code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:12px}
+  .bar{max-width:1180px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;color:var(--mut);font-size:12px}
+  .bar button{font:600 13px Arial;padding:7px 14px;border-radius:4px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+  .bar button:hover{background:#095a89}
+  @media print{
+    body{background:#fff;padding:0}
+    .bar{display:none}
+    .sheet{border:0;margin:0;max-width:none;padding:14mm;page-break-after:always}
+    .sheet:last-child{page-break-after:auto}
+    @page{size:A4 portrait;margin:8mm}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <button onclick="window.print()">Print packet</button>
+  <span>Reference copy opened from the lab tool. Keep this window beside the console; your readings, findings and handover sentence are entered in the console, not here — the console record is what goes into your submission PDF.</span>
+</div>
+
+<section class="sheet">
+  <p class="eyebrow">UCI 2227 · Module 524 · Lesson 524.5 — Shift Ops &amp; Handoffs</p>
+  <h1>GLAB 524.5.1 — Round Route Packet</h1>
+  <p class="lede">Twelve stations, walked in this order, every time. A round is a comparison instrument:
+  it only works if the thing you are comparing against was collected the same way. Record
+  <strong>actual values with times</strong>, never ticks — <em>Fuel OK</em> is worthless;
+  <em>1,840 liters at 09:15</em> can be compared against every previous round.</p>
+
+  <table class="cover">
+    <tr><td>Route</td><td><strong>ROUND ROUTE — ST01 to ST12, in order</strong></td></tr>
+    <tr><td>Order</td><td>Walk the defined order, not the order that is convenient today. Record at the
+        same points every time so consecutive rounds are directly comparable.</td></tr>
+    <tr><td>Before you start</td><td><strong>Read the previous shift's round record at the desk.</strong>
+        It takes ninety seconds and it is the only thing that makes your own round mean anything.</td></tr>
+    <tr><td>Learner name</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Round started</td><td class="fill">&nbsp;</td></tr>
+    <tr><td>Round completed</td><td class="fill">&nbsp;</td></tr>
+  </table>
+
+  <h2>From the previous shift record — what am I watching for?</h2>
+  <table>
+    <tr class="sheetrow"><td style="height:26px">1.</td></tr>
+    <tr class="sheetrow"><td style="height:26px">2.</td></tr>
+    <tr class="sheetrow"><td style="height:26px">3.</td></tr>
+  </table>
+
+  <h2>The route, in order</h2>
+  <svg viewBox="0 0 1140 240" role="img" aria-label="Round route sequence, station ST01 through ST12">
     <defs>
       <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
         <path d="M0,0 L10,5 L0,10 z" fill="#0b6ea8"/>
       </marker>
       <style>
-        #pkRoute .lnk{stroke:#0b6ea8;stroke-width:2.4;fill:none}
-        #pkRoute .node{fill:#e8f1f7;stroke:#1a3a5c;stroke-width:1.6}
-        #pkRoute .nid{font:700 12px Arial;fill:#1a3a5c}
-        #pkRoute .nnm{font:10.5px Arial;fill:#12232e}
-        #pkRoute .cap{font:600 10px Arial;fill:#5a6b78;letter-spacing:.05em}
+        .lnk{stroke:#0b6ea8;stroke-width:2.4;fill:none}
+        .node{fill:#e8f1f7;stroke:#1a3a5c;stroke-width:1.6}
+        .nid{font:700 12px Arial;fill:#1a3a5c}
+        .nnm{font:10.5px Arial;fill:#12232e}
+        .cap{font:600 10px Arial;fill:#5a6b78;letter-spacing:.05em}
       </style>
     </defs>
 
@@ -1286,262 +1413,100 @@ const PK_ROUTE_SVG=`<svg id="pkRoute" viewBox="0 0 1140 240" role="img" aria-lab
       <rect class="node" x="925"  y="142" width="130" height="48" rx="4"/><text class="nid" x="934" y="160">ST12</text><text class="nnm" x="934" y="178">BMS desk</text>
     </g>
     <text class="cap" x="25" y="220">SEQUENCE ONLY — STATION POSITIONS ARE SITE-SPECIFIC. THE ORDER IS WHAT MATTERS.</text>
-  </svg>`;
-function pkClock(){ return fmtClock(S.t); }
-function pkStnRowsHTML(mode){
-  const live=mode!=="static";
-  return STATIONS.map((s,si)=>{
-    const reads=D.stn[s.id].reads, rec=S.stnLog[s.id], cur=(si===S.idx&&S.prevAck&&!rec), d=S.draft[s.id]||{};
-    const prev=D.prev.stn[si];
-    const rows=reads.map((r,i)=>{
-      let val, cls="mono";
-      if(rec) val=esc(rec.vals[i])+" "+esc(r.unit);
-      else if(cur) { cls="now"; val=live
-          ?`<label class="vh" for="pk_${s.id}_${i}">${esc(r.label)} (${esc(r.unit)}) — value you are logging</label><input type="text" id="pk_${s.id}_${i}" data-ps="${s.id}" data-pr="${i}" value="${esc(d["r"+i]||"")}" placeholder="value" autocomplete="off">`
-          :`<span class="pkval">${esc(String(d["r"+i]||"").trim())||"&nbsp;"}</span>`; }
-      else { cls="dim"; val=si<S.idx?"—":"not reached"; }
-      const tm=rec?esc(rec.t):(cur?"<span style='color:#7a8791;font-style:italic'>now</span>":"");
-      const pv=prev?esc(prev.vals[i])+" "+esc(r.unit)+" <span style='color:#7a8791'>at "+esc(prev.t)+"</span>":"—";
-      return `<tr>${i===0?`<td class="st" rowspan="${reads.length+1}">${s.id}</td>`:""}
-        <td>${esc(r.label)} (${esc(r.unit)})${s.need?(i===reads.length-1?` · <strong>${esc(pkNeedWord(s.need))}</strong>`:""):""}</td>
-        <td class="${cls}">${val}</td><td class="mono">${tm}</td><td class="mono">${pv}</td></tr>`;
-    }).join("");
-    const obs=rec?esc(rec.obs):(cur&&String(d.obs||"").trim()?esc(d.obs):"");
-    const tag=rec?(rec.tag==="dev"?"Deviation":"Within normal"):(cur&&d.tag?(d.tag==="dev"?"Deviation":"Within normal"):"");
-    const obsRow=`<tr><td class="dim">${esc(s.name)} — observation</td>
-        <td colspan="3" class="${obs?"":"dim"}">${obs||(rec?"—":(cur?"being written on the console":""))}${tag?` <span style="color:#5a6b78">· ${tag}</span>`:""}</td></tr>`;
-    return rows+obsRow;
-  }).join("");
-}
-function pkNeedWord(need){
-  const p=need.split(":");
-  if(p[0]==="therm") return p[1]==="SW"?"IR: CB-101 lugs, phase A / B / C":"IR: PDU-03 subfeed F2 lugs, phase A / B / C";
-  if(p[0]==="fuel") return p[1]==="BULK"?"bulk tank gauge":"day tanks DT1 and DT2";
-  if(p[0]==="leak") return "record all nine segments";
-  return "";
-}
-function pkNaRowsHTML(){
-  const rows=[];
-  STATIONS.forEach((s,si)=>{
-    const rec=S.stnLog[s.id];
-    if(rec&&rec.na) rows.push(`<tr><td class="mono">${s.id} · ${esc(s.name)}</td><td>${esc(rec.nawhy)}</td><td class="mono">${esc(rec.t)}</td></tr>`);
-    else if(si===S.idx&&!rec){ const d=S.draft[s.id]||{}; if(d.na) rows.push(`<tr><td class="mono">${s.id} · ${esc(s.name)}</td><td class="now">${esc(d.nawhy||"")||"<span style='color:#7a8791;font-style:italic'>being written on the console</span>"}</td><td class="dim">now</td></tr>`); }
-  });
-  return rows.length?rows.join(""):`<tr><td colspan="3" class="dim">Nothing recorded as not checked so far. A locked room or a blocked access point is a finding, not an omission — record it at the station (Could not check).</td></tr>`;
-}
-function pkFindRowsHTML(mode){
-  const live=mode!=="static", opts=findOptions();
-  return [0,1,2,3].map(i=>{
-    const f=S.find[i]||{};
-    if(!live) return `<tr><td class="mono">${i+1}</td><td>${f.item?esc(findLabel(f.item)):"<span class='pkval'>&nbsp;</span>"}</td>
-      <td>${f.urg?urgWord(f.urg):"<span class='pkval'>&nbsp;</span>"}</td><td>${esc(String(f.note||"").trim())||"<span class='pkval'>&nbsp;</span>"}</td></tr>`;
-    return `<tr><td class="mono">${i+1}</td>
-      <td><label class="vh" for="pk_fi_${i}">Finding ${i+1} — logged item</label><select id="pk_fi_${i}" data-pfi="${i}">${opts.map(o=>`<option value="${o.v}" ${f.item===o.v?"selected":""}>${esc(o.l)}</option>`).join("")}</select></td>
-      <td><label class="vh" for="pk_fu_${i}">Finding ${i+1} — urgency</label><select id="pk_fu_${i}" data-pfu="${i}">
-        <option value="">— urgency —</option><option value="now" ${f.urg==="now"?"selected":""}>Escalate now</option><option value="carry" ${f.urg==="carry"?"selected":""}>Carry to handover</option></select></td>
-      <td><label class="vh" for="pk_fn_${i}">Finding ${i+1} — one line note</label><input type="text" id="pk_fn_${i}" data-pfn="${i}" value="${esc(f.note||"")}" placeholder="what you observed — describe, do not diagnose" autocomplete="off"></td></tr>`;
-  }).join("");
-}
-function pkIn(id,k,val,ph,mode,lbl){
-  if(mode==="static") return `<span class="pkval">${esc(String(val||"").trim())||"&nbsp;"}</span>`;
-  return `<label class="vh" for="${id}">${esc(lbl||ph||k)}</label><input type="text" id="${id}" data-pkf="${k}" value="${esc(val||"")}" placeholder="${esc(ph||"")}" autocomplete="off">`;
-}
-function packetHTML(mode){
-  const live=mode!=="static", P=S.packet, setL="ABCDEFGH".charAt(SET);
-  const learner=live
-    ?`<label class="vh" for="pk_learner">Learner name</label><input type="text" id="pk_learner" value="${esc(S.learner)}" placeholder="first and last name — the same field as the console's Your name" autocomplete="off">`
-    :`<span class="pkval">${esc(S.learner)||"&nbsp;"}</span>`;
-  const watch=[0,1,2].map(i=>`<tr><td style="width:36px" class="mono">${i+1}.</td><td>${live
-      ?`<label class="vh" for="pk_watch${i}">Watching for — line ${i+1}</label><input type="text" id="pk_watch${i}" data-pkw="${i}" value="${esc(P.watch[i]||"")}" placeholder="${i===0?"an open work order, a note left at a station, a value already drifting":""}" autocomplete="off">`
-      :`<span class="pkval" style="min-width:90%">${esc(String(P.watch[i]||"").trim())||"&nbsp;"}</span>`}</td></tr>`).join("");
-  return `<div class="packet" id="packetPaper">
-    <div class="pkeyebrow">UCI 2227 · Module 524 · Lesson 524.5 — Shift Ops &amp; Handoffs</div>
-    <h2>${LAB.lab} — Round Route Packet</h2>
-    <p class="pklede">Twelve stations, walked in this order, every time. A round is a comparison instrument:
-      it only works if the thing you are comparing against was collected the same way. Record
-      <strong>actual values with times</strong>, never ticks — <em>Fuel OK</em> is worthless;
-      <em>1,840 litres at 09:15</em> can be compared against every previous round.${live?" Everything you type here is written into your submission sheet.":""}</p>
+  </svg>
 
-    <table class="pkcover">
-      <tr><td>Route</td><td><strong>ROUND ROUTE — ST01 to ST12, in order</strong> · Set ${setL}</td></tr>
-      <tr><td>Order</td><td>Walk the defined order, not the order that is convenient today. Record at the
-          same points every time so consecutive rounds are directly comparable.</td></tr>
-      <tr><td>Before you start</td><td><strong>Read the previous shift's round record at the desk.</strong>
-          It takes ninety seconds and it is the only thing that makes your own round mean anything.</td></tr>
-      <tr><td>${live?'<label for="pk_learner" style="font-weight:600">Learner name</label>':'Learner name'}</td><td>${learner}</td></tr>
-      <tr><td>${live?'<label for="pk_startAt" style="font-weight:600">Round started</label>':'Round started'}</td><td>${pkIn("pk_startAt","startAt",P.startAt,"site time — filled in for you when you acknowledge the previous round record; correct it if you need to",mode,"Round started")}</td></tr>
-      <tr><td>${live?'<label for="pk_doneAt" style="font-weight:600">Round completed</label>':'Round completed'}</td><td>${pkIn("pk_doneAt","doneAt",P.doneAt,"site time — filled in for you when ST12 is logged; correct it if you need to",mode,"Round completed")}</td></tr>
-    </table>
+  <p class="foot">UCI 2227 — GLAB 524.5.1 Round Route Packet · Stations ST01–ST12</p>
+</section>
 
-    <h3>From the previous shift record — what am I watching for?</h3>
-    <table>${watch}</table>
+<section class="sheet">
+  <p class="eyebrow">GLAB 524.5.1 · Round route</p>
+  <h1>Round check sheet</h1>
+  <p class="lede">Write values in the moment. Reconstructing from memory at the desk produces plausible
+  fiction. Record the time on every entry — <em>this morning</em> is not a timestamp anyone can work with.</p>
 
-    <h3>The route, in order</h3>
-    ${PK_ROUTE_SVG}
-    <div class="pkfoot">UCI 2227 — ${LAB.lab} Round Route Packet · Stations ST01–ST12 · Set ${setL}</div>
+  <table>
+    <thead><tr><th class="st">St</th><th>Station and what you read</th>
+      <th class="val">Value</th><th class="tm">Time</th><th class="val">vs previous</th></tr></thead>
+    <tbody>
+      <tr><td class="st" rowspan="2">ST01</td><td>Incomer A ammeter (A)</td><td></td><td></td><td></td></tr>
+      <tr><td>Switchroom ambient (°C) · <strong>IR: CB-101 lugs, phase A / B / C</strong></td><td></td><td></td><td></td></tr>
 
-    <div class="pkbreak"></div>
-    <div class="pkeyebrow">${LAB.lab} · Round route</div>
-    <h2>Round check sheet</h2>
-    <p class="pklede">Write values in the moment. Reconstructing from memory at the desk produces plausible
-      fiction. Record the time on every entry — <em>this morning</em> is not a timestamp anyone can work with.</p>
-    <div class="pkline">${live
-      ?"These cells are the console's station fields, live: the station you are at is editable here and on the console; a logged station is fixed, as a log should be; a station not yet reached is blank. The time is stamped when you press <b>Complete station and log</b>."
-      :"Values as logged on the console at site time "+esc(pkClock())+"."}</div>
-    <table>
-      <thead><tr><th style="width:58px">St</th><th>Station and what you read</th>
-        <th style="width:150px">Value</th><th style="width:84px">Time</th><th style="width:170px">vs previous round</th></tr></thead>
-      <tbody id="pkStnBody">${pkStnRowsHTML(mode)}</tbody>
-    </table>
+      <tr><td class="st" rowspan="2">ST02</td><td>UPS-A output load (%)</td><td></td><td></td><td></td></tr>
+      <tr><td>UPS-A battery autonomy (min)</td><td></td><td></td><td></td></tr>
 
-    <div class="pknote bad">
-      <strong>A leak segment showing FAULT is not the same as showing NO LEAK.</strong> A faulted segment is a
-      blind spot — that stretch of floor is no longer monitored and it will not alarm when water arrives.
-      Record every segment at ST11, including the normal ones.
-    </div>
+      <tr><td class="st" rowspan="2">ST03</td><td>UPS-B output load (%)</td><td></td><td></td><td></td></tr>
+      <tr><td>UPS-B battery autonomy (min)</td><td></td><td></td><td></td></tr>
 
-    <h3>Not checked, and why</h3>
-    <p class="pklede">A locked room or a blocked access point is a finding, not an omission. Record it at the station on the console
-      (Could not check) — it appears here.</p>
-    <table>
-      <thead><tr><th style="width:24%">Station / location</th><th>Why it could not be checked</th><th style="width:84px">Time</th></tr></thead>
-      <tbody id="pkNaBody">${pkNaRowsHTML()}</tbody>
-    </table>
+      <tr><td class="st" rowspan="2">ST04</td><td>PDU-03 load (%)</td><td></td><td></td><td></td></tr>
+      <tr><td>PDU-07 load (%) · <strong>IR: PDU-03 subfeed F2 lugs, phase A / B / C</strong></td><td></td><td></td><td></td></tr>
 
-    <h3>Findings — and which cannot wait for the handover</h3>
-    <div class="pkline">${live?"The same four finding rows as the Shift log pane — fill them in either place.":""}</div>
-    <table>
-      <thead><tr><th style="width:36px">#</th><th style="width:36%">Logged item</th>
-        <th style="width:20%">Escalate now?</th><th>What you observed (describe, do not diagnose)</th></tr></thead>
-      <tbody id="pkFindBody">${pkFindRowsHTML(mode)}</tbody>
-    </table>
+      <tr><td class="st" rowspan="2">ST05</td><td>GEN-1 jacket water heater (°C)</td><td></td><td></td><td></td></tr>
+      <tr><td>GEN-2 starting battery (V dc) · <strong>day tanks DT1 and DT2</strong></td><td></td><td></td><td></td></tr>
 
-    <div class="pknote">
-      <strong>Some findings wait for the handover and some do not.</strong> A connection running twenty
-      degrees above its neighbors does not wait. Decide for each finding and mark it.
-    </div>
+      <tr><td class="st" rowspan="2">ST06</td><td>Transfer pump hour meter (h)</td><td></td><td></td><td></td></tr>
+      <tr><td>Bund water level (mm) · <strong>bulk tank gauge</strong></td><td></td><td></td><td></td></tr>
 
-    ${live?`<div class="pkbtns noprint">
-      <button type="button" id="btnPrintPacket">Print packet</button>
-      <button type="button" id="btnPacketWindow" title="Opens a read-only copy of this packet, as filled in, in its own window so it can sit beside the console">Open in window ↗</button>
-      <button type="button" id="btnClosePacket">Close packet</button>
-      <span class="pkhint">Your entries here are carried into the submission sheet automatically.</span>
-    </div>`:""}
-    <div class="pkfoot">Keep this sheet — its findings are the input to the SBAR gate, GLAB 524.5.3, this afternoon.</div>
-  </div>`;
-}
-function paintPacketMirrors(){
-  /* refresh the mirrored tables and the auto-filled cover times; never touches a field that has focus */
-  const p=$("packetPane"); if(!p||!D||!p.firstChild) return;
-  const a=document.activeElement;
-  const b1=$("pkStnBody"), b2=$("pkNaBody"), b3=$("pkFindBody");
-  if(b1&&!(a&&b1.contains(a))) b1.innerHTML=pkStnRowsHTML("live");
-  if(b2) b2.innerHTML=pkNaRowsHTML();
-  if(b3&&!(a&&b3.contains(a))) b3.innerHTML=pkFindRowsHTML("live");
-  const s=$("pk_startAt"); if(s&&s!==a&&s.value!==S.packet.startAt) s.value=S.packet.startAt;
-  const e=$("pk_doneAt"); if(e&&e!==a&&e.value!==S.packet.doneAt) e.value=S.packet.doneAt;
-}
-function renderPacket(){
-  const p=$("packetPane"); if(!p||!D) return;
-  p.innerHTML=packetHTML("live");
-  p.oninput=e=>{
-    const t=e.target; if(!t) return;
-    if(t.id==="pk_learner"){
-      S.learner=t.value;
-      const m=$("learnerName"); if(m&&m.value!==t.value) m.value=t.value;
-    } else if(t.dataset.pkf){ S.packet[t.dataset.pkf]=t.value; }
-    else if(t.dataset.pkw!==undefined){ S.packet.watch[+t.dataset.pkw]=t.value; }
-    else if(t.dataset.ps){ /* current-station reading, two-way with the console's rd_i */
-      const sid=t.dataset.ps, i=+t.dataset.pr;
-      const d=S.draft[sid]||(S.draft[sid]={}); d["r"+i]=t.value;
-      const m=$("rd_"+i); if(m&&STATIONS[S.idx]&&STATIONS[S.idx].id===sid&&m.value!==t.value) m.value=t.value;
-    } else if(t.dataset.pfn!==undefined){
-      const i=+t.dataset.pfn; S.find[i]=S.find[i]||{}; S.find[i].note=t.value;
-      const m=document.querySelector(`#paneLog input[data-fn="${i}"]`); if(m&&m.value!==t.value) m.value=t.value;
-    }
-  };
-  p.onchange=e=>{
-    const t=e.target; if(!t) return;
-    if(t.dataset.pfi!==undefined){ const i=+t.dataset.pfi; S.find[i]=S.find[i]||{}; S.find[i].item=t.value;
-      const m=document.querySelector(`#paneLog select[data-fi="${i}"]`); if(m) m.value=t.value; }
-    else if(t.dataset.pfu!==undefined){ const i=+t.dataset.pfu; S.find[i]=S.find[i]||{}; S.find[i].urg=t.value;
-      const m=document.querySelector(`#paneLog select[data-fu="${i}"]`); if(m) m.value=t.value; }
-  };
-  $("btnPrintPacket").onclick=printPacket;
-  $("btnPacketWindow").onclick=openPacketWindow;
-  $("btnClosePacket").onclick=()=>togglePacket(false);
-}
-function togglePacket(force){
-  const p=$("packetPane"); if(!p) return;
-  const open=typeof force==="boolean"?force:p.classList.contains("hidden");
-  if(open) paintPacketMirrors();
-  p.classList.toggle("hidden",!open);
-  $("btnPacket").classList.toggle("primary",open);
-  if(open) p.scrollIntoView({block:"start"});
-}
-function printPacket(){
-  /* print only the packet: lift the pane to <body>, print, put it back where it was */
-  paintPacketMirrors();
-  const p=$("packetPane"), parent=p.parentNode, next=p.nextSibling;
-  const wasHidden=p.classList.contains("hidden");
-  p.classList.remove("hidden");
-  document.body.appendChild(p);
-  document.body.classList.add("pk-print");
-  const restore=()=>{
-    if(!document.body.classList.contains("pk-print")) return;
-    document.body.classList.remove("pk-print");
-    parent.insertBefore(p,next);
-    if(wasHidden) p.classList.add("hidden");
-    window.removeEventListener("afterprint",restore);
-  };
-  window.addEventListener("afterprint",restore);
-  try{ window.print(); }catch(e){}
-  setTimeout(restore,1500);
-}
-function openPacketWindow(){
-  /* secondary: a read-only copy of the packet AS FILLED IN, in its own window beside the console */
-  const w=window.open("","glab5251_packet","width=1240,height=900,resizable=yes,scrollbars=yes");
-  if(!w){alert("The browser blocked the packet window. Allow pop-ups for this file and press Open in window again.");return;}
-  const css=($("pkStyle")||{}).textContent||"";
-  const doc=`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${LAB.lab} — Round Route Packet — UCI 2227</title>
-<style>:root{--mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
-${css}
-  body{margin:0;padding:24px;background:#e9eef2;color:#12232e;font:13px/1.5 Arial,Helvetica,sans-serif}
-  .packet{max-width:1180px;margin:0 auto 22px;border-radius:4px;font-family:inherit}
-  .bar{max-width:1180px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;font-size:12px;color:#5a6b78}
-  .bar button{font:600 12px Arial,Helvetica,sans-serif;padding:7px 14px;border-radius:4px;border:1px solid #0b6ea8;background:#0b6ea8;color:#fff;cursor:pointer}
-  @media print{body{background:#fff;padding:0}.bar{display:none}.packet{border:0;margin:0;max-width:none;padding:0}
-    .packet .pkbreak{page-break-before:always;break-before:page;border:0;margin:0;height:0}@page{size:A4 portrait;margin:10mm}}
-</style></head><body>
-<div class="bar"><button onclick="window.print()">Print</button>
-  <span>Read-only copy of the packet as it stands in the lab tool at site time ${esc(pkClock())}. Readings, findings and the cover fields are entered in the tool (Packet button and the panes), not here — open this window again for a fresh copy.</span></div>
-${packetHTML("static")}
-</body></html>`;
-  w.document.open(); w.document.write(doc); w.document.close(); w.focus();
-}
-function packetRecordHTML(){
-  const cell=v=>esc(String(v||"").trim())||"—";
-  const P=S.packet;
-  return `<h4>Packet — Round Route Packet</h4>
-    ${sRow("Route","Round route — ST01 to ST12, in order · Set "+"ABCDEFGH".charAt(SET))}
-    ${sRow("Round started (cover)",cell(P.startAt))}
-    ${sRow("Round completed (cover)",cell(P.doneAt))}
-    ${sRow("Watching for — 1",cell(P.watch[0]))}
-    ${sRow("Watching for — 2",cell(P.watch[1]))}
-    ${sRow("Watching for — 3",cell(P.watch[2]))}
-    <div class="small" style="margin-top:6px">The packet's round check sheet, not-checked table and findings table are live mirrors of the console — they are the tables printed once above (Stations, readings and timestamps · Recorded as not checked · Findings raised and urgency assigned).</div>`;
-}
-$("btnPacket").onclick=()=>togglePacket();
-window.addEventListener("resize",()=>{
-  if(S.pane==="leak"&&$("leakMap"))drawLeakMap($("leakMap"));
-  if(S.pane==="fuel")renderFuel();
-  if(S.pane==="therm")renderTherm();
-});
-resetRun();
-</script>
+      <tr><td class="st" rowspan="2">ST07</td><td>Chilled water supply (°C)</td><td></td><td></td><td></td></tr>
+      <tr><td>CT-2 basin level (mm)</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST08</td><td>P-2 discharge pressure (kPa)</td><td></td><td></td><td></td></tr>
+      <tr><td>P-2 bearing temperature (°C) — listen as well as look</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST09</td><td>Hall A cold aisle temperature (°C)</td><td></td><td></td><td></td></tr>
+      <tr><td>Hall A containment differential (Pa) — at the marked point</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST10</td><td>Hall B cold aisle temperature (°C)</td><td></td><td></td><td></td></tr>
+      <tr><td>Hall B containment differential (Pa) — at the marked point</td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST11</td><td>Panel supply (V dc)</td><td></td><td></td><td></td></tr>
+      <tr><td>Segments not in normal state (count) — <strong>record all nine segments</strong></td><td></td><td></td><td></td></tr>
+
+      <tr><td class="st" rowspan="2">ST12</td><td>Active alarms (count)</td><td></td><td></td><td></td></tr>
+      <tr><td>Oldest unacknowledged alarm (min)</td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note bad">
+    <strong>A leak segment showing FAULT is not the same as showing NO LEAK.</strong> A faulted segment is a
+    blind spot — that stretch of floor is no longer monitored and it will not alarm when water arrives.
+    Record every segment at ST11, including the normal ones.
+  </div>
+
+  <h2>Not checked, and why</h2>
+  <p class="lede">A locked room or a blocked access point is a finding, not an omission. Record it.</p>
+  <table>
+    <thead><tr><th style="width:22%">Station / location</th><th>Why it could not be checked</th><th class="tm">Time</th></tr></thead>
+    <tbody>
+      <tr><td style="height:30px"></td><td></td><td></td></tr>
+      <tr><td style="height:30px"></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Findings — and which cannot wait for the handover</h2>
+  <table>
+    <thead><tr><th style="width:20%">Where</th><th>What you observed (describe, do not diagnose)</th>
+      <th class="tm">Time</th><th style="width:15%">Escalate now?</th></tr></thead>
+    <tbody>
+      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
+      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
+      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
+      <tr><td style="height:30px"></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>Some findings wait for the handover and some do not.</strong> A connection running twenty
+    degrees above its neighbors does not wait. Decide for each finding and mark it.
+  </div>
+
+  <p class="foot">Keep this sheet — its findings are the input to the SBAR gate, GLAB 524.5.3, this afternoon.</p>
+</section>
+
+</body>
+</html></script>
 <!-- LQ_SUBMISSION_MODULE -->
 <script id="lqData">
-var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 524.5.1 - Full Facility Round", "file": "524-5-1-B_Round.html", "set": "B", "items": [{"s": "Part 1: Walking the round", "k": "text", "p": "Step 1. Open the previous shift round record before you leave the desk and read all of it, including entries that look routine. Write down the two or three things it tells you to watch: an open work order, a note left at a particular station, a value that was already drifting. Acknowledge the record in the lab tool. The route will not unlock until you have, and that is deliberate — ninety seconds of reading is the only thing that makes your own numbers mean anything."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 4. At ST01, main switchgear room, take the three assigned infrared captures on the MSB-A CB-101 outgoing lugs — phase A, phase B and phase C. Log each temperature next to the other two phases of the same connection. The differential between phases on an evenly loaded three-phase joint is the whole diagnosis, and it takes four extra words to record. Paste your switchgear thermal captures in the lab tool."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 5. At ST04, PDU rows, take the three assigned infrared captures on the PDU-03 subfeed F2 lugs, again phase by phase. A power distribution unit (PDU) subfeed carries hall load, so a hot lug here has a direct route to the floor. Heat at a connection means resistance, resistance means a loosening or corroding joint, and that joint is on its way to an arcing fault. Paste your PDU thermal captures in the lab tool."}, {"s": "Part 1: Walking the round", "k": "text", "p": "Step 12. Escalate now any finding that does not wait. State it in one sentence containing the measurement, the comparison, the location and what you are asking for, in this shape: “[device and location] reading [value] against [the values it is compared with], [the size of the difference] — requesting [the action you want] before [the deadline].” Write your escalation sentence in the lab tool."}, {"s": "Part 2: Reflection", "k": "text", "p": "Of the findings on your route, which travelled to the handover and which did not wait? Explain where you drew the line and what makes that line sit where it does rather than one finding further along. A technician who escalates everything will be ignored by the fourth call; a technician who escalates nothing hands over the one thing that mattered in a sentence nobody reads."}, {"s": "Part 2: Reflection", "k": "text", "p": "A leak detection segment showing CABLE FAULT is not showing “no leak”. Explain, in your own words, what that segment is actually telling you about the floor it covers, and what a next shift would wrongly assume if your log recorded it as “not in alarm”."}, {"s": "Part 2: Reflection", "k": "text", "p": "A fuel finding is only visible because a previous shift wrote down a number. Describe exactly what the previous record bought you here, and what your own fuel entries will or will not buy the shift that follows you. Be specific about which words in your entry carry the comparison."}, {"s": "Part 2: Reflection", "k": "text", "p": "Pick the weakest entry in your own log — the one that would be least useful to someone arriving cold at 2am. Quote it, say what is missing, and rewrite it to the standard you would want to receive."}]};
+var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 524.5.1 - Full Facility Round", "file": "524-5-1-B_Round.html", "set": "B", "items": [{"s": "Part 1: Walking the round", "k": "text", "p": "Step 1. Open the previous shift round record before you leave the desk and read all of it, including entries that look routine. Write down the two or three things it tells you to watch: an open work order, a note left at a particular station, a value that was already drifting. Acknowledge the record in the lab tool. The route will not unlock until you have, and that is deliberate — ninety seconds of reading is the only thing that makes your own numbers mean anything."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 4. At ST01, main switchgear room, take the three assigned infrared captures on the MSB-A CB-101 outgoing lugs — phase A, phase B and phase C. Log each temperature next to the other two phases of the same connection. The differential between phases on an evenly loaded three-phase joint is the whole diagnosis, and it takes four extra words to record. Paste your switchgear thermal captures in the lab tool."}, {"s": "Part 1: Walking the round", "k": "image", "p": "Step 5. At ST04, PDU rows, take the three assigned infrared captures on the PDU-03 subfeed F2 lugs, again phase by phase. A power distribution unit (PDU) subfeed carries hall load, so a hot lug here has a direct route to the floor. Heat at a connection means resistance, resistance means a loosening or corroding joint, and that joint is on its way to an arcing fault. Paste your PDU thermal captures in the lab tool."}, {"s": "Part 1: Walking the round", "k": "text", "p": "Step 12. Escalate now any finding that does not wait. State it in one sentence containing the measurement, the comparison, the location and what you are asking for, in this shape: “[device and location] reading [value] against [the values it is compared with], [the size of the difference] — requesting [the action you want] before [the deadline].” Write your escalation sentence in the lab tool."}, {"s": "Part 2: Reflection", "k": "text", "p": "Of the findings on your route, which traveled to the handover and which did not wait? Explain where you drew the line and what makes that line sit where it does rather than one finding further along. A technician who escalates everything will be ignored by the fourth call; a technician who escalates nothing hands over the one thing that mattered in a sentence nobody reads."}, {"s": "Part 2: Reflection", "k": "text", "p": "A leak detection segment showing CABLE FAULT is not showing “no leak”. Explain, in your own words, what that segment is actually telling you about the floor it covers, and what a next shift would wrongly assume if your log recorded it as “not in alarm”."}, {"s": "Part 2: Reflection", "k": "text", "p": "A fuel finding is only visible because a previous shift wrote down a number. Describe exactly what the previous record bought you here, and what your own fuel entries will or will not buy the shift that follows you. Be specific about which words in your entry carry the comparison."}, {"s": "Part 2: Reflection", "k": "text", "p": "Pick the weakest entry in your own log — the one that would be least useful to someone arriving cold at 2am. Quote it, say what is missing, and rewrite it to the standard you would want to receive."}]};
 </script>
 <!-- ===== UCI 2227 · Submission module v2.1 =====================================
      Collects every handout question and its response inside this lab tool and
@@ -1569,12 +1534,12 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
   #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
     padding-bottom:16px;border-bottom:1px solid #2c4a63}
   #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
-  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+  #lqCard .lqfld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
     color:#9db6c9;font-weight:700}
   #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
     background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
   #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
-  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+  #lqCard h3.lqsec{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
     color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
   #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
   #lqCard .lqq{margin-bottom:16px}
@@ -1587,7 +1552,7 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
     border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
   #lqCard button:hover{background:#20384f;border-color:#3d6485}
   #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
-  #lqCard button.lqprimary:hover{background:#0a8bd8}
+  #lqCard button.lqprimary:hover{background:#0a6fae}
   #lqCard .lqnote{font-size:12px;color:#9db6c9}
   #lqCard .lqimgwrap{margin-top:7px}
   #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
@@ -1616,7 +1581,7 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
   .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
   .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
   .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
-  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
+  .lqsheet h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
     font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
   .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
   .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
@@ -1854,6 +1819,17 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
      +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
    +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
      +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
+   /* group-assessed labs ask for the learner's role; LQ.role turns it on */
+   +(LQ.role
+     ? '<div class="lqfld" style="flex:0 1 200px"><label for="lqRole">Your role in the group</label>'
+       +'<select id="lqRole">'
+         +'<option value="">Choose your role</option>'
+         +'<option>Isolator</option>'
+         +'<option>Verifier</option>'
+         +'<option>Recorder</option>'
+         +'<option>Safety observer</option>'
+       +'</select></div>'
+     : '')
    +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
      +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
    +'</div>';
@@ -1892,10 +1868,43 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
   card.innerHTML=html;
   host.appendChild(card);
 
+  /* ---------- 3.3.7 Redundant Entry ----------------------------------------
+     A learner should type their name once. Any field that asks for the same
+     thing — marked autocomplete="name" — is kept in step with the submission
+     panel's. Delegated from the document, so a repainted pane still works. */
+  var _syncing=false;
+  var _nameFields=function(){ return document.querySelectorAll('input[autocomplete="name"]'); };
+  document.addEventListener("input",function(ev){
+    var t=ev.target;
+    if(_syncing||!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    _syncing=true;
+    try{
+      store.name=t.value; save();
+      Array.prototype.forEach.call(_nameFields(),function(e){
+        if(e!==t&&e.value!==t.value){
+          e.value=t.value;
+          e.dispatchEvent(new Event("input",{bubbles:true}));
+        }
+      });
+    } finally { _syncing=false; }
+  },true);
+  document.addEventListener("focusin",function(ev){
+    var t=ev.target;
+    if(!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
+    if(!t.value&&store.name){
+      t.value=store.name;
+      t.dispatchEvent(new Event("input",{bubbles:true}));
+    }
+  },true);
+
   /* ---------- wiring ---------- */
-  ["lqName","lqCohort","lqDate"].forEach(function(id){
+  var _role=document.getElementById("lqRole");
+  if(_role) _role.value=store.role||"";
+  ["lqName","lqCohort","lqDate","lqRole"].forEach(function(id){
     var el=document.getElementById(id);
-    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    if(!el) return;
+    var ev=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
+    el.oninput=ev; el.onchange=ev;
   });
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
@@ -2069,9 +2078,12 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
     var name=document.getElementById("lqName").value.trim();
     var coh=document.getElementById("lqCohort").value.trim();
     var dt=document.getElementById("lqDate").value.trim();
+    var roleEl=document.getElementById("lqRole");
+    var role=roleEl?roleEl.value.trim():"";
     var gaps=[];
     if(!name) gaps.push("Your name");
     if(!coh)  gaps.push("Cohort / section");
+    if(roleEl && !role) gaps.push("Your role in the group");
 
     var h=''
      +'<div class="lqsheet">'
@@ -2081,6 +2093,7 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
+     +(roleEl?'<div class="lqrow"><span class="k">Role in the group</span><span class="v">'+(esc(role)||"—")+'</span></div>':'')
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
        +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
@@ -2127,7 +2140,7 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
       +'Instructor verification: ______________________________'
       +'&nbsp;&nbsp;&nbsp;Date: ______________<br>'
-      +'<span style="font-size:11px">Save this as a PDF and upload the single file to the '
+      +'<span style="font-size:12px">Save this as a PDF and upload the single file to the '
       +esc(LQ.lab)+' assignment in Canvas.</span></div></div>';
 
     document.getElementById("lqOut").innerHTML=h;
