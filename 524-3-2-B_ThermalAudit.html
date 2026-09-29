@@ -6,10 +6,10 @@
 <title>GLAB 524.3.2 — Thermal Envelope Audit — UCI 2227 (Training Simulator)</title>
 <style>
   :root{
-    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
-    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#87a3bb;
-    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
-    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --bg:#eef2f6; --panel:#ffffff; --panel2:#f4f7fa; --line:#b9c7d4;
+    --ink:#14212b; --dim:#33475a; --faint:#4a5f72;
+    --blue:#0b63a5; --navy:#0079C0; --ice:#0b3d61;
+    --ok:#15703f; --warn:#8a5a00; --stop:#b42318;
     --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
   }
@@ -18,16 +18,16 @@
   body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
   button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
     background:var(--panel);color:var(--ink);padding:7px 13px}
-  button:hover{background:#1b3044;border-color:#2d4d68}
+  button:hover{background:#e4ebf2;border-color:#8fa8bf}
   button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
-  button.primary:hover{background:#0a6fae}
-  button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
+  button.primary:hover{background:#0669a8}
+  button.danger{background:#fde3df;border-color:#e39a90;color:#8f1d12}
   button:disabled{opacity:.4;cursor:not-allowed}
   select,input[type=text],input[type=number],textarea{
     font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
     border:1px solid var(--line);border-radius:5px;padding:7px 9px}
   textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
-  h1,h2,h3,h1,h2,h2{margin:0;font-weight:700}
+  h1,h2,h3{margin:0;font-weight:700}
   .mono{font-family:var(--mono)}
 
   /* ---------- shell ---------- */
@@ -39,21 +39,21 @@
   .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
   .spacer{flex:1}
   .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
-  .clocklbl{color:var(--faint);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
-  .badge{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
-    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
-  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
-  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#dcebf7;color:var(--blue);border:1px solid #9fc3de}
+  .badge.run{background:#dff5e8;color:var(--ok);border-color:#6fc79a}
+  .badge.hold{background:#fff1d6;color:var(--warn);border-color:#d9b46a}
 
   main{flex:1;overflow:auto;padding:18px}
   .wrap{max-width:1500px;margin:0 auto}
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
-  .card h3,.card h2{font-size:15px;margin-bottom:4px}
+  .card h3{font-size:15px;margin-bottom:4px}
   .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
   .fld{display:flex;flex-direction:column;gap:5px}
-  .fld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
 
   /* ---------- console ---------- */
@@ -63,41 +63,41 @@
   .g3{grid-template-columns:repeat(3,1fr)}
   .g2{grid-template-columns:1fr 1fr}
   .tile{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
-  .tile .name{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .tile .name{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .tile .val{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1.15;margin-top:5px}
   .tile .unit{font-size:14px;color:var(--dim);font-weight:400;margin-left:3px}
-  .tile .band{font-size:12px;color:var(--faint);margin-top:5px;font-family:var(--mono)}
-  .tile.alarm{border-color:var(--stop);background:#2a1512}
+  .tile .band{font-size:11px;color:var(--faint);margin-top:5px;font-family:var(--mono)}
+  .tile.alarm{border-color:var(--stop);background:#fde3df}
   .tile.alarm .val{color:var(--stop)}
-  .tile.caution{border-color:#5c4c2e}
+  .tile.caution{border-color:#d9b46a}
   .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
-  .chartbox h3,.chartbox h2{font-size:13px;margin-bottom:2px}
-  .chartbox .sub{font-size:12px;color:var(--faint);margin-bottom:8px}
+  .chartbox h3{font-size:13px;margin-bottom:2px}
+  .chartbox .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
   canvas{display:block;width:100%;height:auto}
   .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-  .stepchip{font-family:var(--mono);font-size:12px;padding:4px 9px;border-radius:4px;
+  .stepchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;
     background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
-  .stepchip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .stepchip.on{background:#dcebf7;border-color:var(--blue);color:var(--ice)}
 
   /* ---------- alarms ---------- */
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
     font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
   th:hover{color:var(--blue)}
-  td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
+  td{padding:8px 10px;border-bottom:1px solid #d5dee7;vertical-align:top}
   tr.ack{opacity:.42}
-  .sev{font-size:12px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
-  .sev.critical{background:#4a1f1a;color:#ff8f7d}
-  .sev.high{background:#4a3418;color:#ffc069}
-  .sev.medium{background:#1c3a4f;color:#7fc4ea}
-  .sev.low{background:#22303a;color:#8ba6bd}
+  .sev{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .sev.critical{background:#fde3df;color:#b42318}
+  .sev.high{background:#fff1d6;color:#7a4a00}
+  .sev.medium{background:#dcebf7;color:#0b5a8e}
+  .sev.low{background:#e8edf2;color:#33475a}
   .tick{display:inline-block;width:15px;height:15px;border:1px solid var(--line);border-radius:3px;
     background:var(--panel2);cursor:pointer;vertical-align:-3px}
   .tick.on{background:var(--blue);border-color:var(--blue)}
   .flt{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-  .flt .chip{font-size:12px;padding:5px 11px;border-radius:20px;border:1px solid var(--line);
+  .flt .chip{font-size:11px;padding:5px 11px;border-radius:20px;border:1px solid var(--line);
     background:var(--panel2);color:var(--dim);cursor:pointer}
-  .flt .chip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .flt .chip.on{background:#dcebf7;border-color:var(--blue);color:var(--ice)}
   .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
 
   .note{font-size:12px;color:var(--dim);line-height:1.55}
@@ -105,7 +105,7 @@
 
   /* ---------- submission ---------- */
   .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
-  .submit h3,.submit h2{font-size:14px;margin-bottom:3px}
+  .submit h3{font-size:14px;margin-bottom:3px}
   .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
   .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
   .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
@@ -114,11 +114,11 @@
      submission module never mistakes it for the audit record */
   .dpnote{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
   .dpnote.show{display:block;background:var(--panel2);border:1px solid var(--line)}
-  .srow{display:flex;gap:14px;padding:6px 0;border-bottom:1px solid #182b3b;font-size:12.5px;align-items:flex-start}
+  .srow{display:flex;gap:14px;padding:6px 0;border-bottom:1px solid #d5dee7;font-size:12.5px;align-items:flex-start}
   .srow .sk{color:var(--faint);min-width:250px;flex:0 0 auto}
   .srow .sv{flex:1;white-space:pre-wrap}
-  .sheet h4,.sheet h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin:16px 0 6px}
-  .sheet h4:first-child,.sheet h3:first-child{margin-top:0}
+  .sheet h4{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin:16px 0 6px}
+  .sheet h4:first-child{margin-top:0}
   .learnerline{font-size:14px;margin:2px 0 8px}
   @media print{
     body{background:#fff;color:#000;overflow:visible}
@@ -126,22 +126,22 @@
     main{overflow:visible}
   }
 
-  .labtag{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
     color:var(--blue);margin-bottom:8px}
   .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
 
   /* ---------- additive: hall plan, probes, checklist, camera ---------- */
   .planbox{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px}
-  .planbox h3,.planbox h2{font-size:13px;margin-bottom:2px}
-  .planbox .sub{font-size:12px;color:var(--faint);margin-bottom:8px}
+  .planbox h3{font-size:13px;margin-bottom:2px}
+  .planbox .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
   svg{display:block;width:100%;height:auto}
   .rk{cursor:pointer}
   .rk rect.body{fill:#17293a;stroke:#2b4762;stroke-width:1.4}
   .rk:hover rect.body{fill:#1e3a52;stroke:#3f7099}
   .rk.sel rect.body{stroke:var(--blue);stroke-width:2.2;fill:#1b3f5b}
   .rk.done rect.body{fill:#14312a;stroke:#2c6b52}
-  .rk text{font-family:var(--mono);font-size:12px;fill:#b9d3e6;pointer-events:none}
-  .rk text.sub{font-size:12px;fill:#6f8ea6}
+  .rk text{font-family:var(--mono);font-size:11px;fill:#b9d3e6;pointer-events:none}
+  .rk text.sub{font-size:9px;fill:#6f8ea6}
   .aisle{fill:#0e2233;stroke:#28506e;stroke-width:1.2}
   .ceil{fill:none;stroke:#2f5a78;stroke-width:1;stroke-dasharray:4 3}
   .tilep{fill:#123249;stroke:#245273;stroke-width:.8}
@@ -149,155 +149,82 @@
   .cutout.open{fill:#4a2a16;stroke:var(--warn)}
   .endcap{fill:#1b3346;stroke:#3d6b8f;stroke-width:1.6}
   .endcap.open{fill:#4a2118;stroke:var(--stop)}
-  .lbl{font-family:var(--sans);font-size:12px;fill:#5c7a92;letter-spacing:.6px}
-  .lblhot{font-family:var(--sans);font-size:12px;fill:#8a6a4a;letter-spacing:.6px}
+  .lbl{font-family:var(--sans);font-size:10px;fill:#5c7a92;letter-spacing:.6px}
+  .lblhot{font-family:var(--sans);font-size:10px;fill:#8a6a4a;letter-spacing:.6px}
 
   .probe{display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid var(--line);
     border-radius:7px;background:var(--panel2);margin-bottom:8px}
   .probe .el{font-size:12px;min-width:190px}
   .probe .el b{font-family:var(--mono);color:var(--ice)}
   .probe .rd{font-family:var(--mono);font-size:19px;font-weight:700;min-width:96px}
-  .probe .fl{font-size:12px;color:var(--faint)}
-  .probe.hi{border-color:var(--stop);background:#2a1512}
+  .probe .fl{font-size:11px;color:var(--faint)}
+  .probe.hi{border-color:var(--stop);background:#fde3df}
   .probe.hi .rd{color:var(--stop)}
-  .refuse{background:#2a1512;border:1px solid #6d3129;border-radius:7px;padding:11px 13px;
+  .refuse{background:#fde3df;border:1px solid #e39a90;border-radius:7px;padding:11px 13px;
     font-size:12.5px;line-height:1.55;margin-top:8px}
 
-  .cgrid{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;font-family:var(--mono);font-size:12px}
+  .cgrid{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;font-family:var(--mono);font-size:10px}
   .cgrid .hd{color:var(--faint);text-align:center;padding:3px 0}
   .cgrid .rl{color:var(--dim);padding:3px 2px}
   .cell{border:1px solid var(--line);background:var(--panel2);border-radius:4px;height:24px;
     cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--faint)}
   .cell:hover{border-color:#3f7099}
-  .cell.ok{background:#12261c;border-color:#1d5b41;color:var(--ok)}
-  .cell.minor{background:#2b2310;border-color:#5c4c2e;color:var(--warn)}
-  .cell.bad{background:#2a1512;border-color:#6d3129;color:#ff8f7d}
+  .cell.ok{background:#dff5e8;border-color:#6fc79a;color:var(--ok)}
+  .cell.minor{background:#fff6e0;border-color:#d9b46a;color:var(--warn)}
+  .cell.bad{background:#fde3df;border-color:#e39a90;color:#b42318}
   .ilist{display:flex;flex-direction:column;gap:6px}
   .irow{display:flex;gap:12px;align-items:center;padding:8px 11px;border:1px solid var(--line);
     border-radius:7px;background:var(--panel2)}
   .irow .nm{font-size:12.5px;flex:1}
-  .irow .st{font-family:var(--mono);font-size:12px;min-width:132px;text-align:right;color:var(--faint)}
-  .irow.ok{border-color:#1d5b41}
+  .irow .st{font-family:var(--mono);font-size:11px;min-width:132px;text-align:right;color:var(--faint)}
+  .irow.ok{border-color:#6fc79a}
   .irow.ok .st{color:var(--ok)}
-  .irow.minor{border-color:#5c4c2e}
+  .irow.minor{border-color:#d9b46a}
   .irow.minor .st{color:var(--warn)}
-  .irow.bad{border-color:#6d3129;background:#2a1512}
-  .irow.bad .st{color:#ff8f7d}
-  .caution{background:#2b2310;border:1px solid #5c4c2e;border-radius:7px;padding:11px 13px;
+  .irow.bad{border-color:#e39a90;background:#fde3df}
+  .irow.bad .st{color:#b42318}
+  .caution{background:#fff6e0;border:1px solid #d9b46a;border-radius:7px;padding:11px 13px;
     font-size:12.5px;line-height:1.55;margin-bottom:12px}
   .caution b{color:var(--warn)}
   .scale{display:flex;gap:0;margin-top:8px;border-radius:4px;overflow:hidden;border:1px solid var(--line)}
   .scale div{flex:1;height:15px}
-  .scalelbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;
+  .scalelbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;
     color:var(--faint);margin-top:3px}
-  .lg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin-top:8px}
+  .lg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--dim);margin-top:8px}
   .lg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
   .auditrow td{font-size:12.5px}
   .ok{color:var(--ok)} .bad{color:var(--stop)} .warn{color:var(--warn)}
-  .kbdalt{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}
-  .kbdalt h3,.kbdalt h2{font-size:13px;margin-bottom:7px}
-  .errmsg{color:#ffb9ae;font-size:12px;line-height:1.45;margin:7px 0 0}
-  .errmsg:empty{display:none}
-  .fld .fldcap{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
-    color:var(--faint);font-weight:700;display:block}
-  /* ---------- v5 accessibility remediation (WCAG 2.2 AA) ---------- */
-  /* 2.4.1 Bypass Blocks */
-  .skip-link{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--navy);
-    color:#fff;font-weight:700;font-size:14px;padding:12px 18px;border-radius:0 0 6px 0;
-    text-decoration:none}
-  .skip-link:focus{left:0;outline:3px solid #fff;outline-offset:-3px}
-  /* text for assistive technology only */
-  .vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
-    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
-  /* 2.4.7 Focus Visible — a CSS outline does not paint reliably on shapes inside an
-     <svg>, so stroke the shape as well as outlining the box. */
-  svg [tabindex]:focus-visible,svg [role=button]:focus-visible,svg a:focus-visible{
-    outline:2px solid #4fb3ef;outline-offset:2px}
-  svg [tabindex]:focus-visible rect,svg [tabindex]:focus-visible circle,
-  svg [tabindex]:focus-visible path,svg [tabindex]:focus-visible polygon,
-  svg [tabindex]:focus-visible ellipse,svg [tabindex]:focus-visible line,
-  svg [role=button]:focus-visible rect,svg [role=button]:focus-visible circle,
-  svg [role=button]:focus-visible path,svg [role=button]:focus-visible polygon{
-    stroke:#4fb3ef!important;stroke-width:3px!important}
-  svg rect[tabindex]:focus-visible,svg circle[tabindex]:focus-visible,
-  svg path[tabindex]:focus-visible,svg polygon[tabindex]:focus-visible{
-    stroke:#4fb3ef!important;stroke-width:3px!important}
-  main:focus{outline:none}
-  /* 2.5.8 Target Size (Minimum) — 24x24 CSS px floor on every control */
-  button,[role=button],summary,.tick,.chip,.x,.nc,.docrow td,.cell{
-    min-height:24px}
-  button,[role=button],summary,.tick,.chip,.x,.nc{min-width:24px}
-  input[type=checkbox],input[type=radio]{min-width:24px;min-height:24px;
-    width:18px;height:18px;padding:3px}
-  /* 1.4.4 Resize text / 1.4.10 Reflow — release the fixed-height shell so the page
-     scrolls in one direction once text is enlarged or the viewport narrows. */
-  @media (max-width:1100px),(max-height:620px){
-    html,body{height:auto;min-height:100%;overflow:auto}
-    #app{height:auto;min-height:100vh}
-    main{overflow:visible}
-    .toolbar{position:static}
-  }
-  @media (max-width:900px){
-    /* every multi-column layout becomes a single column, so nothing is pushed
-       off the side where it cannot be scrolled to */
-    .grid,.g2,.g3,.g4,.cols,.split,.fgrid,.planwrap,.segs,.lamps,.two{
-      display:block!important}
-    .grid>*,.g2>*,.g3>*,.fgrid>*,.planwrap>*{margin-bottom:12px;max-width:100%}
-    .row,.toolbar,.navchips,.flt,.steps,header,.ph,.mline,.lkrow,.ck,.lead,.legend{
-      flex-wrap:wrap!important}
-    .pnl,.seg,.lamp,.setcard,.card,.tile,.planbox,.sheetbox,.submit,.gcard,.sectbox{
-      max-width:100%}
-    .sysname{border-left:0;padding-left:0}
-    .fld,.fld input,.fld select,.fld textarea{max-width:100%}
-    input[type=text],input[type=number],select,textarea{max-width:100%}
-    /* diagrams scale to the viewport rather than demanding sideways scrolling */
-    svg{max-width:100%;height:auto}
-    canvas{max-width:100%}
-    /* a wide data table may scroll in its own box — 1.4.10 allows that for
-       tables — and the box is focusable so a keyboard can reach the scroll */
-    .tablewrap{overflow-x:auto}
-    table{max-width:100%}
-    main{padding:12px}
-  }
-  @media (max-width:900px){
-    .cgrid,.fgrid,.g2,.g3{grid-template-columns:1fr!important}
-    .cell,.flt,.irow,.lg,.probe,.row,.scale,.scalelbl,.srow,.steps,.toolbar{flex-wrap:wrap!important}
-  }
-  /* 2.1.1 — a scrollable pane must itself be reachable by keyboard */
-  .scrollx{overflow-x:auto}
-  .scrollx:focus-visible,[data-scrollpane]:focus-visible{outline:2px solid #4fb3ef;outline-offset:2px}
-  @media print{ .skip-link{display:none!important} }
 </style>
 </head>
 <body>
-<a class="skip-link" href="#main">Skip to main content</a>
 <div id="app">
 
   <header>
-    <h1 class="brand">THERMAL ENVELOPE AUDIT</h1>
+    <div class="brand">THERMAL ENVELOPE AUDIT</div>
     <div class="sysname">GLAB 524.3.2 &middot; UCI 2227 · objective M3.2 · <span id="setTag"></span> · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
-    <div id="statusBadge" class="badge" role="status">Ready</div>
+    <div id="statusBadge" class="badge">Ready</div>
     <div>
       <div class="clocklbl">Site time</div>
       <div class="clock mono" id="clock">--:--:--</div>
     </div>
   </header>
 
-  <div role="region" aria-label="Simulator controls" class="toolbar" id="toolbar">
+  <div class="toolbar" id="toolbar">
     <button id="btnCapture" class="primary">Capture readings</button>
     <button id="btnChart">ASHRAE chart</button>
     <button id="btnCont">Containment check</button>
     <button id="btnCam">Thermal camera</button>
     <button id="btnAudit">Audit form</button>
     <span class="spacer" style="flex:1"></span>
-    <span class="counter" id="progress" role="status" aria-live="polite" aria-atomic="true">0 / 36 inlets</span>
+    <span class="counter" id="progress">0 / 36 inlets</span>
     <span class="counter" id="elapsed">T+00:00</span>
     <button id="btnRestart">Restart</button>
   </div>
 
-  <main id="main" tabindex="-1">
+  <main>
     <div class="wrap">
+<details class="labguide" id="labGuide" open><summary>How to work this lab<span class="lgsub">9 steps · read this first</span></summary><div class="lgbody"><p class="lggoal"><b>What you hand in:</b> One PDF carrying 36 inlet temperature readings (12 racks × 3 heights), a dew-point calculation, the containment breach you found, and an audit form with your classification, evidence and recommended action.</p><ol><li><span class="lgact">On the <b>Capture readings</b> tab, read the hall tiles at the top (dry-bulb, RH, CRAH supply/return, delta T).</span><span class="lgres">Dew point shows <i>—</i> until you calculate it.</span></li><li><span class="lgact">Click a rack on the plan (R-01 … R-12). In the <i>Probe</i> card press <b>Capture</b> at each of the three heights (0.3 m, 1.1 m, 1.8 m), then press <b>Log this rack</b>.</span><span class="lgres">The rack turns green when all three readings are logged and the toolbar counter climbs toward <i>36 / 36 inlets</i>. Repeat for all twelve racks.</span></li><li><span class="lgact">In <i>Hall moisture — dew point</i>, work out the dew point with the Magnus formula shown, type it and press <b>Record dew point</b>.</span><span class="lgres">The dew-point tile at the top fills in.</span></li><li><span class="lgact">Open the <b>ASHRAE chart</b> tab.</span><span class="lgres">Your captured inlets are plotted against the recommended and allowable envelopes; the top-of-rack line appears once all twelve racks have that height. Take a screenshot of this tab for question 4.</span></li><li><span class="lgact">Open the <b>Containment check</b> tab and click cells in the blanking-panel grid to inspect them (OK, ! or X).</span><span class="lgres">X is an open path through a cabinet. Note which racks and which U group.</span></li><li><span class="lgact">Open the <b>Thermal camera</b> tab and image the two cabinets with the largest top-minus-bottom gradient and the containment item you suspect.</span><span class="lgres">The camera shows a surface, not the air an inlet draws — if it disagrees strongly with the probe, stop and ask. Screenshot for question 6.</span></li><li><span class="lgact">Open the <b>Audit form</b> tab. Check the parameter table, then fill in your findings: inlets above 27 °C, delta T against design, the containment leakage point, the breach classification, your evidence, and the recommended action. Press <b>Build submission sheet</b>.</span><span class="lgres">The sheet builds only once all 36 readings are captured — the tool does not accept a partial survey. <b>Print audit form</b> gives a paper copy.</span></li><li><span class="lgact">Scroll down to <b>Lab submission — questions and responses</b>. Type your name, cohort and date, then answer every question.</span><span class="lgres">Each question is numbered and carries its handout step (for example <i>Step 6</i>). Where a question asks for an image, use <b>Choose File</b> to attach a photo or screenshot; a caption box appears under it.</span></li><li><span class="lgact">Press <b>Build submission PDF</b>. In the print dialog choose <b>Save as PDF</b> and keep the suggested filename.</span><span class="lgres">If anything is missing, the tool lists the gaps instead of printing — fix them and press again. Upload the one PDF to the matching Canvas assignment. That single file is your submission.</span></li></ol><div class="lgdone"><b>You are finished when:</b><ul><li>The submission sheet is built and shows no gaps.</li><li>Every question in the submission panel is answered (and any requested image is attached).</li><li>You have saved the PDF and uploaded it to Canvas.</li><li>The toolbar reads <i>36 / 36 inlets</i>, the dew point is recorded, and the audit form is complete.</li></ul></div><div class="lgtips"><b>Good to know</b><ul><li>Your typed answers in the submission panel are saved in this browser as you type. <b>The simulator above is not</b> — if you refresh, work the simulator again before you build the PDF.</li><li><b>Packet</b> in the toolbar opens the paper documents for this lab (readable and printable there). <b>Restart</b> resets the whole simulator.</li><li>Use <b>Preview without printing</b> to check the PDF before you build it.</li><li>Stuck for more than two minutes? Ask your instructor rather than clicking around.</li></ul></div></div></details>
       <section id="labView"></section>
     </div>
   </main>
@@ -330,58 +257,7 @@ function fmtClock(mins){
 function fmtElapsed(mins){
   return "T+"+String(Math.floor(mins)).padStart(2,"0")+":"+String(Math.floor((mins%1)*60)).padStart(2,"0");
 }
-/* ---- text equivalent for a canvas trend chart (WCAG 1.1.1, 1.4.1) ----------
-   A canvas is a picture to assistive technology. Each chart therefore carries
-   role="img" with a spoken summary, and the numbers behind it are published as
-   a real table next to it — visible to a screen reader, invisible on screen. */
-function chartText(cv,cfg){
-  const nm=cfg.name||"Trend chart", un=cfg.unit?" "+cfg.unit:"";
-  const main=(cfg.series||[]).filter(s=>s.data&&s.data.length).pop();
-  let tbl=document.getElementById(cv.id+"__data");
-  if(!tbl){
-    tbl=document.createElement("div");
-    tbl.id=cv.id+"__data"; tbl.className="vh";
-    cv.parentNode.insertBefore(tbl,cv.nextSibling);
-  }
-  if(!main){
-    cv.setAttribute("role","img");
-    cv.setAttribute("aria-label",nm+": no readings plotted yet."+(cfg.bandTxt?" "+cfg.bandTxt:""));
-    tbl.innerHTML="";
-    return;
-  }
-  /* a series is a flat array of readings; the x position is the sample index
-     times cfg.xstep, in minutes — the same arithmetic the plot uses */
-  const step=cfg.xstep||1;
-  const vals=main.data.filter(v=>isFinite(v));
-  if(!vals.length){
-    cv.setAttribute("role","img");
-    cv.setAttribute("aria-label",nm+": no readings plotted yet."+(cfg.bandTxt?" "+cfg.bandTxt:""));
-    tbl.innerHTML=""; return;
-  }
-  const lo=Math.min.apply(null,vals), hi=Math.max.apply(null,vals), last=vals[vals.length-1];
-  const f=v=>cfg.fmt?cfg.fmt(v):(+v).toFixed(1);
-  let alarm="";
-  if(cfg.band){
-    const out=vals.filter(v=>(cfg.band.hi<9990&&v>cfg.band.hi)||(cfg.band.lo>-99&&v<cfg.band.lo)).length;
-    alarm=out?" "+out+" reading"+(out===1?"":"s")+" outside the alarm band.":" All readings inside the alarm band.";
-  }
-  cv.setAttribute("role","img");
-  cv.setAttribute("aria-label",nm+": "+vals.length+" readings. Lowest "+f(lo)+un+", highest "+f(hi)+un+
-    ", most recent "+f(last)+un+"."+alarm+(cfg.bandTxt?" "+cfg.bandTxt:"")+
-    " The plotted values are in the table that follows this chart.");
-  /* one row per reading, thinned to about twenty so the table stays readable */
-  const every=Math.max(1,Math.ceil(vals.length/20));
-  let rows="";
-  for(let i=0;i<vals.length;i+=every){
-    const t=i*step, mm=Math.floor(t), ss=Math.round((t-mm)*60);
-    rows+="<tr><th scope=\"row\">T+"+String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0")+
-      "</th><td>"+f(vals[i])+un+"</td></tr>";
-  }
-  tbl.innerHTML="<table><caption>"+nm+" — plotted values</caption><thead><tr>"+
-    "<th scope=\"col\">Elapsed</th><th scope=\"col\">Reading</th></tr></thead><tbody>"+rows+"</tbody></table>";
-}
 function drawChart(cv,cfg){
-  try{ chartText(cv,cfg); }catch(e){}
   const dpr=window.devicePixelRatio||1;
   const W=cv.clientWidth, H=cfg.height||150;
   cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+"px";
@@ -449,27 +325,6 @@ const S={learner:"",t:0,timer:null,view:"cap",
   insp:{},cam:false,refuse:"",
   ans:{above:"",dt:"",loc:"",cls:"",ev:"",act:""}};   /* audit-form entries live here, not in the DOM */
 const $=id=>document.getElementById(id);
-/* --- keyboard activation for custom controls (WCAG 2.1.1, 2.4.3) ------------
-   Roles and accessible names are authored in the markup; this only binds the
-   keys and restores focus after the repaint an activation triggers. */
-function kbdActivate(rootId,selector,keyAttr){
-  const root=typeof rootId==="string"?$(rootId):rootId;
-  if(!root||root.dataset.kbdBound)return;
-  root.dataset.kbdBound="1";
-  root.addEventListener("keydown",e=>{
-    if(e.key!=="Enter"&&e.key!==" ")return;
-    const t=e.target.closest&&e.target.closest(selector);
-    if(!t)return;
-    e.preventDefault();
-    const key=keyAttr?t.getAttribute(keyAttr):null;
-    /* SVGElement has no .click(), so raise a real event that bubbles the same way */
-    t.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));
-    if(key!=null){
-      const again=document.querySelector(selector.split(",")[0].replace(/:.*$/,"")+"["+keyAttr+'="'+key+'"]');
-      if(again&&again.focus)again.focus();
-    }
-  });
-}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const esc=t=>String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 function stamp(){
@@ -637,9 +492,7 @@ function hallSVG(thermal){
       const t=inletTemp(r.i,2);
       fill=' style="fill:'+fcol(t)+';stroke:#0b1620"';
     }
-    s+='<g class="rk '+(S.sel===r.i?"sel":"")+' '+(n===3?"done":"")+'" data-r="'+r.i+'"'+
-       ' role="button" tabindex="0" aria-pressed="'+(S.sel===r.i?"true":"false")+'"'+
-       ' aria-label="Rack '+r.id+', row '+r.row+'. '+n+' of 3 elevations logged. Select to probe it.">';
+    s+='<g class="rk '+(S.sel===r.i?"sel":"")+' '+(n===3?"done":"")+'" data-r="'+r.i+'">';
     s+='<rect class="body" x="'+x+'" y="'+y+'" width="'+RW+'" height="'+RH_+'" rx="4"'+fill+'/>';
     if(!thermal){
       for(let u=0;u<5;u++)
@@ -671,24 +524,7 @@ function fcol(t){
 }
 
 /* ---------- ASHRAE TC 9.9 chart ---------- */
-function ashraeText(cv){
-  const ks=Object.keys(S.readings||{});
-  cv.setAttribute("role","img");
-  if(!ks.length||!isFinite(S.dewPoint)){
-    cv.setAttribute("aria-label","ASHRAE TC 9.9 thermal envelope chart. Nothing is plotted yet — "+
-      "record the hall dew point and some inlet readings first. The readings you have taken are "+
-      "listed in the rack inlet table.");
-    return;
-  }
-  let out=0;
-  ks.forEach(k=>{ const v=S.readings[k]; if(v<REC.dbLo||v>REC.dbHi) out++; });
-  cv.setAttribute("aria-label","ASHRAE TC 9.9 thermal envelope chart, dry-bulb against dew point. "+
-    ks.length+" inlet readings plotted at a dew point of "+(+S.dewPoint).toFixed(1)+" degrees Celsius. "+
-    out+" of them fall outside the recommended envelope of "+REC.dbLo+" to "+REC.dbHi+
-    " degrees Celsius dry-bulb. Every reading is listed by rack and elevation in the rack inlet table.");
-}
 function drawAshrae(cv){
-  try{ ashraeText(cv); }catch(e){}
   const dpr=window.devicePixelRatio||1;
   const W=cv.clientWidth, H=380;
   cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+"px";
@@ -791,24 +627,24 @@ function renderCapture(){
     </div>
 
     <div class="planbox" style="margin-bottom:14px">
-      <h2>Hall B — contained cold aisle, plan view</h2>
-      <div class="sub">Twelve racks in two facing rows. Select a rack to open the probe — with a pointer, or by moving to it with the Tab key and pressing Enter. Position 1 is the west end. Each rack shows how many of its three elevations you have logged, and is marked complete at three of three.</div>
+      <h3>Hall B — contained cold aisle, plan view</h3>
+      <div class="sub">Twelve racks in two facing rows. Click a rack to open the probe. Position 1 is the west end. Racks turn green when all three elevations are logged.</div>
       <div id="planHost">${hallSVG(false)}</div>
     </div>
 
     <div class="grid g2">
       <div class="planbox">
-        <h2>Probe — <span id="pRack">${RACKS[S.sel].id}</span></h2>
+        <h3>Probe — <span id="pRack">${RACKS[S.sel].id}</span></h3>
         <div class="sub">Handheld probe held at the cabinet front door, in the air the equipment is actually drawing. Each elevation is a separate reading.</div>
         <div id="probeRows"></div>
         <div style="display:flex;gap:9px;align-items:center;margin-top:10px">
           <button id="btnLogRack">Log this rack</button>
-          <span class="counter" id="rackCount" role="status" aria-live="polite" aria-atomic="true"></span>
+          <span class="counter" id="rackCount"></span>
         </div>
         <div id="refuseBox"></div>
       </div>
       <div class="planbox">
-        <h2>Hall moisture — dew point</h2>
+        <h3>Hall moisture — dew point</h3>
         <div class="sub">ASHRAE TC 9.9 states the moisture limits as dew point, not as relative humidity alone. Work it out from the hall dry-bulb and relative humidity above, using the Magnus formula.</div>
         <div class="note" style="margin-bottom:10px">
           <span class="mono">&gamma; = ln(RH / 100) + (b &times; T) / (c + T)</span><br>
@@ -816,7 +652,7 @@ function renderCapture(){
           with b = 17.62 and c = 243.12 °C, T in °C.
         </div>
         <div class="row" style="margin-bottom:10px">
-          <div class="fld"><label for="dpIn">Your dew point (°C)</label>
+          <div class="fld"><label>Your dew point (°C)</label>
             <input type="number" step="0.1" id="dpIn" style="width:130px" value="${S.dpEntered===null?"":S.dpEntered}"></div>
           <button class="primary" id="btnDp">Record dew point</button>
         </div>
@@ -830,11 +666,8 @@ function renderCapture(){
 }
 function bindPlan(){
   const host=$("planHost"); if(!host) return;
-  kbdActivate(host,".rk",null);
   host.onclick=e=>{
     const g=e.target.closest(".rk"); if(!g) return;
-    const rid=g.dataset.r;
-    requestAnimationFrame(()=>{const again=document.querySelector('.rk[data-r="'+rid+'"]'); if(again&&again.focus) again.focus();});
     S.sel=+g.dataset.r; S.refuse=""; render();
   };
 }
@@ -890,23 +723,23 @@ function renderChartView(){
   const el=$("labView");
   el.innerHTML=`
     <div class="chartbox" style="margin-bottom:14px">
-      <h2>ASHRAE TC 9.9 thermal envelope — class A1 to A4</h2>
+      <h3>ASHRAE TC 9.9 thermal envelope — class A1 to A4</h3>
       <div class="sub">All temperatures on this chart are measured at the <b>equipment air inlet</b>, not in the aisle, not at the ceiling and not at the cooling unit. A reading taken anywhere else does not belong on this chart. Recommended envelope: 18.0 – 27.0 °C dry-bulb, lower moisture limit −9.0 °C dew point, upper moisture limit 15.0 °C dew point and 60% relative humidity.</div>
       <canvas id="cAshrae"></canvas>
       <div class="lg">
-        <span><i style="background:rgba(55,192,122,.5);border:1px solid #37c07a"></i>Recommended envelope</span>
+        <span><i style="background:rgba(55,192,122,.5);border:1px solid #15703f"></i>Recommended envelope</span>
         <span><i style="background:rgba(51,166,232,.25);border:1px solid #3480ad"></i>Allowable A1 – A4</span>
         <span><i style="background:rgba(51,166,232,.85)"></i>Inlet reading within band</span>
         <span><i style="background:rgba(232,96,76,.95)"></i>Inlet reading outside the recommended envelope</span>
       </div>
     </div>
     <div class="chartbox">
-      <h2>Top-of-rack inlet dry-bulb by rack — 1.8 m</h2>
+      <h3>Top-of-rack inlet dry-bulb by rack — 1.8 m</h3>
       <div class="sub">Each line appears once that elevation has been captured on all twelve racks. Shaded area is above the 27.0 °C recommended upper limit.</div>
       <canvas id="cRack"></canvas>
       <div class="lg">
-        <span><i style="background:#e8604c"></i>1.8 m top of rack</span>
-        <span><i style="background:#33a6e8"></i>0.3 m bottom of rack</span>
+        <span><i style="background:#b42318"></i>1.8 m top of rack</span>
+        <span><i style="background:#0b63a5"></i>0.3 m bottom of rack</span>
         <span>Racks left to right: R-01 … R-12</span>
       </div>
     </div>`;
@@ -917,7 +750,7 @@ function renderChartView(){
     top.push(t===undefined?null:t); bot.push(b===undefined?null:b);
   }
   const full=a=>a.every(v=>v!==null)?a:[];
-  drawChart($("cRack"),{name:"Top-of-rack inlet dry-bulb by rack at 1.8 metres",unit:"degrees Celsius",bandTxt:"The recommended upper limit is marked as an alarm band.",min:16,max:34,xmax:11,xstep:1,height:170,band:{lo:-99,hi:REC.dbHi},
+  drawChart($("cRack"),{min:16,max:34,xmax:11,xstep:1,height:170,band:{lo:-99,hi:REC.dbHi},
     xlabel:"rack position R-01 … R-12",fmt:v=>v.toFixed(0),
     series:[{data:full(bot),color:"#33a6e8"},
             {data:full(top),color:"#e8604c"}]});
@@ -941,41 +774,35 @@ function renderCont(){
     for(let i=0;i<12;i++){
       const o=ITEMS.find(x=>x.id==="BP-"+RACKS[i].id+"-"+g);
       const done=S.insp[o.id];
-      const stTxt=done?({ok:"no defect",minor:"minor defect, not passing air",bad:"open path through the cabinet"})[o.st]:"not inspected yet";
-      bp+='<div class="cell '+(done?o.st:"")+'" data-id="'+o.id+'" role="button" tabindex="0"'+
-        ' aria-label="'+o.nm+' — '+stTxt+'. Select to inspect.">'+
-        (done?({ok:"OK",minor:"!",bad:"X"})[o.st]:"·")+'<span class="vh"> '+stTxt+'</span></div>';
+      bp+='<div class="cell '+(done?o.st:"")+'" data-id="'+o.id+'" title="'+o.nm+'">'+
+        (done?({ok:"OK",minor:"!",bad:"X"})[o.st]:"·")+"</div>";
     }
   });
   bp+="</div>";
   el.innerHTML=`
     <div class="planbox" style="margin-bottom:14px">
-      <h2>Blanking panels — twelve racks by three U position groups</h2>
+      <h3>Blanking panels — twelve racks by three U position groups</h3>
       <div class="sub">Click a cell to inspect that group. Columns are racks R-01 to R-12, rows are U position groups. OK means every position is filled, ! is a minor defect that is not passing air, X is an open path through the cabinet.</div>
       ${bp}
     </div>
     <div class="grid g2">
-      <div class="planbox"><h2>Rack-to-rack gaps</h2><div class="sub">Vertical gaps between adjacent cabinets in each row.</div>
+      <div class="planbox"><h3>Rack-to-rack gaps</h3><div class="sub">Vertical gaps between adjacent cabinets in each row.</div>
         <div class="ilist">${grp("gap").map(rowHTML).join("")}</div></div>
-      <div class="planbox"><h2>Floor cutouts</h2><div class="sub">Cable entries in the raised floor inside the contained aisle.</div>
+      <div class="planbox"><h3>Floor cutouts</h3><div class="sub">Cable entries in the raised floor inside the contained aisle.</div>
         <div class="ilist">${grp("cut").map(rowHTML).join("")}</div></div>
-      <div class="planbox"><h2>Containment doors and end caps</h2><div class="sub">Both ends of the aisle.</div>
+      <div class="planbox"><h3>Containment doors and end caps</h3><div class="sub">Both ends of the aisle.</div>
         <div class="ilist">${grp("door").concat(grp("cap")).map(rowHTML).join("")}</div></div>
-      <div class="planbox"><h2>Containment ceiling panels</h2><div class="sub">Six panels over the aisle, P-1 at the west end.</div>
+      <div class="planbox"><h3>Containment ceiling panels</h3><div class="sub">Six panels over the aisle, P-1 at the west end.</div>
         <div class="ilist">${grp("ceil").map(rowHTML).join("")}</div></div>
     </div>
     <div class="planbox" style="margin-top:14px">
-      <h2>Inspection progress</h2>
+      <h3>Inspection progress</h3>
       <div class="note">${Object.keys(S.insp).length} of ${ITEMS.length} items inspected. Inspecting an item records what is actually there. Deciding what it means is your job, and an item can be a genuine defect without being the breach that explains your readings.</div>
     </div>`;
   el.onclick=e=>{
     const t=e.target.closest("[data-id]"); if(!t) return;
-    const id=t.dataset.id;
-    S.insp[id]=true; renderCont();
-    const again=el.querySelector('[data-id="'+id+'"]');
-    if(again&&again.focus) again.focus();
+    S.insp[t.dataset.id]=true; renderCont();
   };
-  kbdActivate(el,"[data-id]",null);
 }
 
 function renderCam(){
@@ -989,7 +816,7 @@ function renderCam(){
       confirm a probe reading you already have. Never use it to replace one, and never put a camera reading on the ASHRAE chart.
     </div>
     <div class="planbox">
-      <h2>Thermal camera — Hall B cold aisle</h2>
+      <h3>Thermal camera — Hall B cold aisle</h3>
       <div class="sub">False-color rendering of the front face of each cabinet at the 1.8 m elevation.</div>
       <div class="row" style="margin-bottom:10px">
         <button id="btnCamTog" class="${S.cam?"primary":""}">${S.cam?"Overlay on — switch to visible light":"Overlay off — switch to false color"}</button>
@@ -1031,7 +858,7 @@ function renderAudit(){
 
   el.innerHTML=`
     <div class="planbox" style="margin-bottom:14px">
-      <h2>Thermal envelope audit — Hall B cold aisle</h2>
+      <h3>Thermal envelope audit — Hall B cold aisle</h3>
       <div class="sub">Learner: ${esc(S.learner)||"—"} · site time ${fmtClock(S.t)} · ASHRAE TC 9.9 recommended envelope, measured at the equipment air inlet.</div>
       <table>
         <tr><th>Parameter</th><th>Measured</th><th>Limit</th><th>Assessment</th></tr>
@@ -1043,9 +870,9 @@ function renderAudit(){
     </div>
 
     <div class="submit">
-      <h2>Your audit findings</h2>
+      <h3>Your audit findings</h3>
       <div class="sub">Fill this in from your own survey. Every entry is recorded on the submission sheet exactly as you write it.</div>
-      <div class="fld" style="margin-bottom:12px"><label for="learnerName">Your name</label><input type="text" id="learnerName" placeholder="First and last" style="max-width:340px" value="${esc(S.learner)}" autocomplete="name"></div>
+      <div class="fld" style="margin-bottom:12px"><label>Your name</label><input type="text" id="learnerName" placeholder="First and last" style="max-width:340px" value="${esc(S.learner)}"></div>
       <div class="fgrid">
         <div class="fld"><label for="ansAbove">Inlet readings above the recommended upper limit of 27.0 °C</label>
           <input type="number" id="ansAbove" step="1" min="0" placeholder="count" value="${esc(A.above)}"></div>
@@ -1274,51 +1101,51 @@ var LQ={"lab": "GLAB 524.3.2", "title": "Thermal Envelope Audit", "handout": "GL
      the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
-  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
-    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+  #lqCard{background:#ffffff;border:1px solid #b9c7d4;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#14212b;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
-  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#14212b}
+  #lqCard .lqsub{color:#33475a;font-size:13px;line-height:1.5;margin:0 0 16px}
   #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
-    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+    padding-bottom:16px;border-bottom:1px solid #b9c7d4}
   #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
-  #lqCard .lqfld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
-    color:#9db6c9;font-weight:700}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#4a5f72;font-weight:700}
   #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
-    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+    background:#f4f7fa;color:#14212b;border:1px solid #b9c7d4;border-radius:5px;padding:7px 9px}
   #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
-  #lqCard h3.lqsec{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
-    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#0b63a5;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #b9c7d4}
   #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
   #lqCard .lqq{margin-bottom:16px}
-  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#14212b;margin:0 0 7px;
     cursor:pointer}
-  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+  #lqCard .lqq .lqp .qn{color:#0b63a5;font-family:"SFMono-Regular",Consolas,monospace;
     margin-right:6px;font-weight:700}
   #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
   #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
-    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
-  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+    border:1px solid #b9c7d4;background:#ffffff;color:#14212b;padding:8px 14px}
+  #lqCard button:hover{background:#e4ebf2;border-color:#8fa8bf}
   #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
-  #lqCard button.lqprimary:hover{background:#0a6fae}
-  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard button.lqprimary:hover{background:#0669a8}
+  #lqCard .lqnote{font-size:12px;color:#4a5f72}
   #lqCard .lqimgwrap{margin-top:7px}
-  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #b9c7d4;
     border-radius:5px;display:block;margin-top:8px}
-  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
-  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+  #lqCard input[type=file]{font-size:12px;color:#33475a}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#4a5f72;margin-bottom:4px}
 
   /* authored focus — the simulators author none, so this is the only visible ring.
      Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
      in the simulator above as much as in the submission panel. */
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
   textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
-    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+    outline:2px solid #0b63a5;outline-offset:2px;border-radius:3px}
   @media print{ :focus-visible{outline:none!important} }
 
   /* error banner for a storage failure the learner must know about */
-  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
-    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr{display:none;background:#fde3df;border:1px solid #e39a90;border-left:3px solid #b42318;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#8f1d12}
   #lqStoreErr b{color:#fff}
 
   /* screen-reader-only live region */
@@ -1326,25 +1153,25 @@ var LQ={"lab": "GLAB 524.3.2", "title": "Thermal Envelope Audit", "handout": "GL
     clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 
   /* ---- the assembled submission sheet ---- */
-  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
-  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
-  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
-  .lqsheet h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
-    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
-  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
-  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet{background:#f4f7fa;border:1px solid #b9c7d4;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#14212b}
+  .lqsheet .lqmeta{font-size:12px;color:#4a5f72;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#0b63a5;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #b9c7d4}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #d5dee7;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#4a5f72;flex:0 0 34%}
   .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
-  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
-  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
-  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #d5dee7}
+  .lqsheet .lqa .q{font-size:12px;color:#33475a;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#0b63a5;margin-right:6px;font-weight:700}
   .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
-  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
-  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
-  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+  .lqsheet .lqa .a.blank{color:#b42318;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #b9c7d4;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#fff6e0;border:1px solid #d9b46a;border-radius:7px;
     padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
-  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
-  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
-    font-size:12px;color:#a8c0d3;line-height:1.9}
+  .lqsheet .lqgap.ok{background:#dff5e8;border-color:#6fc79a}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #b9c7d4;
+    font-size:12px;color:#33475a;line-height:1.9}
 
   #lqPrint{display:none}
   #lqPrint .lqpage{width:100%;border-collapse:collapse}
@@ -1567,17 +1394,6 @@ var LQ={"lab": "GLAB 524.3.2", "title": "Thermal Envelope Audit", "handout": "GL
      +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
    +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
      +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
-   /* group-assessed labs ask for the learner's role; LQ.role turns it on */
-   +(LQ.role
-     ? '<div class="lqfld" style="flex:0 1 200px"><label for="lqRole">Your role in the group</label>'
-       +'<select id="lqRole">'
-         +'<option value="">Choose your role</option>'
-         +'<option>Isolator</option>'
-         +'<option>Verifier</option>'
-         +'<option>Recorder</option>'
-         +'<option>Safety observer</option>'
-       +'</select></div>'
-     : '')
    +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
      +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
    +'</div>';
@@ -1616,43 +1432,10 @@ var LQ={"lab": "GLAB 524.3.2", "title": "Thermal Envelope Audit", "handout": "GL
   card.innerHTML=html;
   host.appendChild(card);
 
-  /* ---------- 3.3.7 Redundant Entry ----------------------------------------
-     A learner should type their name once. Any field that asks for the same
-     thing — marked autocomplete="name" — is kept in step with the submission
-     panel's. Delegated from the document, so a repainted pane still works. */
-  var _syncing=false;
-  var _nameFields=function(){ return document.querySelectorAll('input[autocomplete="name"]'); };
-  document.addEventListener("input",function(ev){
-    var t=ev.target;
-    if(_syncing||!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
-    _syncing=true;
-    try{
-      store.name=t.value; save();
-      Array.prototype.forEach.call(_nameFields(),function(e){
-        if(e!==t&&e.value!==t.value){
-          e.value=t.value;
-          e.dispatchEvent(new Event("input",{bubbles:true}));
-        }
-      });
-    } finally { _syncing=false; }
-  },true);
-  document.addEventListener("focusin",function(ev){
-    var t=ev.target;
-    if(!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
-    if(!t.value&&store.name){
-      t.value=store.name;
-      t.dispatchEvent(new Event("input",{bubbles:true}));
-    }
-  },true);
-
   /* ---------- wiring ---------- */
-  var _role=document.getElementById("lqRole");
-  if(_role) _role.value=store.role||"";
-  ["lqName","lqCohort","lqDate","lqRole"].forEach(function(id){
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
     var el=document.getElementById(id);
-    if(!el) return;
-    var ev=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
-    el.oninput=ev; el.onchange=ev;
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
   });
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
@@ -1826,12 +1609,9 @@ var LQ={"lab": "GLAB 524.3.2", "title": "Thermal Envelope Audit", "handout": "GL
     var name=document.getElementById("lqName").value.trim();
     var coh=document.getElementById("lqCohort").value.trim();
     var dt=document.getElementById("lqDate").value.trim();
-    var roleEl=document.getElementById("lqRole");
-    var role=roleEl?roleEl.value.trim():"";
     var gaps=[];
     if(!name) gaps.push("Your name");
     if(!coh)  gaps.push("Cohort / section");
-    if(roleEl && !role) gaps.push("Your role in the group");
 
     var h=''
      +'<div class="lqsheet">'
@@ -1841,7 +1621,6 @@ var LQ={"lab": "GLAB 524.3.2", "title": "Thermal Envelope Audit", "handout": "GL
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
-     +(roleEl?'<div class="lqrow"><span class="k">Role in the group</span><span class="v">'+(esc(role)||"—")+'</span></div>':'')
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
        +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
@@ -1964,5 +1743,133 @@ var LQ={"lab": "GLAB 524.3.2", "title": "Thermal Envelope Audit", "handout": "GL
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
+<style id="readability">
+/* ===== v2.3 readability layer — light page, dark screens, AA contrast, 12px floor ===== */
+:root{--bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--line:#b9c7d4;--line2:#d5dee7;
+--ink:#14212b;--dim:#33475a;--faint:#4a5f72;--acc:#0b63a5;--ok:#15703f;--warn:#8a5a00;--bad:#b42318;
+--blue:#0b63a5;--navy:#0079C0;--ice:#0b3d61;--stop:#b42318;--screen:#0b1620;--screen-line:#2c4a63}
+body{background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+input[type=text],input[type=number],textarea,select{background:#fff;color:var(--ink);border-color:#8fa8bf;font-size:14px}
+::placeholder{color:#5b6f82;opacity:1}
+button{background:#fff;color:var(--ink);border-color:#8fa8bf;font-size:14px}
+button:hover{background:#e4ebf2;border-color:#5b7a95}
+button.primary{background:#0b63a5;border-color:#0b63a5;color:#fff}
+button.primary:hover,button.modeon:hover{background:#0a5590;border-color:#0a5590;color:#fff}
+button:disabled{opacity:.55}
+:focus-visible{outline:3px solid #0b63a5;outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b63a5;outline-offset:1px}
+*{scrollbar-color:#8fa8bf #eef2f6}
+::-webkit-scrollbar-track{background:#eef2f6}::-webkit-scrollbar-thumb{background:#8fa8bf;border-color:#eef2f6}
+::selection{background:#0b63a5;color:#fff}
+/* the screens: consoles, charts and diagrams keep their dark palette */
+canvas{background:var(--screen);border-radius:6px}
+/* guide card */
+.labguide{background:#fff;border:1px solid #b9c7d4;border-left:5px solid #0b63a5;border-radius:9px;padding:0;margin:0 0 18px;color:#14212b;font-size:15px;line-height:1.55}
+.labguide>summary{cursor:pointer;list-style:none;padding:14px 18px;font-weight:700;font-size:17px;display:flex;align-items:center;gap:10px}
+.labguide>summary::-webkit-details-marker{display:none}
+.labguide>summary::before{content:"▸";display:inline-block;width:14px;color:#0b63a5;transition:transform .15s}
+.labguide[open]>summary::before{transform:rotate(90deg)}
+.labguide>summary .lgsub{font-weight:400;font-size:13px;color:#33475a;margin-left:auto}
+.labguide .lgbody{padding:0 18px 16px}
+.labguide .lggoal{margin:0 0 12px;padding:10px 12px;background:#eef6fc;border-radius:6px;color:#14212b}
+.labguide .lggoal b{color:#0b3d61}
+.labguide ol{margin:0;padding:0 0 0 30px;counter-reset:lg}
+.labguide ol li{margin:0 0 10px;padding-left:4px}
+.labguide ol li::marker{font-weight:700;color:#0b63a5}
+.labguide ol li .lgact{display:block;color:#14212b}
+.labguide ol li .lgres{display:block;color:#33475a;font-size:14px;margin-top:2px;padding-left:12px;border-left:2px solid #d5dee7}
+.labguide .lgdone{margin:14px 0 0;padding:10px 12px;background:#dff5e8;border-radius:6px}
+.labguide .lgdone b{color:#0f5f36}
+.labguide .lgdone ul,.labguide .lgtips ul{margin:6px 0 0;padding-left:20px}
+.labguide .lgdone li,.labguide .lgtips li{margin:3px 0}
+.labguide .lgtips{margin:12px 0 0;font-size:14px;color:#33475a}
+.labguide b,.labguide u{color:inherit}
+.labguide i{font-style:italic}
+@media print{.labguide{display:none}}
+
+/* 524 type floor and contrast */
+header{background:#fff;border-bottom-color:#b9c7d4}
+.brand{font-size:15px}.brand span{color:#0b63a5}
+.sysname{font-size:13px;color:#33475a;border-left-color:#b9c7d4}
+.clock{font-size:22px}.clocklbl{font-size:12px;color:#4a5f72;letter-spacing:.8px}
+.badge{font-size:12px;letter-spacing:.7px;background:#dcebf7;color:#0b3d61;border-color:#9fc3de}
+.badge.run{background:#dff5e8;color:#0f5f36;border-color:#6fc79a}
+.badge.hold{background:#fff1d6;color:#7a4a00;border-color:#d9b46a}
+.toolbar{background:#f4f7fa;border-bottom-color:#b9c7d4}
+.card{background:#fff;border-color:#b9c7d4}
+.card h3{font-size:16px}
+.card p{color:#33475a;font-size:14px}
+.fld label{font-size:12px;letter-spacing:.7px;color:#33475a}
+.hint,.note{font-size:13px;color:#4a5f72}
+.note{color:#33475a}
+.tile{background:#fff;border-color:#b9c7d4}
+.tile .name{font-size:12px;letter-spacing:.7px;color:#33475a}
+.tile .val{color:#14212b}.tile .unit{color:#33475a;font-size:14px}.tile .band{font-size:12px;color:#4a5f72}
+.tile.alarm{background:#fde3df;border-color:#b42318}.tile.alarm .val{color:#b42318}
+.tile.caution{border-color:#d9b46a;background:#fff9ec}
+.chartbox{background:#fff;border-color:#b9c7d4}
+.chartbox h3{font-size:14px}.chartbox .sub{font-size:12.5px;color:#4a5f72}
+.stepchip{font-size:12px;background:#f4f7fa;border-color:#b9c7d4;color:#33475a}
+.stepchip.on{background:#dcebf7;border-color:#0b63a5;color:#0b3d61}
+table{font-size:14px}
+th{font-size:12px;letter-spacing:.6px;color:#33475a;border-bottom-color:#b9c7d4}
+th:hover{color:#0b63a5}
+td{border-bottom-color:#d5dee7}
+tr.ack{opacity:.6}
+.sev{font-size:11.5px;letter-spacing:.5px}
+.sev.critical{background:#fde3df;color:#8f1d12}
+.sev.high{background:#fff1d6;color:#7a4a00}
+.sev.medium{background:#dcebf7;color:#0b3d61}
+.sev.low{background:#e8edf2;color:#33475a}
+.tick{border-color:#8fa8bf;background:#fff}.tick.on{background:#0b63a5;border-color:#0b63a5}
+.flt .chip{font-size:12.5px;background:#fff;border-color:#8fa8bf;color:#33475a}
+.flt .chip.on{background:#dcebf7;border-color:#0b63a5;color:#0b3d61}
+.counter{font-size:13px;color:#33475a}
+.submit{background:#fff;border-color:#b9c7d4}
+.submit h3{font-size:16px}.submit .sub{font-size:13px;color:#4a5f72}
+.result.show{background:#f4f7fa;border-color:#b9c7d4}
+.result h4{font-size:12px;color:#0b3d61}
+.result .kvr{border-bottom-color:#d5dee7;font-size:13px}
+.result .kvr span:first-child{color:#33475a}
+.result .todo{background:#fff6e0;border-color:#d9b46a;font-size:13.5px}
+.result .close{color:#33475a;font-size:13.5px}
+button.danger{background:#fde3df;border-color:#e39a90;color:#8f1d12}
+#lqCard{background:#fff;border-color:#b9c7d4;color:#14212b}
+#lqCard h2{color:#14212b;font-size:17px}
+#lqCard .lqsub{color:#33475a;font-size:14px}
+#lqCard .lqid{border-color:#d5dee7}
+#lqCard .lqq .lqp{color:#14212b;font-size:15px}
+#lqCard label,#lqCard .lqfld label{font-size:12px;color:#33475a}
+#lqCard h3.lqsec,.lqsheet h2{font-size:12.5px;letter-spacing:.8px;color:#0b3d61}
+#lqCard span[style*="font-size:11px"]{font-size:13px !important}
+
+/* automatic type floor */
+.clocklbl{font-size:12px}
+.badge{font-size:12px}
+.fld label{font-size:12px}
+.tile .name{font-size:12px}
+.tile .band{font-size:12px}
+.chartbox .sub{font-size:12px}
+.stepchip{font-size:12px}
+th{font-size:12px}
+.sev{font-size:12px}
+.flt .chip{font-size:12px}
+.sheet h4{font-size:12px}
+.labtag{font-size:12px}
+.planbox .sub{font-size:12px}
+.rk text{font-size:12px}
+.rk text.sub{font-size:12px}
+.lbl{font-size:12px}
+.lblhot{font-size:12px}
+.probe .fl{font-size:12px}
+.cgrid{font-size:12px}
+.irow .st{font-size:12px}
+.scalelbl{font-size:12px}
+.lg{font-size:12px}
+#lqCard .lqfld label{font-size:12px}
+#lqCard h3.lqsec{font-size:12px}
+.lqsheet h2{font-size:12px}
+.planbox svg{--bg:#0b1620;--panel:#132433;--panel2:#0f1d29;--line:#4a7291;--ink:#dfeaf3;--dim:#a8c0d3;--faint:#9db6c9;--acc:#4fb3ef;--blue:#33a6e8;--ice:#cfebfc;--ok:#37c07a;--warn:#e8a33d;--stop:#e8604c;background:#0b1620;border-radius:6px}</style>
+<script id="labGuideState">(function(){var d=document.getElementById("labGuide");if(!d)return;try{if(localStorage.getItem("labGuideClosed")==="1")d.open=false;}catch(e){}d.addEventListener("toggle",function(){try{localStorage.setItem("labGuideClosed",d.open?"0":"1")}catch(e){}})})();</script>
 </body>
 </html>

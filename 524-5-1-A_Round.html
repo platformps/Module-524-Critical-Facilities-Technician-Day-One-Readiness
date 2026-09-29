@@ -6,10 +6,10 @@
 <title>GLAB 524.5.1 — Full Facility Round — UCI 2227 (Training Simulator)</title>
 <style>
   :root{
-    --bg:#0b1620; --panel:#132433; --panel2:#0f1d29; --line:#4a7291;
-    --ink:#dfeaf3; --dim:#8ba6bd; --faint:#87a3bb;
-    --blue:#33a6e8; --navy:#0079C0; --ice:#CFEBFC;
-    --ok:#37c07a; --warn:#e8a33d; --stop:#e8604c;
+    --bg:#eef2f6; --panel:#ffffff; --panel2:#f4f7fa; --line:#b9c7d4;
+    --ink:#14212b; --dim:#33475a; --faint:#4a5f72;
+    --blue:#0b63a5; --navy:#0079C0; --ice:#0b3d61;
+    --ok:#15703f; --warn:#8a5a00; --stop:#b42318;
     --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
   }
@@ -18,16 +18,16 @@
   body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
   button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;border:1px solid var(--line);
     background:var(--panel);color:var(--ink);padding:7px 13px}
-  button:hover{background:#1b3044;border-color:#2d4d68}
+  button:hover{background:#e4ebf2;border-color:#8fa8bf}
   button.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
-  button.primary:hover{background:#0a6fae}
-  button.danger{background:#4a1f1a;border-color:#6d3129;color:#ffb9ae}
+  button.primary:hover{background:#0669a8}
+  button.danger{background:#fde3df;border-color:#e39a90;color:#8f1d12}
   button:disabled{opacity:.4;cursor:not-allowed}
   select,input[type=text],input[type=number],textarea{
     font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
     border:1px solid var(--line);border-radius:5px;padding:7px 9px}
   textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45}
-  h1,h2,h3,h1,h2,h2{margin:0;font-weight:700}
+  h1,h2,h3{margin:0;font-weight:700}
   .mono{font-family:var(--mono)}
 
   /* ---------- shell ---------- */
@@ -39,21 +39,21 @@
   .sysname{color:var(--dim);font-size:12px;border-left:1px solid var(--line);padding-left:16px}
   .spacer{flex:1}
   .clock{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
-  .clocklbl{color:var(--faint);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
-  .badge{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
-    padding:4px 10px;border-radius:20px;background:#16324a;color:var(--blue);border:1px solid #23485f}
-  .badge.run{background:#123a2a;color:var(--ok);border-color:#1d5b41}
-  .badge.hold{background:#3d3220;color:var(--warn);border-color:#5c4c2e}
+  .clocklbl{color:var(--faint);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:right}
+  .badge{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    padding:4px 10px;border-radius:20px;background:#dcebf7;color:var(--blue);border:1px solid #9fc3de}
+  .badge.run{background:#dff5e8;color:var(--ok);border-color:#6fc79a}
+  .badge.hold{background:#fff1d6;color:var(--warn);border-color:#d9b46a}
 
   main{flex:1;overflow:auto;padding:18px}
   .wrap{max-width:1500px;margin:0 auto}
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px;margin-bottom:14px}
-  .card h3,.card h2{font-size:15px;margin-bottom:4px}
+  .card h3{font-size:15px;margin-bottom:4px}
   .card p{color:var(--dim);margin:0 0 14px;line-height:1.5;font-size:13px}
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
   .fld{display:flex;flex-direction:column;gap:5px}
-  .fld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .fld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .hint{font-size:12px;color:var(--faint);line-height:1.5;margin-top:10px}
 
   /* ---------- console ---------- */
@@ -64,23 +64,23 @@
   .g2{grid-template-columns:1fr 1fr}
   canvas{display:block;width:100%;height:auto}
   .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-  .stepchip{font-family:var(--mono);font-size:12px;padding:4px 9px;border-radius:4px;
+  .stepchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;
     background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
-  .stepchip.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
+  .stepchip.on{background:#dcebf7;border-color:var(--blue);color:var(--ice)}
 
   /* ---------- alarms ---------- */
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+  th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
     font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
   th:hover{color:var(--blue)}
-  td{padding:8px 10px;border-bottom:1px solid #182b3b;vertical-align:top}
+  td{padding:8px 10px;border-bottom:1px solid #d5dee7;vertical-align:top}
   .counter{font-family:var(--mono);font-size:12px;color:var(--faint)}
 
   .hidden{display:none !important}
 
   /* ---------- submission ---------- */
   .submit{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-top:14px}
-  .submit h3,.submit h2{font-size:14px;margin-bottom:3px}
+  .submit h3{font-size:14px;margin-bottom:3px}
   .submit .sub{font-size:12px;color:var(--faint);margin-bottom:13px}
   .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px}
   .result{margin-top:12px;padding:13px;border-radius:7px;font-size:13px;line-height:1.55;display:none}
@@ -92,153 +92,79 @@
     main{overflow:visible}
   }
 
-  .labtag{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+  .labtag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
     color:var(--blue);margin-bottom:8px}
   .lede{color:var(--dim);line-height:1.6;margin:0 0 26px;max-width:820px}
 
   /* ---------- additive: GLAB 524.5.1 round ---------- */
-  .toolbar button.on{background:#16324a;border-color:var(--blue);color:var(--ice)}
-  .blockmsg{background:#2a1512;border:1px solid #6d3129;border-radius:7px;
+  .toolbar button.on{background:#dcebf7;border-color:var(--blue);color:var(--ice)}
+  .blockmsg{background:#fde3df;border:1px solid #e39a90;border-radius:7px;
     padding:11px 13px;font-size:12.5px;line-height:1.55;margin-bottom:12px}
-  .okmsg{background:#12261c;border:1px solid #1d5b41;border-radius:7px;
+  .okmsg{background:#dff5e8;border:1px solid #6fc79a;border-radius:7px;
     padding:11px 13px;font-size:12.5px;line-height:1.55;margin-bottom:12px}
-  .infomsg{background:#132c3f;border:1px solid #23485f;border-radius:7px;
+  .infomsg{background:#eef6fc;border:1px solid #9fc3de;border-radius:7px;
     padding:11px 13px;font-size:12.5px;line-height:1.55;margin-bottom:12px}
   .small{font-size:12px;color:var(--dim);line-height:1.55}
-  .tiny{font-size:12px;color:var(--faint);line-height:1.5}
+  .tiny{font-size:11px;color:var(--faint);line-height:1.5}
   .stnlist{display:flex;flex-direction:column;gap:6px}
   .stnrow{display:flex;gap:11px;align-items:center;padding:8px 12px;border-radius:7px;
     border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:13px}
-  .stnrow:hover{border-color:#2f5a78}
-  .stnrow.done{border-color:#1d5b41;background:#12261c}
-  .stnrow.cur{border-color:var(--blue);background:#16324a}
+  .stnrow:hover{border-color:#8fa8bf}
+  .stnrow.done{border-color:#6fc79a;background:#dff5e8}
+  .stnrow.cur{border-color:var(--blue);background:#dcebf7}
   .stnrow.lock{opacity:.5}
   .stnrow .sn{font-family:var(--mono);color:var(--blue);font-weight:700;min-width:42px}
-  .stnrow .ss{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .stnrow .ss{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
   .readgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:12px 0}
   .readcell{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
-  .readcell .rl{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .readcell .rl{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);font-weight:700}
   .readcell .rv{font-family:var(--mono);font-size:23px;font-weight:700;margin:5px 0 3px}
-  .readcell .rh{font-size:12px;color:var(--faint);margin-bottom:8px}
+  .readcell .rh{font-size:11px;color:var(--faint);margin-bottom:8px}
   .readcell input{width:100%}
   .led{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-2px;border:1px solid #00000055}
   .led.n{background:#2f9c66;box-shadow:0 0 7px rgba(55,192,122,.65)}
-  .led.f{background:#e8a33d;box-shadow:0 0 7px rgba(232,163,61,.65)}
-  .led.a{background:#e8604c;box-shadow:0 0 7px rgba(232,96,76,.65)}
+  .led.f{background:#8a5a00;box-shadow:0 0 7px rgba(232,163,61,.65)}
+  .led.a{background:#b42318;box-shadow:0 0 7px rgba(232,96,76,.65)}
   .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin:10px 0 4px}
   .gcard{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px 15px}
-  .gcard h3,.gcard h2{font-size:13px;margin-bottom:2px}
-  .gcard .sub{font-size:12px;color:var(--faint);margin-bottom:8px}
+  .gcard h3{font-size:13px;margin-bottom:2px}
+  .gcard .sub{font-size:11px;color:var(--faint);margin-bottom:8px}
   .digit{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:1px}
   .prevbox{background:var(--panel2);border:1px solid var(--line);border-radius:7px;
     padding:9px 11px;font-size:12px;color:var(--dim);line-height:1.5;margin:9px 0}
   .fldrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:9px}
-  .tag{font-size:12px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
-  .tag.norm{background:#22303a;color:#8ba6bd}
-  .tag.dev{background:#4a3418;color:#ffc069}
-  .tag.na{background:#1c3a4f;color:#7fc4ea}
-  .tag.short{background:#4a1f1a;color:#ff8f7d}
+  .tag{font-size:10px;letter-spacing:.8px;font-weight:700;padding:3px 8px;border-radius:3px;white-space:nowrap}
+  .tag.norm{background:#e8edf2;color:#33475a}
+  .tag.dev{background:#fff1d6;color:#7a4a00}
+  .tag.na{background:#dcebf7;color:#0b5a8e}
+  .tag.short{background:#fde3df;color:#b42318}
   .thermgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
   .findrow{display:grid;grid-template-columns:2.1fr 1fr 1.6fr;gap:10px;margin-bottom:10px}
   .logscroll{max-height:44vh;overflow:auto}
   .sheetrow{display:flex;justify-content:space-between;gap:16px;padding:5px 0;
-    border-bottom:1px solid #182b3b;font-size:12.5px}
+    border-bottom:1px solid #d5dee7;font-size:12.5px}
   .sheetrow span:first-child{color:var(--faint)}
   .sheetrow span:last-child{text-align:right}
-  .sheet h4,.sheet h3{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
+  .sheet h4{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);
     font-weight:700;margin:18px 0 8px}
-  .sheet h3,.sheet h2{font-size:15px;margin-bottom:4px}
-  .kbdalt{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}
-  .kbdalt h3,.kbdalt h2{font-size:13px;margin-bottom:7px}
-  .errmsg{color:#ffb9ae;font-size:12px;line-height:1.45;margin:7px 0 0}
-  .errmsg:empty{display:none}
-  .fld .fldcap{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
-    color:var(--faint);font-weight:700;display:block}
-  /* ---------- v5 accessibility remediation (WCAG 2.2 AA) ---------- */
-  /* 2.4.1 Bypass Blocks */
-  .skip-link{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--navy);
-    color:#fff;font-weight:700;font-size:14px;padding:12px 18px;border-radius:0 0 6px 0;
-    text-decoration:none}
-  .skip-link:focus{left:0;outline:3px solid #fff;outline-offset:-3px}
-  /* text for assistive technology only */
-  .vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
-    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
-  /* 2.4.7 Focus Visible — a CSS outline does not paint reliably on shapes inside an
-     <svg>, so stroke the shape as well as outlining the box. */
-  svg [tabindex]:focus-visible,svg [role=button]:focus-visible,svg a:focus-visible{
-    outline:2px solid #4fb3ef;outline-offset:2px}
-  svg [tabindex]:focus-visible rect,svg [tabindex]:focus-visible circle,
-  svg [tabindex]:focus-visible path,svg [tabindex]:focus-visible polygon,
-  svg [tabindex]:focus-visible ellipse,svg [tabindex]:focus-visible line,
-  svg [role=button]:focus-visible rect,svg [role=button]:focus-visible circle,
-  svg [role=button]:focus-visible path,svg [role=button]:focus-visible polygon{
-    stroke:#4fb3ef!important;stroke-width:3px!important}
-  svg rect[tabindex]:focus-visible,svg circle[tabindex]:focus-visible,
-  svg path[tabindex]:focus-visible,svg polygon[tabindex]:focus-visible{
-    stroke:#4fb3ef!important;stroke-width:3px!important}
-  main:focus{outline:none}
-  /* 2.5.8 Target Size (Minimum) — 24x24 CSS px floor on every control */
-  button,[role=button],summary,.tick,.chip,.x,.nc,.docrow td,.cell{
-    min-height:24px}
-  button,[role=button],summary,.tick,.chip,.x,.nc{min-width:24px}
-  input[type=checkbox],input[type=radio]{min-width:24px;min-height:24px;
-    width:18px;height:18px;padding:3px}
-  /* 1.4.4 Resize text / 1.4.10 Reflow — release the fixed-height shell so the page
-     scrolls in one direction once text is enlarged or the viewport narrows. */
-  @media (max-width:1100px),(max-height:620px){
-    html,body{height:auto;min-height:100%;overflow:auto}
-    #app{height:auto;min-height:100vh}
-    main{overflow:visible}
-    .toolbar{position:static}
-  }
-  @media (max-width:900px){
-    /* every multi-column layout becomes a single column, so nothing is pushed
-       off the side where it cannot be scrolled to */
-    .grid,.g2,.g3,.g4,.cols,.split,.fgrid,.planwrap,.segs,.lamps,.two{
-      display:block!important}
-    .grid>*,.g2>*,.g3>*,.fgrid>*,.planwrap>*{margin-bottom:12px;max-width:100%}
-    .row,.toolbar,.navchips,.flt,.steps,header,.ph,.mline,.lkrow,.ck,.lead,.legend{
-      flex-wrap:wrap!important}
-    .pnl,.seg,.lamp,.setcard,.card,.tile,.planbox,.sheetbox,.submit,.gcard,.sectbox{
-      max-width:100%}
-    .sysname{border-left:0;padding-left:0}
-    .fld,.fld input,.fld select,.fld textarea{max-width:100%}
-    input[type=text],input[type=number],select,textarea{max-width:100%}
-    /* diagrams scale to the viewport rather than demanding sideways scrolling */
-    svg{max-width:100%;height:auto}
-    canvas{max-width:100%}
-    /* a wide data table may scroll in its own box — 1.4.10 allows that for
-       tables — and the box is focusable so a keyboard can reach the scroll */
-    .tablewrap{overflow-x:auto}
-    table{max-width:100%}
-    main{padding:12px}
-  }
-  @media (max-width:900px){
-    .fgrid,.findrow,.fldrow,.g2,.g3,.readgrid,.thermgrid{grid-template-columns:1fr!important}
-    .legend,.row,.sheetrow,.steps,.stnrow,.toolbar{flex-wrap:wrap!important}
-  }
-  /* 2.1.1 — a scrollable pane must itself be reachable by keyboard */
-  .scrollx{overflow-x:auto}
-  .scrollx:focus-visible,[data-scrollpane]:focus-visible{outline:2px solid #4fb3ef;outline-offset:2px}
-  @media print{ .skip-link{display:none!important} }
+  .sheet h3{font-size:15px;margin-bottom:4px}
 </style>
 </head>
 <body>
-<a class="skip-link" href="#main">Skip to main content</a>
 <div id="app">
 
   <header>
-    <h1 class="brand">FACILITY ROUND — SHIFT LOG</h1>
+    <div class="brand">FACILITY ROUND — SHIFT LOG</div>
     <div class="sysname">GLAB 524.5.1 &middot; UCI 2227 · objective M5.1 · Set A · TRAINING SIMULATOR — not connected to any live plant</div>
     <div class="spacer"></div>
-    <div id="statusBadge" class="badge" role="status">Ready</div>
+    <div id="statusBadge" class="badge">Ready</div>
     <div>
       <div class="clocklbl">Site time</div>
       <div class="clock mono" id="clock">--:--:--</div>
     </div>
   </header>
 
-  <div role="region" aria-label="Simulator controls" class="toolbar" id="toolbar">
+  <div class="toolbar" id="toolbar">
     <button id="btnPane_prev" class="primary">Previous round</button>
     <button id="btnPane_route">Route</button>
     <button id="btnPane_leak">Leak panel</button>
@@ -247,13 +173,14 @@
     <button id="btnPane_log">Shift log</button>
     <button id="btnPacket" title="Opens the Round Route Packet (route, check sheet) in its own window, so it can sit beside this console">Packet ↗</button>
     <span class="spacer"></span>
-    <span class="counter" id="progress" role="status" aria-live="polite" aria-atomic="true">Station 1 of 12</span>
+    <span class="counter" id="progress">Station 1 of 12</span>
     <span class="counter" id="elapsed">T+00:00</span>
     <button id="btnRestart">Restart</button>
   </div>
 
-  <main id="main" tabindex="-1">
+  <main>
     <div class="wrap">
+<details class="labguide" id="labGuide" open><summary>How to work this lab<span class="lgsub">8 steps · read this first</span></summary><div class="lgbody"><p class="lggoal"><b>What you hand in:</b> One PDF carrying a twelve-station facility round — every reading compared with the previous round — plus the leak panel, fuel and thermal checks, your findings and how you routed each one.</p><ol><li><span class="lgact"><b>Previous round</b> tab: read the whole previous record, including the note left for you, the fuel gauges, the leak panel and the infrared captures. Then tick <b>I have read the previous round record</b>.</span><span class="lgres">The route stays locked until this is signed. Write down the two or three things it tells you to watch.</span></li><li><span class="lgact"><b>Route</b> tab: the toolbar shows <i>Station 1 of 12</i>. At each station press <b>Capture</b> for each reading, compare it with the previous value shown beside it, and press <b>Complete station and log</b> to move on.</span><span class="lgres">Stations go in the same order as the previous round. A reading with nothing to compare it to is a number, not information.</span></li><li><span class="lgact">At ST01 and ST04 take the three infrared captures per connection (phase A, B, C) on the <b>Thermal</b> tab; log all three together.</span><span class="lgres">The phase-to-phase differential is the diagnosis. Screenshot the captures for questions 2 and 3.</span></li><li><span class="lgact">At the fuel farm use the <b>Fuel</b> tab: read the day tanks and bulk tank and subtract the previous readings.</span><span class="lgres">Gauge repeatability is about ±5 L on a day tank and ±60 L on the bulk tank — a difference inside that is not consumption.</span></li><li><span class="lgact">At ST11 use the <b>Leak panel</b> tab: check every segment against the previous state.</span></li><li><span class="lgact"><b>Shift log</b> tab: in <i>Findings and escalation routing</i>, for each thing you are raising pick the logged item it came from, choose whether it goes <i>now</i> or to the <i>handover</i>, and write one line. Type your name and press <b>Build submission sheet</b>.</span><span class="lgres">Leave unused rows blank.</span></li><li><span class="lgact">Scroll down to <b>Lab submission — questions and responses</b>. Type your name, cohort and date, then answer every question.</span><span class="lgres">Each question is numbered and carries its handout step (for example <i>Step 6</i>). Where a question asks for an image, use <b>Choose File</b> to attach a photo or screenshot; a caption box appears under it.</span></li><li><span class="lgact">Press <b>Build submission PDF</b>. In the print dialog choose <b>Save as PDF</b> and keep the suggested filename.</span><span class="lgres">If anything is missing, the tool lists the gaps instead of printing — fix them and press again. Upload the one PDF to the matching Canvas assignment. That single file is your submission.</span></li></ol><div class="lgdone"><b>You are finished when:</b><ul><li>The submission sheet is built and shows no gaps.</li><li>Every question in the submission panel is answered (and any requested image is attached).</li><li>You have saved the PDF and uploaded it to Canvas.</li><li>All twelve stations are completed and logged; the findings rows are filled in.</li></ul></div><div class="lgtips"><b>Good to know</b><ul><li>Your typed answers in the submission panel are saved in this browser as you type. <b>The simulator above is not</b> — if you refresh, work the simulator again before you build the PDF.</li><li><b>Packet</b> in the toolbar opens the paper documents for this lab (readable and printable there). <b>Restart</b> resets the whole simulator.</li><li>Use <b>Preview without printing</b> to check the PDF before you build it.</li><li>Stuck for more than two minutes? Ask your instructor rather than clicking around.</li></ul></div></div></details>
       <section id="roundView"></section>
     </div>
   </main>
@@ -378,27 +305,6 @@ const S={ci:SET,learner:"",t:0,running:false,timer:null,speed:12,
   pane:"prev",prevAck:false,prevAckAt:"",idx:0,draft:{},stnLog:{},leakRec:{},leakAt:{},
   fuelRec:{},thermCap:{},thermRec:{},log:[],shortcuts:0,routeMsg:"",routeMsgKind:"block",find:[{},{},{},{}],handover:"",fuelMsg:"",thermMsg:"",rkey:0,sheetBuilt:false};
 const $=id=>document.getElementById(id);
-/* --- keyboard activation for custom controls (WCAG 2.1.1, 2.4.3) ------------
-   Roles and accessible names are authored in the markup; this only binds the
-   keys and restores focus after the repaint an activation triggers. */
-function kbdActivate(rootId,selector,keyAttr){
-  const root=typeof rootId==="string"?$(rootId):rootId;
-  if(!root||root.dataset.kbdBound)return;
-  root.dataset.kbdBound="1";
-  root.addEventListener("keydown",e=>{
-    if(e.key!=="Enter"&&e.key!==" ")return;
-    const t=e.target.closest&&e.target.closest(selector);
-    if(!t)return;
-    e.preventDefault();
-    const key=keyAttr?t.getAttribute(keyAttr):null;
-    /* SVGElement has no .click(), so raise a real event that bubbles the same way */
-    t.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));
-    if(key!=null){
-      const again=document.querySelector(selector.split(",")[0].replace(/:.*$/,"")+"["+keyAttr+'="'+key+'"]');
-      if(again&&again.focus)again.focus();
-    }
-  });
-}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let V=CONFIGS[SET];
 let D=null;
@@ -480,7 +386,7 @@ function drawLeakMap(cv){
   x.fillStyle="#0d1a25"; x.fillRect(0,0,W,H);
   x.strokeStyle="#20364a"; x.lineWidth=1; x.strokeRect(10.5,10.5,W-21,H-21);
   const cols=3,rows=3, cw=(W-40)/cols, ch=(H-40)/rows;
-  const colmap={normal:"#37c07a",fault:"#e8a33d",alarm:"#e8604c"};
+  const colmap={normal:"#15703f",fault:"#8a5a00",alarm:"#b42318"};
   D.leak.forEach((z,i)=>{
     const c=i%cols, r=Math.floor(i/cols);
     const x0=20+c*cw+8, y0=20+r*ch+8, w=cw-16, h=ch-16;
@@ -526,7 +432,7 @@ function drawGauge(cv,pct){
   x.strokeStyle="#16283a";
   x.beginPath(); x.arc(cx,cy,r,Math.PI,2*Math.PI); x.stroke();
   const p=clamp(pct,0,100)/100;
-  x.strokeStyle=p<0.25?"#e8604c":(p<0.5?"#e8a33d":"#33a6e8");
+  x.strokeStyle=p<0.25?"#b42318":(p<0.5?"#8a5a00":"#0b63a5");
   x.beginPath(); x.arc(cx,cy,r,Math.PI,Math.PI+Math.PI*p); x.stroke();
   x.strokeStyle="#3c5a76"; x.lineWidth=1;
   for(let i=0;i<=4;i++){
@@ -641,7 +547,7 @@ function renderPrev(){
       <td>NORMAL</td><td class="mono">${p.leakAt}</td></tr>`).join("");
   $("panePrev").innerHTML=`
     <div class="card">
-      <h2>Previous round record — ${esc(p.by)}, ${esc(p.shift)}</h2>
+      <h3>Previous round record — ${esc(p.by)}, ${esc(p.shift)}</h3>
       <p style="margin-bottom:10px">Walked 23:20 to 00:04, same twelve stations, same order. This is the record your round is compared against. Read it before you walk, not after — a reading with nothing to compare it to is a number, not information.</p>
       <div class="infomsg" style="margin-bottom:12px"><b>Note left for the next round</b><br>${esc(p.watch)}</div>
       <div class="infomsg"><b>Plant context recorded at the end of that round</b><br>${esc(p.context)}</div>
@@ -674,11 +580,11 @@ function renderPrev(){
 function paintAck(){
   const c=$("prevAckCard"); if(!c)return;
   if(S.prevAck){
-    c.innerHTML=`<h2>Acknowledged</h2>
+    c.innerHTML=`<h3>Acknowledged</h3>
       <div class="okmsg" style="margin-top:10px;margin-bottom:0">Previous round record read and acknowledged at
         <span class="mono">${esc(S.prevAckAt)}</span>. The route is unlocked. Come back to this pane whenever you need the numbers to compare against — you will need them at the fuel gauges.</div>`;
   }else{
-    c.innerHTML=`<h2>Acknowledge before you walk</h2>
+    c.innerHTML=`<h3>Acknowledge before you walk</h3>
       <p style="margin-bottom:10px">The route is locked until this is signed. It is signed with your name and the site clock, and it appears in the log.</p>
       <button class="primary" id="btnAckPrev">I have read the previous round record</button>`;
     $("btnAckPrev").onclick=()=>{
@@ -713,7 +619,7 @@ function requiresOK(s){
 function renderRoute(){
   const el=$("paneRoute");
   if(!S.prevAck){
-    el.innerHTML=`<div class="card"><h2>The route is locked</h2>
+    el.innerHTML=`<div class="card"><h3>The route is locked</h3>
       <div class="blockmsg" style="margin-top:10px"><b>The previous round record has not been acknowledged.</b><br>
       A round is a comparison instrument: the numbers you take are read against the numbers taken last time, by the same route in the same order. Open the previous round record, read it, and acknowledge it. The route unlocks when you do.</div>
       <button class="primary" id="btnGoPrev">Open the previous round record</button></div>`;
@@ -731,7 +637,7 @@ function renderRoute(){
   const msg=S.routeMsg?`<div class="${S.routeMsgKind==='block'?'blockmsg':'infomsg'}">${S.routeMsg}</div>`:"";
   el.innerHTML=`
     <div class="card">
-      <h2>Route — twelve stations, walked in order</h2>
+      <h3>Route — twelve stations, walked in order</h3>
       <p>The order is fixed because the next shift reads this log expecting the same order. Stations open one at a time. ${S.shortcuts?"Stations opened out of order so far: <b>"+S.shortcuts+"</b>, all recorded in the log.":"No out-of-order attempts recorded."}</p>
       <div class="steps">${chips}</div>
       <div class="stnlist" style="margin-top:12px" id="stnList">${list}</div>
@@ -758,7 +664,7 @@ function renderRoute(){
 function renderStationCard(){
   const body=$("stnBody"); if(!body)return;
   if(S.idx>=STATIONS.length){
-    body.innerHTML=`<h2>Route complete</h2>
+    body.innerHTML=`<h3>Route complete</h3>
       <div class="okmsg" style="margin-top:10px">All twelve stations logged. Go to the Shift log pane, check the record reads the way you would want it to read if someone else had written it, then identify your findings and route each one.</div>
       <button class="primary" id="btnGoLog">Open the shift log</button>`;
     $("btnGoLog").onclick=()=>setPane("log");
@@ -775,7 +681,7 @@ function renderStationCard(){
       <input type="text" id="rd_${i}" aria-label="${esc(r.label)} (${esc(r.unit)}) — value you are logging" placeholder="value" value="${esc(d["r"+i]||"")}">
     </div>`).join("");
   body.innerHTML=`
-    <h2>${s.id} · ${esc(s.name)}</h2>
+    <h3>${s.id} · ${esc(s.name)}</h3>
     <p style="margin-bottom:6px">${esc(s.task)}</p>
     ${req.ok?"":'<div class="blockmsg">'+esc(req.msg)+"</div>"}
     <div class="readgrid">${cells}</div>
@@ -842,9 +748,7 @@ function renderLeak(){
     const cls=z.state==="normal"?"n":(z.state==="fault"?"f":"a");
     const rec=S.leakRec[z.id]||"";
     return `<tr><td class="mono">${z.id}</td><td>${esc(z.loc)}</td>
-      <td style="text-align:center"><span class="led ${cls}" role="img" aria-label="Panel lamp: ${
-        z.state==="normal"?"green, normal":(z.state==="fault"?"amber, cable fault":"red, alarm")
-      }"></span><span class="vh"> ${z.state==="normal"?"green — normal":(z.state==="fault"?"amber — cable fault":"red — alarm")}</span></td>
+      <td style="text-align:center"><span class="led ${cls}"></span></td>
       <td><select data-z="${z.id}" id="lk_${z.id}" aria-label="State you are recording for ${z.id} ${esc(z.loc)}" style="width:100%">
         <option value="">— not recorded —</option>
         <option value="normal" ${rec==="normal"?"selected":""}>Normal — cable healthy, no water</option>
@@ -856,9 +760,9 @@ function renderLeak(){
   const donecount=Object.keys(S.leakRec).filter(k=>S.leakRec[k]).length;
   el.innerHTML=`
     <div class="card">
-      <h2>Leak detection panel — nine sensing cable segments</h2>
+      <h3>Leak detection panel — nine sensing cable segments</h3>
       <p>The panel gives you a lamp per segment and nothing else. Read the lamp, read the legend, record the state. Record all nine, including the boring ones: a segment with no entry against it reads, to the next shift, exactly like a segment nobody walked past.</p>
-      <canvas id="leakMap" role="img" aria-label="Schematic of the nine sensing cable segments and their panel lamps. Every segment, its location and its lamp state is listed in the table below this schematic."></canvas>
+      <canvas id="leakMap"></canvas>
       <div class="legend">
         <span><span class="led n"></span> &nbsp;Green — normal. Cable healthy, no water.</span>
         <span><span class="led f"></span> &nbsp;Amber — cable fault. The sensing cable is open somewhere along the run. The zone is unmonitored. Water state unknown — the segment cannot report.</span>
@@ -896,7 +800,7 @@ function renderFuel(){
     return `<div class="gcard">
       <h3>${esc(f.name)}</h3>
       <div class="sub">Capacity ${f.cap.toLocaleString("en-GB")} ${f.unit} · gauge repeatability about ±${f.rep} ${f.unit}</div>
-      <canvas class="fg" data-id="${f.id}" data-pct="${pct.toFixed(3)}" role="img" aria-label="${esc(f.name)} level gauge, reading ${n2(pct,1)} per cent of a ${f.cap.toLocaleString("en-GB")} ${f.unit} capacity. The figure is repeated as text below the gauge."></canvas>
+      <canvas class="fg" data-id="${f.id}" data-pct="${pct.toFixed(3)}"></canvas>
       <div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 2px">
         <span class="digit">${f.now.toLocaleString("en-GB")}</span><span class="small">${f.unit} · ${n2(pct,1)} %</span>
       </div>
@@ -918,7 +822,7 @@ function renderFuel(){
   }).join("");
   el.innerHTML=`
     <div class="card">
-      <h2>Fuel gauges — two day tanks and the bulk tank</h2>
+      <h3>Fuel gauges — two day tanks and the bulk tank</h3>
       <p>Read the gauge, write down the digital value, then subtract the previous round from it. The subtraction is the whole point. A tank level on its own tells you almost nothing; a tank level against the last one tells you whether anything is leaving the site that should not be.</p>
       <div class="infomsg" style="margin-bottom:0"><b>What the plant has been doing:</b> ${esc(D.prev.context)}</div>
       ${S.fuelMsg?'<div class="blockmsg" style="margin-top:12px;margin-bottom:0">'+esc(S.fuelMsg)+"</div>":""}
@@ -956,7 +860,7 @@ function renderTherm(){
                  s:"Same instrument, same distance, same emissivity setting. The diagnostic is the difference between phases, not the absolute number."}];
   el.innerHTML=`
     <div class="card">
-      <h2>Infrared thermal captures — six assigned connections</h2>
+      <h3>Infrared thermal captures — six assigned connections</h3>
       <p>Infrared, often shortened to IR, does not tell you a connection is bad because it is warm. Everything carrying current is warm. It tells you a connection is bad because it is warmer than the two beside it doing the same work. Capture the point, read the spot temperature and the ambient, then write down the difference against the neighboring phases.</p>
       ${S.thermMsg?'<div class="blockmsg" style="margin-bottom:0">'+esc(S.thermMsg)+"</div>":""}
     </div>
@@ -966,7 +870,7 @@ function renderTherm(){
         return `<div class="gcard">
           <h3>${esc(c.ph)}</h3>
           <div class="sub">${esc(c.id)} · ambient ${n2(c.amb,1)} °C</div>
-          <canvas class="ir" data-id="${c.id}" ${cap?"":'style="display:none"'} role="img" aria-label="${cap?`Infrared capture at ${esc(c.id)}, ${esc(c.ph)}. Spot temperature ${n2(c.t,1)} degrees Celsius against an ambient of ${n2(c.amb,1)} degrees Celsius.`:`No capture taken at ${esc(c.id)} yet.`}"></canvas>
+          <canvas class="ir" data-id="${c.id}" ${cap?"":'style="display:none"'}></canvas>
           ${cap?`<div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 2px">
                   <span class="digit">${n2(c.t,1)}</span><span class="small">°C spot · ambient ${n2(c.amb,1)} °C</span></div>`
                 :`<div class="prevbox" style="text-align:center;padding:22px 10px">No capture taken at this point yet.</div>`}
@@ -985,7 +889,7 @@ function renderTherm(){
           <button data-tlog="${c.id}" ${cap?"":"disabled"} class="${rec.logged?"":"primary"}">${rec.logged?"Logged "+esc(rec.at)+" — log again":"Log this capture"}</button>
         </div>`;
       }).join("");
-      return `<div class="card"><h2>${esc(gr.t)}</h2><p>${esc(gr.s)}</p>
+      return `<div class="card"><h3>${esc(gr.t)}</h3><p>${esc(gr.s)}</p>
         <div class="thermgrid">${items}</div></div>`;
     }).join("")}`;
   el.querySelectorAll("canvas.ir").forEach(cv=>{
@@ -1053,7 +957,7 @@ function renderLog(){
   }).join("");
   el.innerHTML=`
     <div class="card">
-      <h2>Shift log — every reading, as it was taken</h2>
+      <h3>Shift log — every reading, as it was taken</h3>
       <p>${S.log.length} entries. This is the record. It is written to be read by somebody who was not here, at 07:00, in a hurry.</p>
       <div class="logscroll">
         <table><thead><tr>
@@ -1063,10 +967,10 @@ function renderLog(){
       </div>
     </div>
     <div class="submit noprint">
-      <h2>Findings and escalation routing</h2>
+      <h3>Findings and escalation routing</h3>
       <div class="sub">For each thing you are raising, pick the logged item it came from, decide whether it goes now or goes to the handover, and write one line saying what it is and why you routed it that way. Use as many rows as you need and leave the rest blank.</div>
       <div class="fld" style="margin-bottom:14px"><label for="learnerName">Your name</label>
-        <input type="text" id="learnerName" placeholder="first and last name" style="width:260px" value="${esc(S.learner||"")}" autocomplete="name"></div>
+        <input type="text" id="learnerName" placeholder="first and last name" style="width:260px" value="${esc(S.learner||"")}"></div>
       ${findRows}
       <div class="fld" style="margin:12px 0">
         <label for="hoText">Your handover sentence — what the next shift needs, in the order they need it</label>
@@ -1163,7 +1067,7 @@ function sheetHTML(){
   }).join("");
 
   return `<div class="sheet">
-    <h2>GLAB 524.5.1 — Full Facility Round · submission sheet</h2>
+    <h3>GLAB 524.5.1 — Full Facility Round · submission sheet</h3>
     ${sRow("Your name",esc(S.learner||"—"))}
     ${sRow("Completed",stampNow())}
     ${sRow("Site time at completion",fmtClock(S.t))}
@@ -1308,7 +1212,7 @@ resetRun();
   .lede{color:var(--mut);margin:0 0 16px;max-width:82ch}
   table{border-collapse:collapse;width:100%;margin:8px 0 4px}
   th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
-  th{background:var(--blue);color:#fff;font-size:12px;letter-spacing:.04em;
+  th{background:var(--blue);color:#fff;font-size:11px;letter-spacing:.04em;
      text-transform:uppercase;font-weight:600}
   .cover td:first-child{width:190px;background:var(--soft);font-weight:600}
   .fill{color:var(--mut);font-style:italic}
@@ -1318,7 +1222,7 @@ resetRun();
   .note strong{color:var(--blue)}
   .bad{border-left-color:#c8501e}
   svg{width:100%;height:auto;border:1px solid var(--line);background:#fff}
-  .foot{color:var(--mut);font-size:12px;margin-top:18px;border-top:1px solid var(--line);padding-top:8px}
+  .foot{color:var(--mut);font-size:11px;margin-top:18px;border-top:1px solid var(--line);padding-top:8px}
   code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:12px}
   .bar{max-width:1180px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;color:var(--mut);font-size:12px}
   .bar button{font:600 13px Arial;padding:7px 14px;border-radius:4px;border:0;background:var(--accent);color:#fff;cursor:pointer}
@@ -1526,51 +1430,51 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
      the persistence note says what is and is not kept.
      ========================================================================= -->
 <style id="lqStyle">
-  #lqCard{background:#132433;border:1px solid #2c4a63;border-radius:9px;
-    padding:18px 20px;margin:16px 0 40px;color:#dfeaf3;
+  #lqCard{background:#ffffff;border:1px solid #b9c7d4;border-radius:9px;
+    padding:18px 20px;margin:16px 0 40px;color:#14212b;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#dfeaf3}
-  #lqCard .lqsub{color:#a8c0d3;font-size:13px;line-height:1.5;margin:0 0 16px}
+  #lqCard h2{font-size:15px;margin:0 0 4px;font-weight:700;color:#14212b}
+  #lqCard .lqsub{color:#33475a;font-size:13px;line-height:1.5;margin:0 0 16px}
   #lqCard .lqid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
-    padding-bottom:16px;border-bottom:1px solid #2c4a63}
+    padding-bottom:16px;border-bottom:1px solid #b9c7d4}
   #lqCard .lqfld{display:flex;flex-direction:column;gap:5px}
-  #lqCard .lqfld label{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;
-    color:#9db6c9;font-weight:700}
+  #lqCard .lqfld label{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+    color:#4a5f72;font-weight:700}
   #lqCard input[type=text],#lqCard textarea{font-family:inherit;font-size:13px;
-    background:#0f1d29;color:#dfeaf3;border:1px solid #2c4a63;border-radius:5px;padding:7px 9px}
+    background:#f4f7fa;color:#14212b;border:1px solid #b9c7d4;border-radius:5px;padding:7px 9px}
   #lqCard textarea{width:100%;resize:vertical;line-height:1.45}
-  #lqCard h3.lqsec{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
-    color:#4fb3ef;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #2c4a63}
+  #lqCard h3.lqsec{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#0b63a5;font-weight:700;margin:22px 0 10px;padding-top:14px;border-top:1px solid #b9c7d4}
   #lqCard h3.lqsec:first-of-type{border-top:0;padding-top:0}
   #lqCard .lqq{margin-bottom:16px}
-  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#dfeaf3;margin:0 0 7px;
+  #lqCard .lqq .lqp{display:block;font-size:13px;line-height:1.55;color:#14212b;margin:0 0 7px;
     cursor:pointer}
-  #lqCard .lqq .lqp .qn{color:#4fb3ef;font-family:"SFMono-Regular",Consolas,monospace;
+  #lqCard .lqq .lqp .qn{color:#0b63a5;font-family:"SFMono-Regular",Consolas,monospace;
     margin-right:6px;font-weight:700}
   #lqCard .lqbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px}
   #lqCard button{font-family:inherit;font-size:13px;cursor:pointer;border-radius:5px;
-    border:1px solid #2c4a63;background:#132433;color:#dfeaf3;padding:8px 14px}
-  #lqCard button:hover{background:#20384f;border-color:#3d6485}
+    border:1px solid #b9c7d4;background:#ffffff;color:#14212b;padding:8px 14px}
+  #lqCard button:hover{background:#e4ebf2;border-color:#8fa8bf}
   #lqCard button.lqprimary{background:#0079C0;border-color:#0079C0;color:#fff;font-weight:600}
-  #lqCard button.lqprimary:hover{background:#0a6fae}
-  #lqCard .lqnote{font-size:12px;color:#9db6c9}
+  #lqCard button.lqprimary:hover{background:#0669a8}
+  #lqCard .lqnote{font-size:12px;color:#4a5f72}
   #lqCard .lqimgwrap{margin-top:7px}
-  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #2c4a63;
+  #lqCard .lqimgwrap img{max-width:100%;max-height:320px;border:1px solid #b9c7d4;
     border-radius:5px;display:block;margin-top:8px}
-  #lqCard input[type=file]{font-size:12px;color:#a8c0d3}
-  #lqCard .lqfilelbl{display:block;font-size:12px;color:#9db6c9;margin-bottom:4px}
+  #lqCard input[type=file]{font-size:12px;color:#33475a}
+  #lqCard .lqfilelbl{display:block;font-size:12px;color:#4a5f72;margin-bottom:4px}
 
   /* authored focus — the simulators author none, so this is the only visible ring.
      Deliberately global rather than scoped to #lqCard: a keyboard learner needs it
      in the simulator above as much as in the submission panel. */
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
   textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
-    outline:2px solid #4fb3ef;outline-offset:2px;border-radius:3px}
+    outline:2px solid #0b63a5;outline-offset:2px;border-radius:3px}
   @media print{ :focus-visible{outline:none!important} }
 
   /* error banner for a storage failure the learner must know about */
-  #lqStoreErr{display:none;background:#3a1c17;border:1px solid #8a3b2f;border-left:3px solid #e8604c;
-    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#ffd9d3}
+  #lqStoreErr{display:none;background:#fde3df;border:1px solid #e39a90;border-left:3px solid #b42318;
+    border-radius:7px;padding:12px 14px;margin:14px 0;font-size:12.5px;line-height:1.55;color:#8f1d12}
   #lqStoreErr b{color:#fff}
 
   /* screen-reader-only live region */
@@ -1578,25 +1482,25 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
     clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 
   /* ---- the assembled submission sheet ---- */
-  .lqsheet{background:#0f1d29;border:1px solid #2c4a63;border-radius:9px;padding:22px 24px;margin-top:18px}
-  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#dfeaf3}
-  .lqsheet .lqmeta{font-size:12px;color:#9db6c9;margin-bottom:16px}
-  .lqsheet h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#4fb3ef;
-    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #2c4a63}
-  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #22384c;font-size:12.5px}
-  .lqsheet .lqrow .k{color:#9db6c9;flex:0 0 34%}
+  .lqsheet{background:#f4f7fa;border:1px solid #b9c7d4;border-radius:9px;padding:22px 24px;margin-top:18px}
+  .lqsheet h1{font-size:17px;margin:0 0 3px;font-weight:700;color:#14212b}
+  .lqsheet .lqmeta{font-size:12px;color:#4a5f72;margin-bottom:16px}
+  .lqsheet h2{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#0b63a5;
+    font-weight:700;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #b9c7d4}
+  .lqsheet .lqrow{display:flex;gap:16px;padding:5px 0;border-bottom:1px solid #d5dee7;font-size:12.5px}
+  .lqsheet .lqrow .k{color:#4a5f72;flex:0 0 34%}
   .lqsheet .lqrow .v{flex:1;white-space:pre-wrap}
-  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22384c}
-  .lqsheet .lqa .q{font-size:12px;color:#a8c0d3;line-height:1.5;margin-bottom:6px}
-  .lqsheet .lqa .q .qn{color:#4fb3ef;margin-right:6px;font-weight:700}
+  .lqsheet .lqa{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #d5dee7}
+  .lqsheet .lqa .q{font-size:12px;color:#33475a;line-height:1.5;margin-bottom:6px}
+  .lqsheet .lqa .q .qn{color:#0b63a5;margin-right:6px;font-weight:700}
   .lqsheet .lqa .a{font-size:13px;line-height:1.55;white-space:pre-wrap}
-  .lqsheet .lqa .a.blank{color:#ff8877;font-style:italic}
-  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #2c4a63;border-radius:4px;margin-top:6px}
-  .lqsheet .lqgap{background:#2b2310;border:1px solid #6d5c38;border-radius:7px;
+  .lqsheet .lqa .a.blank{color:#b42318;font-style:italic}
+  .lqsheet .lqa img{max-width:100%;max-height:400px;border:1px solid #b9c7d4;border-radius:4px;margin-top:6px}
+  .lqsheet .lqgap{background:#fff6e0;border:1px solid #d9b46a;border-radius:7px;
     padding:12px 14px;margin:16px 0;font-size:12.5px;line-height:1.6}
-  .lqsheet .lqgap.ok{background:#123a2a;border-color:#1d5b41}
-  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #2c4a63;
-    font-size:12px;color:#a8c0d3;line-height:1.9}
+  .lqsheet .lqgap.ok{background:#dff5e8;border-color:#6fc79a}
+  .lqsheet .lqsign{margin-top:22px;padding-top:14px;border-top:1px solid #b9c7d4;
+    font-size:12px;color:#33475a;line-height:1.9}
 
   #lqPrint{display:none}
   #lqPrint .lqpage{width:100%;border-collapse:collapse}
@@ -1819,17 +1723,6 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
      +'<input type="text" id="lqName" autocomplete="name" placeholder="First and last" value="'+esc(store.name||"")+'"></div>'
    +'<div class="lqfld" style="flex:0 1 180px"><label for="lqCohort">Cohort / section</label>'
      +'<input type="text" id="lqCohort" placeholder="e.g. UCI 2227-01" value="'+esc(store.cohort||"")+'"></div>'
-   /* group-assessed labs ask for the learner's role; LQ.role turns it on */
-   +(LQ.role
-     ? '<div class="lqfld" style="flex:0 1 200px"><label for="lqRole">Your role in the group</label>'
-       +'<select id="lqRole">'
-         +'<option value="">Choose your role</option>'
-         +'<option>Isolator</option>'
-         +'<option>Verifier</option>'
-         +'<option>Recorder</option>'
-         +'<option>Safety observer</option>'
-       +'</select></div>'
-     : '')
    +'<div class="lqfld" style="flex:0 1 150px"><label for="lqDate">Date</label>'
      +'<input type="text" id="lqDate" value="'+esc(store.date||new Date().toLocaleDateString())+'"></div>'
    +'</div>';
@@ -1868,43 +1761,10 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
   card.innerHTML=html;
   host.appendChild(card);
 
-  /* ---------- 3.3.7 Redundant Entry ----------------------------------------
-     A learner should type their name once. Any field that asks for the same
-     thing — marked autocomplete="name" — is kept in step with the submission
-     panel's. Delegated from the document, so a repainted pane still works. */
-  var _syncing=false;
-  var _nameFields=function(){ return document.querySelectorAll('input[autocomplete="name"]'); };
-  document.addEventListener("input",function(ev){
-    var t=ev.target;
-    if(_syncing||!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
-    _syncing=true;
-    try{
-      store.name=t.value; save();
-      Array.prototype.forEach.call(_nameFields(),function(e){
-        if(e!==t&&e.value!==t.value){
-          e.value=t.value;
-          e.dispatchEvent(new Event("input",{bubbles:true}));
-        }
-      });
-    } finally { _syncing=false; }
-  },true);
-  document.addEventListener("focusin",function(ev){
-    var t=ev.target;
-    if(!t||!t.getAttribute||t.getAttribute("autocomplete")!=="name") return;
-    if(!t.value&&store.name){
-      t.value=store.name;
-      t.dispatchEvent(new Event("input",{bubbles:true}));
-    }
-  },true);
-
   /* ---------- wiring ---------- */
-  var _role=document.getElementById("lqRole");
-  if(_role) _role.value=store.role||"";
-  ["lqName","lqCohort","lqDate","lqRole"].forEach(function(id){
+  ["lqName","lqCohort","lqDate"].forEach(function(id){
     var el=document.getElementById(id);
-    if(!el) return;
-    var ev=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
-    el.oninput=ev; el.onchange=ev;
+    el.oninput=function(){ store[id.replace("lq","").toLowerCase()]=el.value; save(); };
   });
   qs.forEach(function(it,i){
     var id="lqQ"+i, ta=document.getElementById(id);
@@ -2078,12 +1938,9 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
     var name=document.getElementById("lqName").value.trim();
     var coh=document.getElementById("lqCohort").value.trim();
     var dt=document.getElementById("lqDate").value.trim();
-    var roleEl=document.getElementById("lqRole");
-    var role=roleEl?roleEl.value.trim():"";
     var gaps=[];
     if(!name) gaps.push("Your name");
     if(!coh)  gaps.push("Cohort / section");
-    if(roleEl && !role) gaps.push("Your role in the group");
 
     var h=''
      +'<div class="lqsheet">'
@@ -2093,7 +1950,6 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
      +'<h2>Learner</h2>'
      +'<div class="lqrow"><span class="k">Name</span><span class="v">'+(esc(name)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Cohort / section</span><span class="v">'+(esc(coh)||"—")+'</span></div>'
-     +(roleEl?'<div class="lqrow"><span class="k">Role in the group</span><span class="v">'+(esc(role)||"—")+'</span></div>':'')
      +'<div class="lqrow"><span class="k">Date</span><span class="v">'+(esc(dt)||"—")+'</span></div>'
      +'<div class="lqrow"><span class="k">Scenario set</span><span class="v">'
        +(hasSet()?esc(setLetter()):'single set')+'</span></div>'
@@ -2216,5 +2072,125 @@ var LQ={"lab": "GLAB 524.5.1", "title": "Full Facility Round", "handout": "GLAB 
 })();
 </script>
 <!-- ===== end submission module ============================================= -->
+<style id="readability">
+/* ===== v2.3 readability layer — light page, dark screens, AA contrast, 12px floor ===== */
+:root{--bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--line:#b9c7d4;--line2:#d5dee7;
+--ink:#14212b;--dim:#33475a;--faint:#4a5f72;--acc:#0b63a5;--ok:#15703f;--warn:#8a5a00;--bad:#b42318;
+--blue:#0b63a5;--navy:#0079C0;--ice:#0b3d61;--stop:#b42318;--screen:#0b1620;--screen-line:#2c4a63}
+body{background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+input[type=text],input[type=number],textarea,select{background:#fff;color:var(--ink);border-color:#8fa8bf;font-size:14px}
+::placeholder{color:#5b6f82;opacity:1}
+button{background:#fff;color:var(--ink);border-color:#8fa8bf;font-size:14px}
+button:hover{background:#e4ebf2;border-color:#5b7a95}
+button.primary{background:#0b63a5;border-color:#0b63a5;color:#fff}
+button.primary:hover,button.modeon:hover{background:#0a5590;border-color:#0a5590;color:#fff}
+button:disabled{opacity:.55}
+:focus-visible{outline:3px solid #0b63a5;outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b63a5;outline-offset:1px}
+*{scrollbar-color:#8fa8bf #eef2f6}
+::-webkit-scrollbar-track{background:#eef2f6}::-webkit-scrollbar-thumb{background:#8fa8bf;border-color:#eef2f6}
+::selection{background:#0b63a5;color:#fff}
+/* the screens: consoles, charts and diagrams keep their dark palette */
+canvas{background:var(--screen);border-radius:6px}
+/* guide card */
+.labguide{background:#fff;border:1px solid #b9c7d4;border-left:5px solid #0b63a5;border-radius:9px;padding:0;margin:0 0 18px;color:#14212b;font-size:15px;line-height:1.55}
+.labguide>summary{cursor:pointer;list-style:none;padding:14px 18px;font-weight:700;font-size:17px;display:flex;align-items:center;gap:10px}
+.labguide>summary::-webkit-details-marker{display:none}
+.labguide>summary::before{content:"▸";display:inline-block;width:14px;color:#0b63a5;transition:transform .15s}
+.labguide[open]>summary::before{transform:rotate(90deg)}
+.labguide>summary .lgsub{font-weight:400;font-size:13px;color:#33475a;margin-left:auto}
+.labguide .lgbody{padding:0 18px 16px}
+.labguide .lggoal{margin:0 0 12px;padding:10px 12px;background:#eef6fc;border-radius:6px;color:#14212b}
+.labguide .lggoal b{color:#0b3d61}
+.labguide ol{margin:0;padding:0 0 0 30px;counter-reset:lg}
+.labguide ol li{margin:0 0 10px;padding-left:4px}
+.labguide ol li::marker{font-weight:700;color:#0b63a5}
+.labguide ol li .lgact{display:block;color:#14212b}
+.labguide ol li .lgres{display:block;color:#33475a;font-size:14px;margin-top:2px;padding-left:12px;border-left:2px solid #d5dee7}
+.labguide .lgdone{margin:14px 0 0;padding:10px 12px;background:#dff5e8;border-radius:6px}
+.labguide .lgdone b{color:#0f5f36}
+.labguide .lgdone ul,.labguide .lgtips ul{margin:6px 0 0;padding-left:20px}
+.labguide .lgdone li,.labguide .lgtips li{margin:3px 0}
+.labguide .lgtips{margin:12px 0 0;font-size:14px;color:#33475a}
+.labguide b,.labguide u{color:inherit}
+.labguide i{font-style:italic}
+@media print{.labguide{display:none}}
+
+/* 524 type floor and contrast */
+header{background:#fff;border-bottom-color:#b9c7d4}
+.brand{font-size:15px}.brand span{color:#0b63a5}
+.sysname{font-size:13px;color:#33475a;border-left-color:#b9c7d4}
+.clock{font-size:22px}.clocklbl{font-size:12px;color:#4a5f72;letter-spacing:.8px}
+.badge{font-size:12px;letter-spacing:.7px;background:#dcebf7;color:#0b3d61;border-color:#9fc3de}
+.badge.run{background:#dff5e8;color:#0f5f36;border-color:#6fc79a}
+.badge.hold{background:#fff1d6;color:#7a4a00;border-color:#d9b46a}
+.toolbar{background:#f4f7fa;border-bottom-color:#b9c7d4}
+.card{background:#fff;border-color:#b9c7d4}
+.card h3{font-size:16px}
+.card p{color:#33475a;font-size:14px}
+.fld label{font-size:12px;letter-spacing:.7px;color:#33475a}
+.hint,.note{font-size:13px;color:#4a5f72}
+.note{color:#33475a}
+.tile{background:#fff;border-color:#b9c7d4}
+.tile .name{font-size:12px;letter-spacing:.7px;color:#33475a}
+.tile .val{color:#14212b}.tile .unit{color:#33475a;font-size:14px}.tile .band{font-size:12px;color:#4a5f72}
+.tile.alarm{background:#fde3df;border-color:#b42318}.tile.alarm .val{color:#b42318}
+.tile.caution{border-color:#d9b46a;background:#fff9ec}
+.chartbox{background:#fff;border-color:#b9c7d4}
+.chartbox h3{font-size:14px}.chartbox .sub{font-size:12.5px;color:#4a5f72}
+.stepchip{font-size:12px;background:#f4f7fa;border-color:#b9c7d4;color:#33475a}
+.stepchip.on{background:#dcebf7;border-color:#0b63a5;color:#0b3d61}
+table{font-size:14px}
+th{font-size:12px;letter-spacing:.6px;color:#33475a;border-bottom-color:#b9c7d4}
+th:hover{color:#0b63a5}
+td{border-bottom-color:#d5dee7}
+tr.ack{opacity:.6}
+.sev{font-size:11.5px;letter-spacing:.5px}
+.sev.critical{background:#fde3df;color:#8f1d12}
+.sev.high{background:#fff1d6;color:#7a4a00}
+.sev.medium{background:#dcebf7;color:#0b3d61}
+.sev.low{background:#e8edf2;color:#33475a}
+.tick{border-color:#8fa8bf;background:#fff}.tick.on{background:#0b63a5;border-color:#0b63a5}
+.flt .chip{font-size:12.5px;background:#fff;border-color:#8fa8bf;color:#33475a}
+.flt .chip.on{background:#dcebf7;border-color:#0b63a5;color:#0b3d61}
+.counter{font-size:13px;color:#33475a}
+.submit{background:#fff;border-color:#b9c7d4}
+.submit h3{font-size:16px}.submit .sub{font-size:13px;color:#4a5f72}
+.result.show{background:#f4f7fa;border-color:#b9c7d4}
+.result h4{font-size:12px;color:#0b3d61}
+.result .kvr{border-bottom-color:#d5dee7;font-size:13px}
+.result .kvr span:first-child{color:#33475a}
+.result .todo{background:#fff6e0;border-color:#d9b46a;font-size:13.5px}
+.result .close{color:#33475a;font-size:13.5px}
+button.danger{background:#fde3df;border-color:#e39a90;color:#8f1d12}
+#lqCard{background:#fff;border-color:#b9c7d4;color:#14212b}
+#lqCard h2{color:#14212b;font-size:17px}
+#lqCard .lqsub{color:#33475a;font-size:14px}
+#lqCard .lqid{border-color:#d5dee7}
+#lqCard .lqq .lqp{color:#14212b;font-size:15px}
+#lqCard label,#lqCard .lqfld label{font-size:12px;color:#33475a}
+#lqCard h3.lqsec,.lqsheet h2{font-size:12.5px;letter-spacing:.8px;color:#0b3d61}
+#lqCard span[style*="font-size:11px"]{font-size:13px !important}
+
+/* automatic type floor */
+.clocklbl{font-size:12px}
+.badge{font-size:12px}
+.fld label{font-size:12px}
+.stepchip{font-size:12px}
+th{font-size:12px}
+.labtag{font-size:12px}
+.tiny{font-size:12px}
+.stnrow .ss{font-size:12px}
+.readcell .rl{font-size:12px}
+.readcell .rh{font-size:12px}
+.gcard .sub{font-size:12px}
+.tag{font-size:12px}
+.sheet h4{font-size:12px}
+.foot{font-size:12px}
+#lqCard .lqfld label{font-size:12px}
+#lqCard h3.lqsec{font-size:12px}
+.lqsheet h2{font-size:12px}
+</style>
+<script id="labGuideState">(function(){var d=document.getElementById("labGuide");if(!d)return;try{if(localStorage.getItem("labGuideClosed")==="1")d.open=false;}catch(e){}d.addEventListener("toggle",function(){try{localStorage.setItem("labGuideClosed",d.open?"0":"1")}catch(e){}})})();</script>
 </body>
 </html>
