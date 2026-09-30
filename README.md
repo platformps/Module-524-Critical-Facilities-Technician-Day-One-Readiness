@@ -282,3 +282,16 @@ Learner feedback on the labs: the instructions were vague and the colors made th
 - uses a **light, high-contrast page** (white panels, near-black text, AA-checked colors) with a 12 px type floor and 15 px body text. Where a tool shows a console, chart or diagram, that part keeps its dark "screen" look on purpose.
 
 The change is applied by `build/readability_patch.py` (with the guide text in `guides_524.py`), so it can be re-run over a regenerated set of tools. `build/test_readability.py` renders every tool headless and checks JS errors, the guide card, the type floor and contrast.
+
+## v2.4 — goals and scenario at the top (30 September 2026)
+
+Review feedback on the labs: keep the deeper electrical and mechanical instruction and the lab walkthroughs, and move each lab's goals and scenario to the top in bold or contrasting text. Every tool now:
+
+- opens on a **Goals + Scenario band** directly under the toolbar and above the *How to work this lab* card — bold white text on navy, always visible, not collapsible. It does not print, so the submission PDF is unchanged.
+- takes that wording from its own handout: the handout's *Learning Objectives* are the goals, and the first paragraph under its scenario heading is the scenario. The handout stays the single source — edit the handout, re-run the patch.
+
+Nothing else in any tool changed. Remove the block between the `GS_BRIEF` markers and each file is byte-identical to its v2.3 version: every simulator panel, packet, question and guide step is where it was.
+
+The sixteen lab handouts carry the matching change: *Learning Objectives* and a new *Scenario* heading lead the document, in bold on a shaded block between two rules; the Introduction and the numbered steps follow unchanged under *Introduction*, *Equipment/Requirements* and *Instructions*.
+
+The change is applied by `build/goals_scenario_patch.py <handouts folder> <tools folder>`. It is re-runnable (a second run changes nothing) and works on both modules. Run it last: after `regen_lq.py` and after the readability patch, because it anchors on the guide card. `build/test_goals_scenario.py` renders every tool headless and checks the band's position, weight, contrast and wording, that nothing outside the band changed, and that no handout text was lost.
