@@ -295,3 +295,15 @@ Nothing else in any tool changed. Remove the block between the `GS_BRIEF` marker
 The sixteen lab handouts carry the matching change: *Learning Objectives* and a new *Scenario* heading lead the document, in bold on a shaded block between two rules; the Introduction and the numbered steps follow unchanged under *Introduction*, *Equipment/Requirements* and *Instructions*.
 
 The change is applied by `build/goals_scenario_patch.py <handouts folder> <tools folder>`. It is re-runnable (a second run changes nothing) and works on both modules. Run it last: after `regen_lq.py` and after the readability patch, because it anchors on the guide card. `build/test_goals_scenario.py` renders every tool headless and checks the band's position, weight, contrast and wording, that nothing outside the band changed, and that no handout text was lost.
+
+## v2.5 — a wrong answer says so (30 September 2026)
+
+Learner request: when an answer is wrong, make it obvious — a sound, or the word in big letters. Both are now in the tools that check an answer.
+
+In this module that is **GLAB 524.2.1 Power Path Tracing** (`524-2-1-A / B / C`), the one lab whose tool refuses a wrong move. Clicking a device that is not a source, not connected to the current point, or already on the path now shows **WRONG** in big letters with the reason under it ("Why: That is not connected to your current point. You are at …"), and a short buzzer sounds. The box stays up until the next click or key, so there is time to read it. *Open the legend first* is a prompt, not a wrong answer, and stays as it was.
+
+- **Sound on / Sound off** is the switch in the bottom-left corner of the page. The choice is remembered in that browser.
+- The other forty tools are unchanged, byte for byte. They record judgment calls for the instructor to assess and never tell a learner right or wrong, so there is nothing for the signal to attach to — and no answer key was added to any learner file.
+- The signal does not print; the submission PDF is unchanged.
+
+Applied by `build/wrong_signal_patch.py <tools folder>` (re-runnable; run it after any regeneration). `build/test_wrong_signal.py` drives a wrong move in each tool and checks the box, the reason, the buzzer, the Sound switch and that nothing else changed.
