@@ -307,3 +307,17 @@ In this module that is **GLAB 524.2.1 Power Path Tracing** (`524-2-1-A / B / C`)
 - The signal does not print; the submission PDF is unchanged.
 
 Applied by `build/wrong_signal_patch.py <tools folder>` (re-runnable; run it after any regeneration). `build/test_wrong_signal.py` drives a wrong move in each tool and checks the box, the reason, the buzzer, the Sound switch and that nothing else changed.
+
+## v2.7 — short instructions (1 October 2026)
+
+Learner feedback: the goals and scenario are easy to spot, but the instructions under them were wordy. The long "How to work this lab" card is now a short **Steps for this lab** card, about a quarter of the reading (half in GLAB 524.1.1, which also teaches the routine).
+
+- **One line per step.** Each step says what to do and where. Press **More** on a step for the full explanation of that step, including what you should see when it works.
+- **The routine is taught once.** Saving your records, answering the questions and building the PDF are the same in every lab, so GLAB 524.1.1 spells that routine out under **Start here**, with one worked example. Every other lab has one line for it at the foot of the card.
+- **Nothing was thrown away.** **Full instructions** at the foot of the card opens the complete earlier card: every step in full, what you hand in, the finish checklist and the tips.
+- A collapsed card stays collapsed in that lab. The card does not print: the submission PDF is unchanged.
+- In GLAB 524.1.2 and 524.1.4 the "How this lab is submitted" box said the same things again, so it now sits under **Full instructions** too.
+- While the steps were being shortened, every one was walked against the live tool, and the earlier wording was corrected where it did not match. Examples: in 524.4.2 and 524.4.3 the button is **Act**, not "Do it"; in 524.5.1 readings are typed on the **Route** tab and **Capture** belongs to the **Thermal** tab; in 524.5.3 **Cite** is on the **Briefing mode** tab; in 524.1.1 noise zones are drawn by dragging.
+- The steps now point at the packet worksheets and extra fields that **Build submission sheet** asks for (524.2.1, 524.2.2, 524.2.3, 524.3.3, 524.5.1, 524.5.2).
+
+The change is applied by `build/short_guide_patch.py <tools folder>` (re-runnable, in any order with the other patches; run it after any regeneration). `build/test_short_guide.py <tools before> <tools after>` checks it. To reword a step, edit the `SHORT` table at the top of the patch and run it again.
